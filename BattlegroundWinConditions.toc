@@ -1,6 +1,6 @@
 ## Interface: 100200
 ## Title: BattlegroundWinConditions
-## Version: 8.0.2
+## Version: 8.0.3
 ## Author: RBGDEV
 ## Notes: Battleground Win Conditions
 ## X-Credits: Ajax
