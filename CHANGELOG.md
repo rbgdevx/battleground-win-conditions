@@ -1,4 +1,12 @@
-# BGWC
+# Battleground Win Conditions
+
+## [v8.0.2](https://github.com/rbgdevx/battleground-win-conditions/releases/tag/v8.0.2) (2023-12-12)
+
+- fixing orb buff timer team name color
+
+## [v8.0.1](https://github.com/rbgdevx/battleground-win-conditions/releases/tag/v8.0.1) (2023-12-12)
+
+- addon uploaded to github + curseforge
 
 ## [v7.6.19](https://wago.io/T4RgFidZB/7.6.19) (2023-12-11)
 
