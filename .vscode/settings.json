@@ -1,0 +1,12 @@
+{
+  "Lua.diagnostics.globals": [
+    "GetPlayerFactionGroup",
+    "LE_PARTY_CATEGORY_INSTANCE",
+    "LE_PARTY_CATEGORY_HOME",
+    "FACTION_ALLIANCE",
+    "FACTION_HORDE",
+    "InterfaceOptionsFrame_OpenToCategory",
+    "InterfaceOptions_AddCategory",
+    "RESET"
+  ]
+}

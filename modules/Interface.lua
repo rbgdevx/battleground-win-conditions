@@ -257,6 +257,6 @@ function Interface:CreateTestInfo()
       loseName = NS.ALLIANCE_NAME,
     },
   })
-  self:UpdateBuff(InterfaceFrame.buff, NS.ORB_BUFF_TIME, NS.getCorrectName(NS.PLAYER_FACTION, NS.PLAYER_FACTION))
+  self:UpdateBuff(InterfaceFrame.buff, NS.ORB_BUFF_TIME, NS.formatTeamName(NS.PLAYER_FACTION, NS.PLAYER_FACTION))
   self:UpdateFlagValue(InterfaceFrame.flag, NS.formatScore(NS.ALLIANCE_NAME, 85))
 end

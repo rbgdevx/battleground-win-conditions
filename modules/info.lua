@@ -179,7 +179,7 @@ do
             NS.Interface:UpdateBuff(
               NS.Interface.frame.buff,
               NS.ORB_BUFF_TIME,
-              NS.getCorrectName(NS.ALLIANCE_NAME, NS.PLAYER_FACTION)
+              NS.formatTeamName(NS.ALLIANCE_NAME, NS.PLAYER_FACTION)
             )
           end
 
@@ -187,7 +187,7 @@ do
             NS.Interface:UpdateBuff(
               NS.Interface.frame.buff,
               NS.ORB_BUFF_TIME,
-              NS.getCorrectName(NS.HORDE_NAME, NS.PLAYER_FACTION)
+              NS.formatTeamName(NS.HORDE_NAME, NS.PLAYER_FACTION)
             )
           end
 
