@@ -58,6 +58,8 @@ do
 
   function BGWC:PLAYER_LEAVING_WORLD()
     self:UnregisterEvent("PLAYER_LEAVING_WORLD")
+
+    Interface:ClearInterface()
     zoneIds[prevZone]:ExitZone()
   end
 
