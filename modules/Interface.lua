@@ -123,62 +123,73 @@ end
 
 function Interface:StopMovement()
   InterfaceFrame:SetMovable(false)
-  InterfaceFrame:EnableMouse(false)
 end
 
-function Interface:MakeMoveable()
-  InterfaceFrame:SetMovable(true)
-  InterfaceFrame:EnableMouse(true)
-  InterfaceFrame:RegisterForDrag("LeftButton")
+function Interface:StopHover()
+  InterfaceFrame:SetAlpha(1)
+  InterfaceFrame:SetScript("OnEnter", function(f)
+    f:SetAlpha(1)
+  end)
+  InterfaceFrame:SetScript("OnLeave", function(f)
+    f:SetAlpha(1)
+  end)
+end
+
+function Interface:MakeHoverable()
+  InterfaceFrame:SetAlpha(0)
   InterfaceFrame:SetScript("OnEnter", function(f)
     f:SetAlpha(1)
   end)
   InterfaceFrame:SetScript("OnLeave", function(f)
     f:SetAlpha(0)
   end)
+end
+
+function Interface:MakeMoveable()
+  InterfaceFrame:SetAlpha(1)
+  InterfaceFrame:SetMovable(true)
+  InterfaceFrame:RegisterForDrag("LeftButton")
   InterfaceFrame:SetScript("OnDragStart", function(f)
     f:StartMoving()
   end)
   InterfaceFrame:SetScript("OnDragStop", function(f)
     f:StopMovingOrSizing()
-
     local a, _, b, c, d = f:GetPoint()
     NS.db.position[1] = a
     NS.db.position[2] = b
     NS.db.position[3] = c
     NS.db.position[4] = d
   end)
-
-  InterfaceFrame:SetScript("OnMouseUp", function(_, btn)
-    if btn == "RightButton" then
-      InterfaceOptionsFrame_OpenToCategory("BG Win Conditions")
-    end
-  end)
 end
 
 function Interface:Lock()
-  Interface.frame.bg:Hide()
-  Interface.frame.header:Hide()
-
   self:StopMovement()
+  self:MakeHoverable()
 end
 
 function Interface:Unlock()
-  Interface.frame.bg:Show()
-  Interface.frame.header:Show()
-
   self:MakeMoveable()
+  self:StopHover()
 end
 
 function Interface:AddControls()
   InterfaceFrame:SetPoint(NS.db.position[1], UIParent, NS.db.position[2], NS.db.position[3], NS.db.position[4])
   InterfaceFrame:SetWidth(175)
   InterfaceFrame:SetHeight(15)
-  InterfaceFrame:SetAlpha(0)
   InterfaceFrame:SetClampedToScreen(true)
+  InterfaceFrame:EnableMouse(true)
+  InterfaceFrame:SetScript("OnMouseUp", function(_, btn)
+    if btn == "RightButton" then
+      InterfaceOptionsFrame_OpenToCategory("BG Win Conditions")
+    end
+  end)
 
-  if not NS.db.lock then
+  if NS.db.lock then
+    self:StopMovement()
+    self:MakeHoverable()
+  else
     self:MakeMoveable()
+    self:StopHover()
   end
 end
 
