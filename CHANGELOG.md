@@ -1,5 +1,9 @@
 # Battleground Win Conditions
 
+## [v8.0.6](https://github.com/rbgdevx/battleground-win-conditions/releases/tag/v8.0.6) (2023-12-16)
+
+- making sure future need info during an assault matches what you need after the bases cap over and become owned
+
 ## [v8.0.5](https://github.com/rbgdevx/battleground-win-conditions/releases/tag/v8.0.5) (2023-12-16)
 
 - removing the check for if you're in a random eots game as it produced incorrect results, and realistically we dont need to exclude eots from incoming base code because there will never trigger an incoming base on eots as that mechanism doesn't exist there, and on rated eots we always want the normal code anyways so its a win win to just remove the extra logic
