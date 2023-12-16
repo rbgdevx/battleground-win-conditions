@@ -388,9 +388,9 @@ do
         local currentHWinTime = hTicksToWin == 10000 and hTicksToWin or hTicksToWin * timeBetweenEachTick
         local currentWinTime = currentWinTicks * timeBetweenEachTick
 
-        if NS.isRandomEOTS(curMapID) then
+        if allyIncBases == 0 and hordeIncBases == 0 then
           if aTicksToWin == hTicksToWin then
-            -- print("tie 0")
+            -- print("tie 1")
           else
             local winTicks = mmin(aTicksToWin, hTicksToWin)
             winTime = winTicks * timeBetweenEachTick
@@ -445,251 +445,193 @@ do
             end
           end
         else
-          if allyIncBases == 0 and hordeIncBases == 0 then
-            if aTicksToWin == hTicksToWin then
-              -- print("tie 1")
-            else
-              local winTicks = mmin(aTicksToWin, hTicksToWin)
-              winTime = winTicks * timeBetweenEachTick
-
-              local aWins = aTicksToWin < hTicksToWin
-              local winName = aWins and NS.ALLIANCE_NAME or NS.HORDE_NAME
-              local loseName = aWins and NS.HORDE_NAME or NS.ALLIANCE_NAME
-              local winText = winName == NS.PLAYER_FACTION and "WIN" or "LOSE"
-              -- local winNoun = NS.getCorrectName(winName, NS.PLAYER_FACTION)
-              local winColor = winText == "WIN" and { r = 36, g = 126, b = 36 } or { r = 175, g = 34, b = 47 }
-              local finalAScore = aWins and maxScore or aScore + (hTicksToWin * aIncrease)
-              local finalHScore = aWins and hScore + (aTicksToWin * hIncrease) or maxScore
-              local txt = sformat("Final Score: %d - %d", finalAScore, finalHScore)
-
-              if winTime ~= prevWinTime then
-                prevWinTime = winTime
-                NS.Interface:UpdateBanner(NS.Interface.frame.banner, winTime - 0.5, winText, winColor)
+          local aBasesIncrease = 0
+          local aTimeIncrease = 0
+          local aScoreIncrease = 0
+          local previousAllianceTime = 0
+          if allyTimers and allyIncBases > 0 then
+            local allianceTimersSorted = {}
+            for key, value in pairs(allyTimers) do
+              if value and value - GetTime() > 0 then
+                table.insert(allianceTimersSorted, key)
               end
-
-              if txt ~= prevText then
-                prevText = txt
-                NS.Interface:UpdateFinalScore(NS.Interface.frame.score, finalAScore, finalHScore)
-              end
-
-              local winBases = aWins and allyBases or hordeBases
-              local loseBases = aWins and hordeBases or allyBases
-              local winScore = aWins and aScore or hScore
-              local loseScore = aWins and hScore or aScore
-
-              winTable = {}
-              for bases = loseBases + 1, numObjectives do
-                local table = NS.checkWinCondition(
-                  bases,
-                  numObjectives,
-                  winBases,
-                  loseBases,
-                  winTime,
-                  winScore,
-                  loseScore,
-                  0,
-                  0,
-                  curBaseResources,
-                  maxScore,
-                  currentWinTime,
-                  winName,
-                  loseName
-                )
-
-                for a, b in pairs(table) do
-                  winTable[a] = b
+            end
+            if #allianceTimersSorted > 1 then
+              table.sort(allianceTimersSorted, function(a, b)
+                return allyTimers[a] - GetTime() < allyTimers[b] - GetTime()
+              end)
+            end
+            for index, key in ipairs(allianceTimersSorted) do
+              if key then
+                local timeLeft = allyTimers[key] - GetTime()
+                if timeLeft and timeLeft > 0 and timeLeft < currentWinTime then
+                  local newBases = allyBases + index - 1
+                  local newTime = timeLeft - previousAllianceTime
+                  local newPoints = newTime * curBaseResources[newBases]
+                  aBasesIncrease = index
+                  aTimeIncrease = aTimeIncrease + newTime
+                  aScoreIncrease = aScoreIncrease + newPoints
+                  previousAllianceTime = timeLeft
                 end
               end
             end
+          end
+
+          local hBasesIncrease = 0
+          local hTimeIncrease = 0
+          local hScoreIncrease = 0
+          local previousHordeTime = 0
+          if hordeTimers and hordeIncBases > 0 then
+            local hordeTimersSorted = {}
+            for key, value in pairs(hordeTimers) do
+              if value and value - GetTime() > 0 then
+                table.insert(hordeTimersSorted, key)
+              end
+            end
+            if #hordeTimersSorted > 1 then
+              table.sort(hordeTimersSorted, function(a, b)
+                return hordeTimers[a] - GetTime() < hordeTimers[b] - GetTime()
+              end)
+            end
+            for index, key in ipairs(hordeTimersSorted) do
+              if key then
+                local timeLeft = hordeTimers[key] - GetTime()
+                if timeLeft and timeLeft > 0 and timeLeft < currentWinTime then
+                  local newBases = hordeBases + index - 1
+                  local newTime = timeLeft - previousHordeTime
+                  local newPoints = newTime * curBaseResources[newBases]
+                  hBasesIncrease = index
+                  hTimeIncrease = hTimeIncrease + newTime
+                  hScoreIncrease = hScoreIncrease + newPoints
+                  previousHordeTime = timeLeft
+                end
+              end
+            end
+          end
+
+          local aFutureScore = aScore
+          local newAScore = aFutureScore + aScoreIncrease
+          if newAScore < maxScore then
+            aFutureScore = newAScore
+          end
+
+          local hFutureScore = hScore
+          local newHScore = hFutureScore + hScoreIncrease
+          if newHScore < maxScore then
+            hFutureScore = newHScore
+          end
+
+          local newAllyBases = allyBases + aBasesIncrease
+          local newHordeBases = hordeBases + hBasesIncrease
+
+          if aTimeIncrease ~= 0 or hTimeIncrease ~= 0 then
+            if aTimeIncrease > hTimeIncrease then
+              local timeDifference = aTimeIncrease - hTimeIncrease
+              local scoreDifference = hFutureScore + timeDifference * curBaseResources[newHordeBases]
+              if scoreDifference < maxScore then
+                hFutureScore = scoreDifference
+              end
+            elseif hTimeIncrease > aTimeIncrease then
+              local timeDifference = hTimeIncrease - aTimeIncrease
+              local scoreDifference = aFutureScore + timeDifference * curBaseResources[newAllyBases]
+              if scoreDifference < maxScore then
+                aFutureScore = scoreDifference
+              end
+            end
+          end
+
+          if aTimeIncrease > currentWinTime then
+            aFutureScore = aScore
+          end
+
+          if hTimeIncrease > currentWinTime then
+            hFutureScore = hScore
+          end
+
+          local aFutureIncrease = curBaseResources[newAllyBases]
+          local hFutureIncrease = curBaseResources[newHordeBases]
+
+          if currentWinTime < NS.ASSAULT_TIME + NS.CONTESTED_TIME then
+            aFutureIncrease = curBaseResources[allyBases]
+            hFutureIncrease = curBaseResources[hordeBases]
+          end
+
+          local aFutureTicksToWin = NS.getWinTime(maxScore, aFutureScore, aFutureIncrease)
+          local hFutureTicksToWin = NS.getWinTime(maxScore, hFutureScore, hFutureIncrease)
+
+          if aFutureTicksToWin == hFutureTicksToWin then
+            -- print("tie 2")
           else
-            local aBasesIncrease = 0
-            local aTimeIncrease = 0
-            local aScoreIncrease = 0
-            local previousAllianceTime = 0
-            if allyTimers and allyIncBases > 0 then
-              local allianceTimersSorted = {}
-              for key, value in pairs(allyTimers) do
-                if value and value - GetTime() > 0 then
-                  table.insert(allianceTimersSorted, key)
-                end
-              end
-              if #allianceTimersSorted > 1 then
-                table.sort(allianceTimersSorted, function(a, b)
-                  return allyTimers[a] - GetTime() < allyTimers[b] - GetTime()
-                end)
-              end
-              for index, key in ipairs(allianceTimersSorted) do
-                if key then
-                  local timeLeft = allyTimers[key] - GetTime()
-                  if timeLeft and timeLeft > 0 and timeLeft < currentWinTime then
-                    local newBases = allyBases + index - 1
-                    local newTime = timeLeft - previousAllianceTime
-                    local newPoints = newTime * curBaseResources[newBases]
-                    aBasesIncrease = index
-                    aTimeIncrease = aTimeIncrease + newTime
-                    aScoreIncrease = aScoreIncrease + newPoints
-                    previousAllianceTime = timeLeft
-                  end
-                end
-              end
+            local aWins = aFutureTicksToWin < hFutureTicksToWin
+            local winTimeIncrease = aWins and aTimeIncrease or hTimeIncrease
+            local winScoreIncrease = aWins and aScoreIncrease or hScoreIncrease
+
+            local wT = mmin(aFutureTicksToWin, hFutureTicksToWin)
+            local winTicks = wT + winTimeIncrease
+
+            if allyIncBases == 0 and currentAWinTime < hFutureTicksToWin then
+              winTicks = currentAWinTime
             end
 
-            local hBasesIncrease = 0
-            local hTimeIncrease = 0
-            local hScoreIncrease = 0
-            local previousHordeTime = 0
-            if hordeTimers and hordeIncBases > 0 then
-              local hordeTimersSorted = {}
-              for key, value in pairs(hordeTimers) do
-                if value and value - GetTime() > 0 then
-                  table.insert(hordeTimersSorted, key)
-                end
-              end
-              if #hordeTimersSorted > 1 then
-                table.sort(hordeTimersSorted, function(a, b)
-                  return hordeTimers[a] - GetTime() < hordeTimers[b] - GetTime()
-                end)
-              end
-              for index, key in ipairs(hordeTimersSorted) do
-                if key then
-                  local timeLeft = hordeTimers[key] - GetTime()
-                  if timeLeft and timeLeft > 0 and timeLeft < currentWinTime then
-                    local newBases = hordeBases + index - 1
-                    local newTime = timeLeft - previousHordeTime
-                    local newPoints = newTime * curBaseResources[newBases]
-                    hBasesIncrease = index
-                    hTimeIncrease = hTimeIncrease + newTime
-                    hScoreIncrease = hScoreIncrease + newPoints
-                    previousHordeTime = timeLeft
-                  end
-                end
-              end
+            if hordeIncBases == 0 and currentHWinTime < aFutureTicksToWin then
+              winTicks = currentHWinTime
             end
 
-            local aFutureScore = aScore
-            local newAScore = aFutureScore + aScoreIncrease
-            if newAScore < maxScore then
-              aFutureScore = newAScore
-            end
+            local finalAScore = aWins and maxScore or aFutureScore + (wT * aFutureIncrease)
+            local finalHScore = aWins and hFutureScore + (wT * hFutureIncrease) or maxScore
 
-            local hFutureScore = hScore
-            local newHScore = hFutureScore + hScoreIncrease
-            if newHScore < maxScore then
-              hFutureScore = newHScore
-            end
+            local newWinBases = aWins and newAllyBases or newHordeBases
+            local newLoseBases = aWins and newHordeBases or newAllyBases
 
-            local newAllyBases = allyBases + aBasesIncrease
-            local newHordeBases = hordeBases + hBasesIncrease
-
-            if aTimeIncrease ~= 0 or hTimeIncrease ~= 0 then
-              if aTimeIncrease > hTimeIncrease then
-                local timeDifference = aTimeIncrease - hTimeIncrease
-                local scoreDifference = hFutureScore + timeDifference * curBaseResources[newHordeBases]
-                if scoreDifference < maxScore then
-                  hFutureScore = scoreDifference
-                end
-              elseif hTimeIncrease > aTimeIncrease then
-                local timeDifference = hTimeIncrease - aTimeIncrease
-                local scoreDifference = aFutureScore + timeDifference * curBaseResources[newAllyBases]
-                if scoreDifference < maxScore then
-                  aFutureScore = scoreDifference
-                end
-              end
-            end
-
-            if aTimeIncrease > currentWinTime then
-              aFutureScore = aScore
-            end
-
-            if hTimeIncrease > currentWinTime then
-              hFutureScore = hScore
-            end
-
-            local aFutureIncrease = curBaseResources[newAllyBases]
-            local hFutureIncrease = curBaseResources[newHordeBases]
+            local oldLoseBases = aWins and allyBases or hordeBases
 
             if currentWinTime < NS.ASSAULT_TIME + NS.CONTESTED_TIME then
-              aFutureIncrease = curBaseResources[allyBases]
-              hFutureIncrease = curBaseResources[hordeBases]
+              newWinBases = aWins and allyBases or hordeBases
+              newLoseBases = aWins and hordeBases or allyBases
             end
 
-            local aFutureTicksToWin = NS.getWinTime(maxScore, aFutureScore, aFutureIncrease)
-            local hFutureTicksToWin = NS.getWinTime(maxScore, hFutureScore, hFutureIncrease)
+            local winScore = aWins and aFutureScore or hFutureScore
+            local loseScore = aWins and hFutureScore or aFutureScore
+            local winName = aWins and NS.ALLIANCE_NAME or NS.HORDE_NAME
+            local loseName = aWins and NS.HORDE_NAME or NS.ALLIANCE_NAME
+            local winText = winName == NS.PLAYER_FACTION and "WIN" or "LOSE"
+            -- local winNoun = NS.getCorrectName(winName, NS.PLAYER_FACTION)
+            local winColor = winText == "WIN" and { r = 36, g = 126, b = 36 } or { r = 175, g = 34, b = 47 }
+            local txt = sformat("Final Score: %d - %d", finalAScore, finalHScore)
 
-            if aFutureTicksToWin == hFutureTicksToWin then
-              -- print("tie 2")
-            else
-              local aWins = aFutureTicksToWin < hFutureTicksToWin
-              local winTimeIncrease = aWins and aTimeIncrease or hTimeIncrease
-              local winScoreIncrease = aWins and aScoreIncrease or hScoreIncrease
+            winTime = winTicks
 
-              local wT = mmin(aFutureTicksToWin, hFutureTicksToWin)
-              local winTicks = wT + winTimeIncrease
+            NS.Interface:UpdateBanner(NS.Interface.frame.banner, winTime - 0.5, winText, winColor)
+            if winTime ~= prevFutWinTime then
+              prevFutWinTime = winTime
+            end
 
-              if allyIncBases == 0 and currentAWinTime < hFutureTicksToWin then
-                winTicks = currentAWinTime
-              end
+            NS.Interface:UpdateFinalScore(NS.Interface.frame.score, finalAScore, finalHScore)
+            if txt ~= prevFutText then
+              prevFutText = txt
+            end
 
-              if hordeIncBases == 0 and currentHWinTime < aFutureTicksToWin then
-                winTicks = currentHWinTime
-              end
+            winTable = {}
+            for bases = oldLoseBases + 1, numObjectives do
+              local table = NS.checkWinCondition(
+                bases,
+                numObjectives,
+                newWinBases,
+                newLoseBases,
+                winTime,
+                winScore,
+                loseScore,
+                winTimeIncrease,
+                winScoreIncrease,
+                curBaseResources,
+                maxScore,
+                currentWinTime,
+                winName,
+                loseName
+              )
 
-              local finalAScore = aWins and maxScore or aFutureScore + (wT * aFutureIncrease)
-              local finalHScore = aWins and hFutureScore + (wT * hFutureIncrease) or maxScore
-
-              local newWinBases = aWins and newAllyBases or newHordeBases
-              local newLoseBases = aWins and newHordeBases or newAllyBases
-
-              local oldLoseBases = aWins and allyBases or hordeBases
-
-              if currentWinTime < NS.ASSAULT_TIME + NS.CONTESTED_TIME then
-                newWinBases = aWins and allyBases or hordeBases
-                newLoseBases = aWins and hordeBases or allyBases
-              end
-
-              local winScore = aWins and aFutureScore or hFutureScore
-              local loseScore = aWins and hFutureScore or aFutureScore
-              local winName = aWins and NS.ALLIANCE_NAME or NS.HORDE_NAME
-              local loseName = aWins and NS.HORDE_NAME or NS.ALLIANCE_NAME
-              local winText = winName == NS.PLAYER_FACTION and "WIN" or "LOSE"
-              -- local winNoun = NS.getCorrectName(winName, NS.PLAYER_FACTION)
-              local winColor = winText == "WIN" and { r = 36, g = 126, b = 36 } or { r = 175, g = 34, b = 47 }
-              local txt = sformat("Final Score: %d - %d", finalAScore, finalHScore)
-
-              winTime = winTicks
-
-              NS.Interface:UpdateBanner(NS.Interface.frame.banner, winTime - 0.5, winText, winColor)
-              if winTime ~= prevFutWinTime then
-                prevFutWinTime = winTime
-              end
-
-              NS.Interface:UpdateFinalScore(NS.Interface.frame.score, finalAScore, finalHScore)
-              if txt ~= prevFutText then
-                prevFutText = txt
-              end
-
-              winTable = {}
-              for bases = oldLoseBases + 1, numObjectives do
-                local table = NS.checkWinCondition(
-                  bases,
-                  numObjectives,
-                  newWinBases,
-                  newLoseBases,
-                  winTime,
-                  winScore,
-                  loseScore,
-                  winTimeIncrease,
-                  winScoreIncrease,
-                  curBaseResources,
-                  maxScore,
-                  currentWinTime,
-                  winName,
-                  loseName
-                )
-
-                for a, b in pairs(table) do
-                  winTable[a] = b
-                end
+              for a, b in pairs(table) do
+                winTable[a] = b
               end
             end
           end
