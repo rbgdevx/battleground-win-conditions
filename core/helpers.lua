@@ -131,10 +131,10 @@ NS.checkWinCondition = function(
     local l = NS.getWinTime(maxScore, loseGapScore, resources[potentialLoseTeamBaseCount])
     local w = NS.getWinTime(maxScore, winGapScore, resources[potentialWinTeamBaseCount])
 
-    local scoreCheck = (currentWinTime < (NS.ASSAULT_TIME + NS.CONTESTED_TIME)) and winTeamScoreNow or winGapScore
+    local scoreCheck = winTeamScoreNow
 
     if l < w and scoreCheck < maxScore then
-      local ownTime = time
+      local ownTime = (currentWinTime < (NS.ASSAULT_TIME + NS.CONTESTED_TIME)) and time or time + winTimeIncrease
       local capTime = ownTime - NS.ASSAULT_TIME
       local ownScore = scoreCheck
       local capScore = ownScore - assaultScore
