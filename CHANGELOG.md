@@ -1,6 +1,13 @@
 # Battleground Win Conditions
 
+## [v8.0.5](https://github.com/rbgdevx/battleground-win-conditions/releases/tag/v8.0.5) (2023-12-16)
+
+- removing the check for if you're in a random eots game as it produced incorrect results, and realistically we dont need to exclude eots from incoming base code because there will never trigger an incoming base on eots as that mechanism doesn't exist there, and on rated eots we always want the normal code anyways so its a win win to just remove the extra logic
+
 ## [v8.0.4](https://github.com/rbgdevx/battleground-win-conditions/releases/tag/v8.0.4) (2023-12-15)
+
+- resetting game info when leaving battleground
+- update the user experience for the anchor
 
 ## [v8.0.3](https://github.com/rbgdevx/battleground-win-conditions/releases/tag/v8.0.3) (2023-12-12)
 
