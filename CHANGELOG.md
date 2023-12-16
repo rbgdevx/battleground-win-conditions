@@ -1,5 +1,7 @@
 # Battleground Win Conditions
 
+## [v8.0.4](https://github.com/rbgdevx/battleground-win-conditions/releases/tag/v8.0.4) (2023-12-15)
+
 ## [v8.0.3](https://github.com/rbgdevx/battleground-win-conditions/releases/tag/v8.0.3) (2023-12-12)
 
 - update toc

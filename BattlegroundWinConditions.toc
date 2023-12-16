@@ -1,6 +1,6 @@
 ## Interface: 100200
 ## Title: BattlegroundWinConditions
-## Version: 8.0.3
+## Version: 8.0.4
 ## Author: Ajax
 ## Notes: Battleground Win Conditions
 ## X-Flavor: Mainline
