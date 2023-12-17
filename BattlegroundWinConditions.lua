@@ -109,8 +109,7 @@ function BGWC:CHAT_MSG_ADDON(prefix, version, _, sender, ...)
   if prefix == "BGWC_VERSION" then
     local messageEx = { strsplit(";", version) }
     if messageEx[1] == "Version" then
-      print("NS.FoundNewVersion", NS.FoundNewVersion, tonumber(messageEx[2]), NS.Static_Version)
-
+      -- print("NS.FoundNewVersion", NS.FoundNewVersion, tonumber(messageEx[2]), NS.Static_Version)
       if not NS.FoundNewVersion and tonumber(messageEx[2]) > NS.Static_Version then
         local text = sformat("New version released!")
         NS.write(text)
