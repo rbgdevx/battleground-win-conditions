@@ -4,6 +4,11 @@ local Interface = NS.Interface
 local Options = {}
 NS.Options = Options
 
+local INTERFACE_CLEARED = false
+
+local next = next
+local CreateFrame = CreateFrame
+
 function Options:InitDB()
   BGWCDB = BGWCDB and next(BGWCDB) ~= nil and BGWCDB or {}
 
@@ -19,12 +24,38 @@ function Options:InitDB()
   NS.CleanupDB(BGWCDB, NS.DEFAULT_SETTINGS)
 end
 
+local function updateBanner(value)
+  if Interface.frame then
+    if value then
+      Interface:HideWinInfo()
+    else
+      if INTERFACE_CLEARED then
+        if NS.db.test then
+          Interface:CreateTestInfo()
+          INTERFACE_CLEARED = false
+        end
+      else
+        Interface:ShowWinInfo()
+      end
+    end
+  end
+end
+
 local function updateTestInfo(value)
   if Interface.frame then
     if value then
-      Interface:CreateTestInfo()
+      if NS.IN_GAME == false then
+        if NS.db.banner then
+          Interface:CreateTestBannerInfo()
+        else
+          Interface:CreateTestInfo()
+        end
+      end
     else
-      Interface:ClearInterface()
+      if NS.IN_GAME == false then
+        INTERFACE_CLEARED = true
+        Interface:ClearInterface()
+      end
     end
   end
 end
@@ -76,8 +107,11 @@ function Options:InitializeOptions()
   local cb_test = self:CreateCheckbox("test", "Show placeholder info", self.panel_main, updateTestInfo)
   cb_test:SetPoint("TOPLEFT", cb_lock, 0, -30)
 
+  local cb_banner = self:CreateCheckbox("banner", "Show banner only", self.panel_main, updateBanner)
+  cb_banner:SetPoint("TOPLEFT", cb_test, 0, -30)
+
   local btn_reset = CreateFrame("Button", nil, self.panel_main, "UIPanelButtonTemplate")
-  btn_reset:SetPoint("TOPLEFT", cb_test, 0, -40)
+  btn_reset:SetPoint("TOPLEFT", cb_banner, 0, -40)
   btn_reset:SetText(RESET)
   btn_reset:SetWidth(100)
   btn_reset:SetScript("OnClick", function()

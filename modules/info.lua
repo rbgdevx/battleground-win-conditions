@@ -9,12 +9,18 @@ InfoFrame:SetScript("OnEvent", function(self, event, ...)
 end)
 
 local pairs = pairs
+local ipairs = ipairs
+local GetTime = GetTime
+local next = next
+local type = type
 
 local sformat = string.format
 local mmin = math.min
 local mmax = math.max
 local mceil = math.ceil
 local mfloor = math.floor
+local tinsert = table.insert
+local tsort = table.sort
 
 local Timer = C_Timer.After
 local GetAreaPOIInfo = C_AreaPoiInfo.GetAreaPOIInfo
@@ -453,11 +459,11 @@ do
             local allianceTimersSorted = {}
             for key, value in pairs(allyTimers) do
               if value and value - GetTime() > 0 then
-                table.insert(allianceTimersSorted, key)
+                tinsert(allianceTimersSorted, key)
               end
             end
             if #allianceTimersSorted > 1 then
-              table.sort(allianceTimersSorted, function(a, b)
+              tsort(allianceTimersSorted, function(a, b)
                 return allyTimers[a] - GetTime() < allyTimers[b] - GetTime()
               end)
             end
@@ -485,11 +491,11 @@ do
             local hordeTimersSorted = {}
             for key, value in pairs(hordeTimers) do
               if value and value - GetTime() > 0 then
-                table.insert(hordeTimersSorted, key)
+                tinsert(hordeTimersSorted, key)
               end
             end
             if #hordeTimersSorted > 1 then
-              table.sort(hordeTimersSorted, function(a, b)
+              tsort(hordeTimersSorted, function(a, b)
                 return hordeTimers[a] - GetTime() < hordeTimers[b] - GetTime()
               end)
             end

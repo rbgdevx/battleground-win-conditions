@@ -15,6 +15,9 @@ NS.LOSE_NOUN = "They"
 NS.ASSAULT_TIME = 5
 NS.CONTESTED_TIME = 60
 NS.ORB_BUFF_TIME = 45
+NS.IN_GAME = false
+NS.IS_TEMPLE = false
+NS.IS_EOTS = false
 
 NS.dummyFrame = NS.dummyFrame or CreateFrame("Frame")
 NS.barFrameMT = NS.barFrameMT or { __index = NS.dummyFrame }
@@ -32,6 +35,7 @@ NS.DEFAULT_SETTINGS = {
   version = 8,
   lock = false,
   test = true,
+  banner = false,
   position = {
     "CENTER",
     "CENTER",
@@ -40,6 +44,6 @@ NS.DEFAULT_SETTINGS = {
   },
 }
 
-NS.Static_Version = 806
+NS.Static_Version = 807
 NS.Version = GetAddOnMetadata(AddonName, "Version")
 NS.FoundNewVersion = false

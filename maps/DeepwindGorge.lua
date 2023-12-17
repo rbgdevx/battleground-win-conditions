@@ -2,6 +2,8 @@ local _, NS = ...
 
 local mod = NS.API:NewMod()
 
+local next = next
+
 local instanceIdToMapId = {
   -- DeepwindGorge
   [2245] = {

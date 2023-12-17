@@ -2,8 +2,11 @@ local _, NS = ...
 
 local tostring = tostring
 local pairs = pairs
+local ipairs = ipairs
 local type = type
 local next = next
+local GetTime = GetTime
+local print = print
 
 local sformat = string.format
 local mfloor = math.floor

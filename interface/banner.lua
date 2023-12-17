@@ -7,6 +7,11 @@ NS.barCache = NS.barCache or {}
 local barPrototype_meta = NS.barPrototype_mt
 local barCache = NS.barCache
 
+local next = next
+local GetTime = GetTime
+local CreateFrame = CreateFrame
+local setmetatable = setmetatable
+
 local mmin = math.min
 local mmax = math.max
 
