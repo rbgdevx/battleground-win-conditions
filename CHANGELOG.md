@@ -1,5 +1,10 @@
 # Battleground Win Conditions
 
+## [v8.0.7](https://github.com/rbgdevx/battleground-win-conditions/releases/tag/v8.0.7) (2023-12-17)
+
+- providing an option to be able to only show the win banner if desired
+- abstracting out all global functions and utils possible to local vars for performance
+
 ## [v8.0.6](https://github.com/rbgdevx/battleground-win-conditions/releases/tag/v8.0.6) (2023-12-16)
 
 - making sure future need info during an assault matches what you need after the bases cap over and become owned
