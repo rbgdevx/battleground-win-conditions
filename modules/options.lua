@@ -4,6 +4,8 @@ local Interface = NS.Interface
 local Options = {}
 NS.Options = Options
 
+local INTERFACE_CLEARED = false
+
 local next = next
 local CreateFrame = CreateFrame
 
@@ -25,15 +27,12 @@ end
 local function updateBanner(value)
   if Interface.frame then
     if value then
-      if NS.IN_GAME == false then
-        Interface:ClearWinInfo()
-      else
-        Interface:HideWinInfo()
-      end
+      Interface:HideWinInfo()
     else
-      if NS.IN_GAME == false then
+      if INTERFACE_CLEARED then
         if NS.db.test then
           Interface:CreateTestInfo()
+          INTERFACE_CLEARED = false
         end
       else
         Interface:ShowWinInfo()
@@ -54,6 +53,7 @@ local function updateTestInfo(value)
       end
     else
       if NS.IN_GAME == false then
+        INTERFACE_CLEARED = true
         Interface:ClearInterface()
       end
     end

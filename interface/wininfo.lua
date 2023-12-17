@@ -269,18 +269,16 @@ function WinInfo:Start(bar, winTable)
     bar.updater:SetScript("OnLoop", infoUpdate)
     bar.updater:Play()
 
-    if NS.db.banner == false then
-      bar:Show()
-    end
+    bar:Show()
   end
 end
 
 function WinInfo:HideInfo(bar)
-  bar:Hide()
+  bar:SetAlpha(0)
 end
 
 function WinInfo:ShowInfo(bar)
-  bar:Show()
+  bar:SetAlpha(1)
 end
 
 function WinInfo:UpdateInfo(bar, remaining, winTable)

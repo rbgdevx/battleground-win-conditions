@@ -105,17 +105,15 @@ function OrbBuffTimer:Start(bar, winTeam)
   bar.updater:SetScript("OnLoop", buffUpdate)
   bar.updater:Play()
 
-  if NS.db.banner == false then
-    bar:Show()
-  end
+  bar:Show()
 end
 
 function OrbBuffTimer:HideBuff(bar)
-  bar:Hide()
+  bar:SetAlpha(0)
 end
 
 function OrbBuffTimer:ShowBuff(bar)
-  bar:Show()
+  bar:SetAlpha(1)
 end
 
 function OrbBuffTimer:UpdateBuff(bar, remaining, winTeam)

@@ -105,11 +105,11 @@ function Interface:UpdateText(bar, txt)
 end
 
 function Interface:Hide(bar)
-  bar:Hide()
+  bar:SetAlpha(0)
 end
 
 function Interface:Show(bar)
-  bar:Show()
+  bar:SetAlpha(1)
 end
 
 function Interface:ClearAllText()
@@ -135,6 +135,9 @@ end
 
 function Interface:HideWinInfo()
   self:HideInfo(InterfaceFrame.info)
+  if NS.IN_GAME == false then
+    self:HideInfo(InterfaceFrame.buff)
+  end
   self:HideAllText()
 end
 
@@ -146,6 +149,9 @@ end
 function Interface:ShowWinInfo()
   if NS.IS_TEMPLE == false then
     self:ShowInfo(InterfaceFrame.info)
+  end
+  if NS.IN_GAME == false then
+    self:ShowInfo(InterfaceFrame.buff)
   end
   self:ShowAllText()
 end
