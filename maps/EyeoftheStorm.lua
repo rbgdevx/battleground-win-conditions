@@ -2,6 +2,8 @@ local _, NS = ...
 
 local mod = NS.API:NewMod()
 
+local next = next
+
 local instanceIdToMapId = {
   -- EyeoftheStorm
   -- only iconState 1 has flag info
@@ -48,6 +50,7 @@ local instanceIdToMapId = {
 }
 
 function mod:EnterZone(id)
+  NS.IS_EOTS = true
   NS.Info:StartBaseTracker(instanceIdToMapId[id].id, instanceIdToMapId[id].maxBases, 60)
   NS.Info:StartScoreTracker(
     instanceIdToMapId[id].id,
@@ -58,6 +61,7 @@ function mod:EnterZone(id)
 end
 
 function mod:ExitZone()
+  NS.IS_EOTS = false
   NS.Info:StopScoreTracker()
   NS.Info:StopBaseTracker()
 end

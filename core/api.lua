@@ -3,6 +3,7 @@ local _, NS = ...
 local API = {}
 NS.API = API
 
+local next = next
 local IsInRaid = IsInRaid
 local IsInGroup = IsInGroup
 local IsInGuild = IsInGuild

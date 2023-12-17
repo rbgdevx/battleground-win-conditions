@@ -15,6 +15,7 @@ NS.LOSE_NOUN = "They"
 NS.ASSAULT_TIME = 5
 NS.CONTESTED_TIME = 60
 NS.ORB_BUFF_TIME = 45
+NS.IN_GAME = false
 
 NS.dummyFrame = NS.dummyFrame or CreateFrame("Frame")
 NS.barFrameMT = NS.barFrameMT or { __index = NS.dummyFrame }
@@ -32,6 +33,7 @@ NS.DEFAULT_SETTINGS = {
   version = 8,
   lock = false,
   test = true,
+  banner = false,
   position = {
     "CENTER",
     "CENTER",

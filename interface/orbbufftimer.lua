@@ -7,6 +7,11 @@ NS.buffCache = NS.buffCache or {}
 local barPrototype_meta = NS.barPrototype_mt
 local buffCache = NS.buffCache
 
+local next = next
+local GetTime = GetTime
+local CreateFrame = CreateFrame
+local setmetatable = setmetatable
+
 local mmin = math.min
 local mmax = math.max
 
@@ -99,6 +104,17 @@ function OrbBuffTimer:Start(bar, winTeam)
 
   bar.updater:SetScript("OnLoop", buffUpdate)
   bar.updater:Play()
+
+  if NS.db.banner == false then
+    bar:Show()
+  end
+end
+
+function OrbBuffTimer:HideBuff(bar)
+  bar:Hide()
+end
+
+function OrbBuffTimer:ShowBuff(bar)
   bar:Show()
 end
 

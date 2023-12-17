@@ -2,6 +2,8 @@ local _, NS = ...
 
 local mod = NS.API:NewMod()
 
+local next = next
+
 local instanceIdToMapId = {
   -- TempleofKotmogu
   -- Points for the positions:
@@ -23,10 +25,12 @@ local instanceIdToMapId = {
 }
 
 function mod:EnterZone(id)
+  NS.IS_TEMPLE = true
   NS.Info:StartBaseTracker(instanceIdToMapId[id].id, instanceIdToMapId[id].maxBases)
 end
 
 function mod:ExitZone()
+  NS.IS_TEMPLE = false
   NS.Info:StopBaseTracker()
 end
 

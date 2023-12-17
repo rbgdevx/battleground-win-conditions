@@ -3,9 +3,12 @@ local _, NS = ...
 local Interface = {}
 NS.Interface = Interface
 
-local InterfaceFrame = CreateFrame("Frame", "BGWCInterfaceFrame", UIParent)
+local CreateFrame = CreateFrame
+local GetTime = GetTime
 
 local sformat = string.format
+
+local InterfaceFrame = CreateFrame("Frame", "BGWCInterfaceFrame", UIParent)
 
 -- IMPORTANT: don't use this more than once
 -- I removed support for creating multiple
@@ -81,32 +84,70 @@ function Interface:StopBuff(bar)
   NS.OrbBuffTimer:StopBuff(bar)
 end
 
+function Interface:HideInfo(bar)
+  NS.WinInfo:HideInfo(bar)
+end
+
+function Interface:HideBuff(bar)
+  NS.OrbBuffTimer:HideBuff(bar)
+end
+
+function Interface:ShowInfo(bar)
+  NS.WinInfo:ShowInfo(bar)
+end
+
+function Interface:ShowBuff(bar)
+  NS.OrbBuffTimer:ShowBuff(bar)
+end
+
 function Interface:UpdateText(bar, txt)
   bar:SetText(txt)
 end
 
-function Interface:ClearText(bar)
-  bar:SetText("")
+function Interface:Hide(bar)
+  bar:Hide()
+end
+
+function Interface:Show(bar)
+  bar:Show()
 end
 
 function Interface:ClearAllText()
-  self:ClearText(InterfaceFrame.score)
-  self:ClearText(InterfaceFrame.flag)
+  self:UpdateText(InterfaceFrame.score, "")
+  self:UpdateText(InterfaceFrame.flag, "")
 end
 
-function Interface:ClearInterface()
-  self:StopBanner(InterfaceFrame.banner)
+function Interface:HideAllText()
+  self:Hide(InterfaceFrame.score)
+  self:Hide(InterfaceFrame.flag)
+end
+
+function Interface:ShowAllText()
+  self:Show(InterfaceFrame.score)
+  self:Show(InterfaceFrame.flag)
+end
+
+function Interface:ClearWinInfo()
   self:StopInfo(InterfaceFrame.info)
   self:StopBuff(InterfaceFrame.buff)
   self:ClearAllText()
 end
 
-function Interface:ToggleInterface(value)
-  InterfaceFrame.banner:SetShown(value)
-  InterfaceFrame.info:SetShown(value)
-  InterfaceFrame.buff:SetShown(value)
-  InterfaceFrame.score:SetShown(value)
-  InterfaceFrame.flag:SetShown(value)
+function Interface:HideWinInfo()
+  self:HideInfo(InterfaceFrame.info)
+  self:HideAllText()
+end
+
+function Interface:ClearInterface()
+  self:StopBanner(InterfaceFrame.banner)
+  self:ClearWinInfo()
+end
+
+function Interface:ShowWinInfo()
+  if NS.IS_TEMPLE == false then
+    self:ShowInfo(InterfaceFrame.info)
+  end
+  self:ShowAllText()
 end
 
 function Interface:UpdateFinalScore(bar, aScore, hScore)
@@ -241,8 +282,11 @@ function Interface:InitializeInterface()
   NS.Interface.frame = InterfaceFrame
 end
 
-function Interface:CreateTestInfo()
+function Interface:CreateTestBannerInfo()
   self:UpdateBanner(InterfaceFrame.banner, 1500, "LOSE", { r = 0, g = 0, b = 0 })
+end
+
+function Interface:CreateTestWinInfo()
   self:UpdateFinalScore(InterfaceFrame.score, 1500, 800)
   self:UpdateInfo(InterfaceFrame.info, 1500, {
     [4] = {
@@ -270,4 +314,10 @@ function Interface:CreateTestInfo()
   })
   self:UpdateBuff(InterfaceFrame.buff, NS.ORB_BUFF_TIME, NS.formatTeamName(NS.PLAYER_FACTION, NS.PLAYER_FACTION))
   self:UpdateFlagValue(InterfaceFrame.flag, NS.formatScore(NS.ALLIANCE_NAME, 85))
+  self:ShowWinInfo()
+end
+
+function Interface:CreateTestInfo()
+  self:CreateTestBannerInfo()
+  self:CreateTestWinInfo()
 end

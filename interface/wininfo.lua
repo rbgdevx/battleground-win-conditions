@@ -7,6 +7,11 @@ NS.infoCache = NS.infoCache or {}
 local barPrototype_meta = NS.barPrototype_mt
 local infoCache = NS.infoCache
 
+local next = next
+local GetTime = GetTime
+local CreateFrame = CreateFrame
+local setmetatable = setmetatable
+
 local mmin = math.min
 local mmax = math.max
 local sformat = string.format
@@ -263,8 +268,19 @@ function WinInfo:Start(bar, winTable)
 
     bar.updater:SetScript("OnLoop", infoUpdate)
     bar.updater:Play()
-    bar:Show()
+
+    if NS.db.banner == false then
+      bar:Show()
+    end
   end
+end
+
+function WinInfo:HideInfo(bar)
+  bar:Hide()
+end
+
+function WinInfo:ShowInfo(bar)
+  bar:Show()
 end
 
 function WinInfo:UpdateInfo(bar, remaining, winTable)

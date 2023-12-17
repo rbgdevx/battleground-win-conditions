@@ -14,6 +14,7 @@ local UnitName = UnitName
 local GetRealmName = GetRealmName
 local strsplit = strsplit
 local tonumber = tonumber
+local print = print
 
 local sformat = string.format
 
@@ -50,9 +51,12 @@ do
 
   function BGWC:Enable(instanceID)
     self:RegisterEvent("PLAYER_LEAVING_WORLD")
+
     prevZone = instanceID
     Interface:ClearInterface()
     NS.PLAYER_FACTION = GetPlayerFactionGroup()
+    NS.IN_GAME = true
+
     zoneIds[instanceID]:EnterZone(instanceID)
   end
 
@@ -60,6 +64,8 @@ do
     self:UnregisterEvent("PLAYER_LEAVING_WORLD")
 
     Interface:ClearInterface()
+    NS.IN_GAME = false
+
     zoneIds[prevZone]:ExitZone()
   end
 
@@ -104,6 +110,7 @@ function BGWC:CHAT_MSG_ADDON(prefix, version, _, sender, ...)
     local messageEx = { strsplit(";", version) }
     if messageEx[1] == "Version" then
       print("NS.FoundNewVersion", NS.FoundNewVersion, tonumber(messageEx[2]), NS.Static_Version)
+
       if not NS.FoundNewVersion and tonumber(messageEx[2]) > NS.Static_Version then
         local text = sformat("New version released!")
         NS.write(text)
@@ -123,7 +130,11 @@ function BGWC:LOADING_SCREEN_DISABLED()
 
   NS.Timer(0, function() -- Timers aren't fully functional until 1 frame after loading is done
     if NS.db.test then
-      Interface:CreateTestInfo()
+      if NS.db.banner then
+        Interface:CreateTestBannerInfo()
+      else
+        Interface:CreateTestInfo()
+      end
     end
   end)
 end
