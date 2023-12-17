@@ -16,6 +16,8 @@ NS.ASSAULT_TIME = 5
 NS.CONTESTED_TIME = 60
 NS.ORB_BUFF_TIME = 45
 NS.IN_GAME = false
+NS.IS_TEMPLE = false
+NS.IS_EOTS = false
 
 NS.dummyFrame = NS.dummyFrame or CreateFrame("Frame")
 NS.barFrameMT = NS.barFrameMT or { __index = NS.dummyFrame }
