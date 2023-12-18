@@ -10,6 +10,7 @@
 ## X-Website: https://www.curseforge.com/wow/addons/battleground-win-conditions
 ## X-Curse-Project-ID: 932307
 ## X-Wago-ID: 96E7paGg
+## X-WoWI-ID: 26660
 ## DefaultState: Enabled
 ## SavedVariables: BGWCDB
 
