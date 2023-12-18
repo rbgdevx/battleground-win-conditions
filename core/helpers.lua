@@ -176,11 +176,9 @@ NS.getIncomingBaseInfo = function(timers, ownedBases, incomingBases, resources, 
         end
       end
     end
-    if #timersSorted > 1 then
-      tsort(timersSorted, function(a, b)
-        return timers[a] - GetTime() < timers[b] - GetTime()
-      end)
-    end
+    tsort(timersSorted, function(a, b)
+      return timers[a] - GetTime() < timers[b] - GetTime()
+    end)
     for index, key in ipairs(timersSorted) do
       if key then
         local timeLeft = timers[key] - GetTime()
