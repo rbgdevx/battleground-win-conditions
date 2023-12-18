@@ -258,37 +258,35 @@ do
           for k, v in pairs(objectivesStore) do
             if type(v) ~= "string" then
               -- Do nothing
-            else
-              if atlasIcons[v] == state.ALLY_CONTROLLED then
-                allyBases = allyBases + 1
+            elseif atlasIcons[v] == state.ALLY_CONTROLLED then
+              allyBases = allyBases + 1
 
-                if allyTimers[k] then
-                  allyTimers[k] = nil
-                end
-              elseif atlasIcons[v] == state.HORDE_CONTROLLED then
-                hordeBases = hordeBases + 1
+              if allyTimers[k] then
+                allyTimers[k] = nil
+              end
+            elseif atlasIcons[v] == state.HORDE_CONTROLLED then
+              hordeBases = hordeBases + 1
 
-                if hordeTimers[k] then
-                  hordeTimers[k] = nil
-                end
-              elseif atlasIcons[v] == state.ALLY_CONTESTED then
-                allyIncBases = allyIncBases + 1
+              if hordeTimers[k] then
+                hordeTimers[k] = nil
+              end
+            elseif atlasIcons[v] == state.ALLY_CONTESTED then
+              allyIncBases = allyIncBases + 1
 
-                if hordeTimers[k] then
-                  hordeTimers[k] = nil
-                end
-                if not allyTimers[k] or allyTimers[k] <= 0 then
-                  allyTimers[k] = capTime + GetTime()
-                end
-              elseif atlasIcons[v] == state.HORDE_CONTESTED then
-                hordeIncBases = hordeIncBases + 1
+              if hordeTimers[k] then
+                hordeTimers[k] = nil
+              end
+              if not allyTimers[k] or allyTimers[k] <= 0 then
+                allyTimers[k] = capTime + GetTime()
+              end
+            elseif atlasIcons[v] == state.HORDE_CONTESTED then
+              hordeIncBases = hordeIncBases + 1
 
-                if allyTimers[k] then
-                  allyTimers[k] = nil
-                end
-                if not hordeTimers[k] or hordeTimers[k] <= 0 then
-                  hordeTimers[k] = capTime + GetTime()
-                end
+              if allyTimers[k] then
+                allyTimers[k] = nil
+              end
+              if not hordeTimers[k] or hordeTimers[k] <= 0 then
+                hordeTimers[k] = capTime + GetTime()
               end
             end
           end
@@ -300,37 +298,35 @@ do
           for k, v in pairs(objectivesStore) do
             if type(v) ~= "number" then
               -- Do nothing
-            else
-              if icons[v] == state.ALLY_CONTROLLED then
-                allyBases = allyBases + 1
+            elseif icons[v] == state.ALLY_CONTROLLED then
+              allyBases = allyBases + 1
 
-                if allyTimers[k] then
-                  allyTimers[k] = nil
-                end
-              elseif icons[v] == state.HORDE_CONTROLLED then
-                hordeBases = hordeBases + 1
+              if allyTimers[k] then
+                allyTimers[k] = nil
+              end
+            elseif icons[v] == state.HORDE_CONTROLLED then
+              hordeBases = hordeBases + 1
 
-                if hordeTimers[k] then
-                  hordeTimers[k] = nil
-                end
-              elseif icons[v] == state.ALLY_CONTESTED then
-                allyIncBases = allyIncBases + 1
+              if hordeTimers[k] then
+                hordeTimers[k] = nil
+              end
+            elseif icons[v] == state.ALLY_CONTESTED then
+              allyIncBases = allyIncBases + 1
 
-                if hordeTimers[k] then
-                  hordeTimers[k] = nil
-                end
-                if allyTimers[k] == nil or (allyTimers[k] and allyTimers[k] - GetTime() <= 0) then
-                  allyTimers[k] = capTime + GetTime()
-                end
-              elseif icons[v] == state.HORDE_CONTESTED then
-                hordeIncBases = hordeIncBases + 1
+              if hordeTimers[k] then
+                hordeTimers[k] = nil
+              end
+              if allyTimers[k] == nil or (allyTimers[k] and allyTimers[k] - GetTime() <= 0) then
+                allyTimers[k] = capTime + GetTime()
+              end
+            elseif icons[v] == state.HORDE_CONTESTED then
+              hordeIncBases = hordeIncBases + 1
 
-                if allyTimers[k] then
-                  allyTimers[k] = nil
-                end
-                if hordeTimers[k] == nil or (hordeTimers[k] and hordeTimers[k] - GetTime() <= 0) then
-                  hordeTimers[k] = capTime + GetTime()
-                end
+              if allyTimers[k] then
+                allyTimers[k] = nil
+              end
+              if hordeTimers[k] == nil or (hordeTimers[k] and hordeTimers[k] - GetTime() <= 0) then
+                hordeTimers[k] = capTime + GetTime()
               end
             end
           end
