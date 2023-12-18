@@ -1,5 +1,9 @@
 # Battleground Win Conditions
 
+## [v8.0.8](https://github.com/rbgdevx/battleground-win-conditions/releases/tag/v8.0.8) (2023-12-18)
+
+- adding support for TIE games
+
 ## [v8.0.7](https://github.com/rbgdevx/battleground-win-conditions/releases/tag/v8.0.7) (2023-12-17)
 
 - providing an option to be able to only show the win banner if desired
