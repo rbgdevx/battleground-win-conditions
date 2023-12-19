@@ -7,6 +7,18 @@
     "FACTION_HORDE",
     "InterfaceOptionsFrame_OpenToCategory",
     "InterfaceOptions_AddCategory",
-    "RESET"
+    "RESET",
+    "CreateFrame",
+    "GetTime",
+    "string",
+    "UIParent",
+    "pairs",
+    "ipairs",
+    "next",
+    "type",
+    "table",
+    "C_Timer",
+    "C_AreaPoiInfo",
+    "C_UIWidgetManager"
   ]
 }
