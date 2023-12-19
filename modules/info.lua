@@ -410,6 +410,9 @@ do
 
             NS.Interface:StopInfo(NS.Interface.frame.info)
             NS.Interface:ClearAllText()
+
+            prevAIncrease, prevHIncrease = -1, -1
+            return
           else
             local winName = aWins and NS.ALLIANCE_NAME or NS.HORDE_NAME
             local loseName = aWins and NS.HORDE_NAME or NS.ALLIANCE_NAME
@@ -544,6 +547,9 @@ do
 
             NS.Interface:StopInfo(NS.Interface.frame.info)
             NS.Interface:ClearAllText()
+
+            prevAIncrease, prevHIncrease = -1, -1
+            return
           else
             local newWinBases = aWins and newAllyBases or newHordeBases
             local newLoseBases = aWins and newHordeBases or newAllyBases
