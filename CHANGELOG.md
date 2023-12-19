@@ -4,6 +4,7 @@
 
 - adding support for TIE games
 - adding WoW Interface project ID
+- update the user experience for the anchor
 
 ## [v8.0.7](https://github.com/rbgdevx/battleground-win-conditions/releases/tag/v8.0.7) (2023-12-17)
 
