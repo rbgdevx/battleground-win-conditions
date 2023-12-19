@@ -13,6 +13,8 @@ local mfloor = math.floor
 local mceil = math.ceil
 local mmin = math.min
 local wipe = table.wipe
+local tinsert = table.insert
+local tsort = table.sort
 
 local Timer = C_Timer.After
 
@@ -161,22 +163,20 @@ NS.checkWinCondition = function(
 end
 
 NS.getIncomingBaseInfo = function(timers, ownedBases, incomingBases, resources, winTime)
-  local basesIncrease = 0
+  local baseIncrease = 0
   local timeIncrease = 0
   local scoreIncrease = 0
   local previousTime = 0
-  if incomingBases > 0 then
+  if timers and incomingBases > 0 then
     local timersSorted = {}
     for key, value in pairs(timers) do
       if value then
         if value - GetTime() > 0 then
-          table.insert(timers, key)
-        else
-          timers[key] = nil
+          tinsert(timersSorted, key)
         end
       end
     end
-    table.sort(timersSorted, function(a, b)
+    tsort(timersSorted, function(a, b)
       return timers[a] - GetTime() < timers[b] - GetTime()
     end)
     for index, key in ipairs(timersSorted) do
@@ -186,7 +186,7 @@ NS.getIncomingBaseInfo = function(timers, ownedBases, incomingBases, resources, 
           local newBases = ownedBases + index - 1
           local newTime = timeLeft - previousTime
           local newPoints = newTime * resources[newBases]
-          basesIncrease = index
+          baseIncrease = index
           timeIncrease = timeIncrease + newTime
           scoreIncrease = scoreIncrease + newPoints
           previousTime = timeLeft
@@ -194,11 +194,7 @@ NS.getIncomingBaseInfo = function(timers, ownedBases, incomingBases, resources, 
       end
     end
   end
-  return {
-    basesIncrease,
-    timeIncrease,
-    scoreIncrease,
-  }
+  return baseIncrease, timeIncrease, scoreIncrease
 end
 
 NS.write = function(...)

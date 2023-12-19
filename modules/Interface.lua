@@ -173,7 +173,6 @@ function Interface:StopMovement()
 end
 
 function Interface:StopHover()
-  InterfaceFrame:SetAlpha(1)
   InterfaceFrame:SetScript("OnEnter", function(f)
     f:SetAlpha(1)
   end)
@@ -183,7 +182,6 @@ function Interface:StopHover()
 end
 
 function Interface:MakeHoverable()
-  InterfaceFrame:SetAlpha(0)
   InterfaceFrame:SetScript("OnEnter", function(f)
     f:SetAlpha(1)
   end)
@@ -193,7 +191,6 @@ function Interface:MakeHoverable()
 end
 
 function Interface:MakeMoveable()
-  InterfaceFrame:SetAlpha(1)
   InterfaceFrame:SetMovable(true)
   InterfaceFrame:RegisterForDrag("LeftButton")
   InterfaceFrame:SetScript("OnDragStart", function(f)
@@ -209,14 +206,18 @@ function Interface:MakeMoveable()
   end)
 end
 
+function Interface:ToggleShow(value)
+  InterfaceFrame:SetAlpha(value)
+end
+
 function Interface:Lock()
   self:StopMovement()
-  self:MakeHoverable()
+  self:ToggleShow(0)
 end
 
 function Interface:Unlock()
   self:MakeMoveable()
-  self:StopHover()
+  self:ToggleShow(1)
 end
 
 function Interface:AddControls()
@@ -233,10 +234,10 @@ function Interface:AddControls()
 
   if NS.db.lock then
     self:StopMovement()
-    self:MakeHoverable()
+    self:ToggleShow(0)
   else
     self:MakeMoveable()
-    self:StopHover()
+    self:ToggleShow(1)
   end
 end
 

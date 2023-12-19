@@ -16,11 +16,8 @@ local type = type
 
 local sformat = string.format
 local mmin = math.min
-local mmax = math.max
 local mceil = math.ceil
 local mfloor = math.floor
-local tinsert = table.insert
-local tsort = table.sort
 
 local Timer = C_Timer.After
 local GetAreaPOIInfo = C_AreaPoiInfo.GetAreaPOIInfo
@@ -58,59 +55,59 @@ do
     }
     local icons = {
       -- Tower/Lighthouse
-      [6] = state.NEUTRAL, -- confirmed
-      [9] = state.ALLY_CONTESTED, -- confirmed
-      [11] = state.ALLY_CONTROLLED, -- confirmed
-      [12] = state.HORDE_CONTESTED, -- confirmed
-      [10] = state.HORDE_CONTROLLED, -- confirmed
+      [6] = state.NEUTRAL,
+      [9] = state.ALLY_CONTESTED,
+      [11] = state.ALLY_CONTROLLED,
+      [12] = state.HORDE_CONTESTED,
+      [10] = state.HORDE_CONTROLLED,
       -- Mine/Quarry
-      [16] = state.NEUTRAL, -- confirmed
-      [17] = state.ALLY_CONTESTED, -- confirmed
-      [18] = state.ALLY_CONTROLLED, -- confirmed
-      [19] = state.HORDE_CONTESTED, -- confirmed
-      [20] = state.HORDE_CONTROLLED, -- confirmed
+      [16] = state.NEUTRAL,
+      [17] = state.ALLY_CONTESTED,
+      [18] = state.ALLY_CONTROLLED,
+      [19] = state.HORDE_CONTESTED,
+      [20] = state.HORDE_CONTROLLED,
       -- Lumber
-      [21] = state.NEUTRAL, -- confirmed
-      [22] = state.ALLY_CONTESTED, -- confirmed
-      [23] = state.ALLY_CONTROLLED, -- confirmed
-      [24] = state.HORDE_CONTESTED, -- confirmed
-      [25] = state.HORDE_CONTROLLED, -- confirmed
+      [21] = state.NEUTRAL,
+      [22] = state.ALLY_CONTESTED,
+      [23] = state.ALLY_CONTROLLED,
+      [24] = state.HORDE_CONTESTED,
+      [25] = state.HORDE_CONTROLLED,
       -- Blacksmith/Waterworks
-      [26] = state.NEUTRAL, -- confirmed
-      [27] = state.ALLY_CONTESTED, -- confirmed
-      [28] = state.ALLY_CONTROLLED, -- confirmed
-      [29] = state.HORDE_CONTESTED, -- confirmed
-      [30] = state.HORDE_CONTROLLED, -- confirmed
+      [26] = state.NEUTRAL,
+      [27] = state.ALLY_CONTESTED,
+      [28] = state.ALLY_CONTROLLED,
+      [29] = state.HORDE_CONTESTED,
+      [30] = state.HORDE_CONTROLLED,
       -- Farm
-      [31] = state.NEUTRAL, -- confirmed
-      [32] = state.ALLY_CONTESTED, -- confirmed
-      [33] = state.ALLY_CONTROLLED, -- confirmed
-      [34] = state.HORDE_CONTESTED, -- confirmed
-      [35] = state.HORDE_CONTROLLED, -- confirmed
+      [31] = state.NEUTRAL,
+      [32] = state.ALLY_CONTESTED,
+      [33] = state.ALLY_CONTROLLED,
+      [34] = state.HORDE_CONTESTED,
+      [35] = state.HORDE_CONTROLLED,
       -- Stables
-      [36] = state.NEUTRAL, -- confirmed
-      [37] = state.ALLY_CONTESTED, -- confirmed
-      [38] = state.ALLY_CONTROLLED, -- confirmed
-      [39] = state.HORDE_CONTESTED, -- confirmed
-      [40] = state.HORDE_CONTROLLED, -- confirmed
+      [36] = state.NEUTRAL,
+      [37] = state.ALLY_CONTESTED,
+      [38] = state.ALLY_CONTROLLED,
+      [39] = state.HORDE_CONTESTED,
+      [40] = state.HORDE_CONTROLLED,
       -- Market
-      [207] = state.NEUTRAL, -- confirmed
-      [208] = state.ALLY_CONTESTED, -- confirmed
-      [205] = state.ALLY_CONTROLLED, -- confirmed
-      [209] = state.HORDE_CONTESTED, -- confirmed
-      [206] = state.HORDE_CONTROLLED, -- confirmed
+      [207] = state.NEUTRAL,
+      [208] = state.ALLY_CONTESTED,
+      [205] = state.ALLY_CONTROLLED,
+      [209] = state.HORDE_CONTESTED,
+      [206] = state.HORDE_CONTROLLED,
       -- Ruins
-      [212] = state.NEUTRAL, -- confirmed
-      [213] = state.ALLY_CONTESTED, -- confirmed
-      [210] = state.ALLY_CONTROLLED, -- confirmed
-      [214] = state.HORDE_CONTESTED, -- confirmed
-      [211] = state.HORDE_CONTROLLED, -- confirmed
+      [212] = state.NEUTRAL,
+      [213] = state.ALLY_CONTESTED,
+      [210] = state.ALLY_CONTROLLED,
+      [214] = state.HORDE_CONTESTED,
+      [211] = state.HORDE_CONTROLLED,
       -- Shrine
-      [217] = state.NEUTRAL, -- confirmed
-      [218] = state.ALLY_CONTESTED, -- confirmed
-      [215] = state.ALLY_CONTROLLED, -- confirmed
-      [219] = state.HORDE_CONTESTED, -- confirmed
-      [216] = state.HORDE_CONTROLLED, -- confirmed
+      [217] = state.NEUTRAL,
+      [218] = state.ALLY_CONTESTED,
+      [215] = state.ALLY_CONTROLLED,
+      [219] = state.HORDE_CONTESTED,
+      [216] = state.HORDE_CONTROLLED,
     }
     local atlasIcons = {
       -- ALLY BELF
@@ -395,30 +392,43 @@ do
         local currentWinTime = currentWinTicks * timeBetweenEachTick
 
         if allyIncBases == 0 and hordeIncBases == 0 then
-          if aTicksToWin == hTicksToWin then
-            -- print("tie 1")
-          else
-            local winTicks = mmin(aTicksToWin, hTicksToWin)
-            winTime = winTicks * timeBetweenEachTick
+          local winTicks = mmin(aTicksToWin, hTicksToWin)
+          winTime = winTicks * timeBetweenEachTick
 
-            local aWins = aTicksToWin < hTicksToWin
+          local aWins = aTicksToWin < hTicksToWin
+          local finalAScore = aWins and maxScore or aScore + (hTicksToWin * aIncrease)
+          local finalHScore = aWins and hScore + (aTicksToWin * hIncrease) or maxScore
+
+          if aTicksToWin == hTicksToWin or finalAScore == finalHScore then
+            local winText = "TIE"
+            local winColor = { r = 0, g = 0, b = 0 }
+
+            NS.Interface:UpdateBanner(NS.Interface.frame.banner, winTime - 0.5, winText, winColor)
+            if winTime ~= prevWinTime then
+              prevWinTime = winTime
+            end
+
+            NS.Interface:StopInfo(NS.Interface.frame.info)
+            NS.Interface:ClearAllText()
+
+            prevAIncrease, prevHIncrease = -1, -1
+            return
+          else
             local winName = aWins and NS.ALLIANCE_NAME or NS.HORDE_NAME
             local loseName = aWins and NS.HORDE_NAME or NS.ALLIANCE_NAME
             local winText = winName == NS.PLAYER_FACTION and "WIN" or "LOSE"
             -- local winNoun = NS.getCorrectName(winName, NS.PLAYER_FACTION)
             local winColor = winText == "WIN" and { r = 36, g = 126, b = 36 } or { r = 175, g = 34, b = 47 }
-            local finalAScore = aWins and maxScore or aScore + (hTicksToWin * aIncrease)
-            local finalHScore = aWins and hScore + (aTicksToWin * hIncrease) or maxScore
             local txt = sformat("Final Score: %d - %d", finalAScore, finalHScore)
 
+            NS.Interface:UpdateBanner(NS.Interface.frame.banner, winTime - 0.5, winText, winColor)
             if winTime ~= prevWinTime then
               prevWinTime = winTime
-              NS.Interface:UpdateBanner(NS.Interface.frame.banner, winTime - 0.5, winText, winColor)
             end
 
+            NS.Interface:UpdateFinalScore(NS.Interface.frame.score, finalAScore, finalHScore)
             if txt ~= prevText then
               prevText = txt
-              NS.Interface:UpdateFinalScore(NS.Interface.frame.score, finalAScore, finalHScore)
             end
 
             local winBases = aWins and allyBases or hordeBases
@@ -451,69 +461,10 @@ do
             end
           end
         else
-          local aBasesIncrease = 0
-          local aTimeIncrease = 0
-          local aScoreIncrease = 0
-          local previousAllianceTime = 0
-          if allyTimers and allyIncBases > 0 then
-            local allianceTimersSorted = {}
-            for key, value in pairs(allyTimers) do
-              if value and value - GetTime() > 0 then
-                tinsert(allianceTimersSorted, key)
-              end
-            end
-            if #allianceTimersSorted > 1 then
-              tsort(allianceTimersSorted, function(a, b)
-                return allyTimers[a] - GetTime() < allyTimers[b] - GetTime()
-              end)
-            end
-            for index, key in ipairs(allianceTimersSorted) do
-              if key then
-                local timeLeft = allyTimers[key] - GetTime()
-                if timeLeft and timeLeft > 0 and timeLeft < currentWinTime then
-                  local newBases = allyBases + index - 1
-                  local newTime = timeLeft - previousAllianceTime
-                  local newPoints = newTime * curBaseResources[newBases]
-                  aBasesIncrease = index
-                  aTimeIncrease = aTimeIncrease + newTime
-                  aScoreIncrease = aScoreIncrease + newPoints
-                  previousAllianceTime = timeLeft
-                end
-              end
-            end
-          end
-
-          local hBasesIncrease = 0
-          local hTimeIncrease = 0
-          local hScoreIncrease = 0
-          local previousHordeTime = 0
-          if hordeTimers and hordeIncBases > 0 then
-            local hordeTimersSorted = {}
-            for key, value in pairs(hordeTimers) do
-              if value and value - GetTime() > 0 then
-                tinsert(hordeTimersSorted, key)
-              end
-            end
-            if #hordeTimersSorted > 1 then
-              tsort(hordeTimersSorted, function(a, b)
-                return hordeTimers[a] - GetTime() < hordeTimers[b] - GetTime()
-              end)
-            end
-            for index, key in ipairs(hordeTimersSorted) do
-              if key then
-                local timeLeft = hordeTimers[key] - GetTime()
-                if timeLeft and timeLeft > 0 and timeLeft < currentWinTime then
-                  local newBases = hordeBases + index - 1
-                  local newTime = timeLeft - previousHordeTime
-                  local newPoints = newTime * curBaseResources[newBases]
-                  hBasesIncrease = index
-                  hTimeIncrease = hTimeIncrease + newTime
-                  hScoreIncrease = hScoreIncrease + newPoints
-                  previousHordeTime = timeLeft
-                end
-              end
-            end
-          end
+          local aBaseIncrease, aTimeIncrease, aScoreIncrease =
+            NS.getIncomingBaseInfo(allyTimers, allyBases, allyIncBases, curBaseResources, currentWinTime)
+          local hBaseIncrease, hTimeIncrease, hScoreIncrease =
+            NS.getIncomingBaseInfo(hordeTimers, hordeBases, hordeIncBases, curBaseResources, currentWinTime)
 
           local aFutureScore = aScore
           local newAScore = aFutureScore + aScoreIncrease
@@ -527,8 +478,8 @@ do
             hFutureScore = newHScore
           end
 
-          local newAllyBases = allyBases + aBasesIncrease
-          local newHordeBases = hordeBases + hBasesIncrease
+          local newAllyBases = allyBases + aBaseIncrease
+          local newHordeBases = hordeBases + hBaseIncrease
 
           if aTimeIncrease ~= 0 or hTimeIncrease ~= 0 then
             if aTimeIncrease > hTimeIncrease then
@@ -565,37 +516,50 @@ do
           local aFutureTicksToWin = NS.getWinTime(maxScore, aFutureScore, aFutureIncrease)
           local hFutureTicksToWin = NS.getWinTime(maxScore, hFutureScore, hFutureIncrease)
 
-          if aFutureTicksToWin == hFutureTicksToWin then
-            -- print("tie 2")
+          local aWins = aFutureTicksToWin < hFutureTicksToWin
+          local winTimeIncrease = aWins and aTimeIncrease or hTimeIncrease
+          local winScoreIncrease = aWins and aScoreIncrease or hScoreIncrease
+
+          local wT = mmin(aFutureTicksToWin, hFutureTicksToWin)
+          local winTicks = wT + winTimeIncrease
+
+          if allyIncBases == 0 and currentAWinTime < hFutureTicksToWin then
+            winTicks = currentAWinTime
+          end
+
+          if hordeIncBases == 0 and currentHWinTime < aFutureTicksToWin then
+            winTicks = currentHWinTime
+          end
+
+          winTime = winTicks
+
+          local finalAScore = aWins and maxScore or aFutureScore + (wT * aFutureIncrease)
+          local finalHScore = aWins and hFutureScore + (wT * hFutureIncrease) or maxScore
+
+          if aFutureTicksToWin == hFutureTicksToWin or finalAScore == finalHScore then
+            local winText = "TIE"
+            local winColor = { r = 0, g = 0, b = 0 }
+
+            NS.Interface:UpdateBanner(NS.Interface.frame.banner, winTime - 0.5, winText, winColor)
+            if winTime ~= prevWinTime then
+              prevWinTime = winTime
+            end
+
+            NS.Interface:StopInfo(NS.Interface.frame.info)
+            NS.Interface:ClearAllText()
+
+            prevAIncrease, prevHIncrease = -1, -1
+            return
           else
-            local aWins = aFutureTicksToWin < hFutureTicksToWin
-            local winTimeIncrease = aWins and aTimeIncrease or hTimeIncrease
-            local winScoreIncrease = aWins and aScoreIncrease or hScoreIncrease
-
-            local wT = mmin(aFutureTicksToWin, hFutureTicksToWin)
-            local winTicks = wT + winTimeIncrease
-
-            if allyIncBases == 0 and currentAWinTime < hFutureTicksToWin then
-              winTicks = currentAWinTime
-            end
-
-            if hordeIncBases == 0 and currentHWinTime < aFutureTicksToWin then
-              winTicks = currentHWinTime
-            end
-
-            local finalAScore = aWins and maxScore or aFutureScore + (wT * aFutureIncrease)
-            local finalHScore = aWins and hFutureScore + (wT * hFutureIncrease) or maxScore
-
             local newWinBases = aWins and newAllyBases or newHordeBases
             local newLoseBases = aWins and newHordeBases or newAllyBases
-
-            local oldLoseBases = aWins and allyBases or hordeBases
 
             if currentWinTime < NS.ASSAULT_TIME + NS.CONTESTED_TIME then
               newWinBases = aWins and allyBases or hordeBases
               newLoseBases = aWins and hordeBases or allyBases
             end
 
+            local oldLoseBases = aWins and allyBases or hordeBases
             local winScore = aWins and aFutureScore or hFutureScore
             local loseScore = aWins and hFutureScore or aFutureScore
             local winName = aWins and NS.ALLIANCE_NAME or NS.HORDE_NAME
@@ -604,8 +568,6 @@ do
             -- local winNoun = NS.getCorrectName(winName, NS.PLAYER_FACTION)
             local winColor = winText == "WIN" and { r = 36, g = 126, b = 36 } or { r = 175, g = 34, b = 47 }
             local txt = sformat("Final Score: %d - %d", finalAScore, finalHScore)
-
-            winTime = winTicks
 
             NS.Interface:UpdateBanner(NS.Interface.frame.banner, winTime - 0.5, winText, winColor)
             if winTime ~= prevFutWinTime then

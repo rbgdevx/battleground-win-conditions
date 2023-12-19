@@ -44,6 +44,6 @@ NS.DEFAULT_SETTINGS = {
   },
 }
 
-NS.Static_Version = 807
+NS.Static_Version = 808
 NS.Version = GetAddOnMetadata(AddonName, "Version")
 NS.FoundNewVersion = false
