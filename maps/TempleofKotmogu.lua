@@ -18,7 +18,7 @@ local instanceIdToMapId = {
   -- tooltip1: "TEAM has taken the ORB"
   [998] = {
     id = 417,
-    maxBases = 4,
+    maxOrbs = 4,
     tickRate = 5,
     resourcesFromBases = {},
   },
@@ -26,12 +26,12 @@ local instanceIdToMapId = {
 
 function mod:EnterZone(id)
   NS.IS_TEMPLE = true
-  NS.Info:StartBaseTracker(instanceIdToMapId[id].id, instanceIdToMapId[id].maxBases)
+  NS.Info:StartInfoTracker(instanceIdToMapId[id].id, instanceIdToMapId[id].tickRate, {}, instanceIdToMapId[id].maxOrbs)
 end
 
 function mod:ExitZone()
   NS.IS_TEMPLE = false
-  NS.Info:StopBaseTracker()
+  NS.Info:StopInfoTracker()
 end
 
 for id in next, instanceIdToMapId do

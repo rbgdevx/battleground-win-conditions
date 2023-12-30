@@ -73,9 +73,9 @@ NS.getCorrectName = function(team, faction)
 end
 
 NS.formatTeamName = function(team, faction)
-  if team == "Alliance" then
+  if team == NS.ALLIANCE_NAME then
     return formatToAlliance(NS.getCorrectName(team, faction))
-  elseif team == "Horde" then
+  elseif team == NS.HORDE_NAME then
     return formatToHorde(NS.getCorrectName(team, faction))
   end
 end
@@ -103,10 +103,9 @@ NS.checkWinCondition = function(
   currentFutureWinTime,
   currentWinTeamScore,
   currentLoseTeamScore,
-  winTimeIncrease,
-  winScoreIncrease,
   resources,
   maxScore,
+  winTimeIncrease,
   currentWinTime,
   winName,
   loseName
@@ -117,8 +116,8 @@ NS.checkWinCondition = function(
   local potentialWinTeamBaseCount = ((bases + currentWinningTeamBaseCount) > maxBases) and maxBases - bases
     or currentWinningTeamBaseCount
 
-  local loseTeamGapScore = NS.CONTESTED_TIME * resources[currentLosingTeamBaseCount]
-  local winTeamGapScore = NS.CONTESTED_TIME * resources[potentialWinTeamBaseCount]
+  -- local loseTeamGapScore = NS.CONTESTED_TIME * resources[currentLosingTeamBaseCount]
+  -- local winTeamGapScore = NS.CONTESTED_TIME * resources[potentialWinTeamBaseCount]
   local assaultScore = NS.ASSAULT_TIME * resources[currentWinningTeamBaseCount]
 
   local timeMax = currentFutureWinTime
@@ -130,8 +129,8 @@ NS.checkWinCondition = function(
     local loseTeamScoreNow = currentLoseTeamScore + loseTeamScoreIncrease
     local winTeamScoreNow = currentWinTeamScore + winTeamScoreIncrease
 
-    local loseGapScore = loseTeamScoreNow + loseTeamGapScore
-    local winGapScore = winTeamScoreNow + winTeamGapScore
+    local loseGapScore = loseTeamScoreNow
+    local winGapScore = winTeamScoreNow
 
     local l = NS.getWinTime(maxScore, loseGapScore, resources[potentialLoseTeamBaseCount])
     local w = NS.getWinTime(maxScore, winGapScore, resources[potentialWinTeamBaseCount])
@@ -139,7 +138,7 @@ NS.checkWinCondition = function(
     local scoreCheck = winTeamScoreNow
 
     if l < w and scoreCheck < maxScore then
-      local ownTime = (currentWinTime < (NS.ASSAULT_TIME + NS.CONTESTED_TIME)) and time or time + winTimeIncrease
+      local ownTime = time + winTimeIncrease
       local capTime = ownTime - NS.ASSAULT_TIME
       local ownScore = scoreCheck
       local capScore = ownScore - assaultScore

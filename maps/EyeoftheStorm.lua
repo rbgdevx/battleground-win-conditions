@@ -51,19 +51,15 @@ local instanceIdToMapId = {
 
 function mod:EnterZone(id)
   NS.IS_EOTS = true
-  NS.Info:StartBaseTracker(instanceIdToMapId[id].id, instanceIdToMapId[id].maxBases, 60)
-  NS.Info:StartScoreTracker(
-    instanceIdToMapId[id].id,
-    instanceIdToMapId[id].resourcesFromBases,
-    instanceIdToMapId[id].tickRate,
-    instanceIdToMapId[id].resourcesFromFlags
-  )
+  NS.Info:StartInfoTracker(instanceIdToMapId[id].id, instanceIdToMapId[id].tickRate, {
+    baseResources = instanceIdToMapId[id].resourcesFromBases,
+    flagResources = instanceIdToMapId[id].resourcesFromFlags,
+  }, instanceIdToMapId[id].maxBases)
 end
 
 function mod:ExitZone()
   NS.IS_EOTS = false
-  NS.Info:StopScoreTracker()
-  NS.Info:StopBaseTracker()
+  NS.Info:StopInfoTracker()
 end
 
 for id in next, instanceIdToMapId do

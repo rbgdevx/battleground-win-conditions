@@ -4,13 +4,11 @@ local OrbBuffTimer = {}
 NS.OrbBuffTimer = OrbBuffTimer
 NS.buffCache = NS.buffCache or {}
 
-local barPrototype_meta = NS.barPrototype_mt
 local buffCache = NS.buffCache
 
 local next = next
 local GetTime = GetTime
 local CreateFrame = CreateFrame
-local setmetatable = setmetatable
 
 local mmin = math.min
 local mmax = math.max
@@ -21,37 +19,39 @@ end
 
 function OrbBuffTimer:Create(label, anchor)
   local bar = next(buffCache)
+
   if not bar then
-    local frame = CreateFrame("Frame", nil, UIParent)
-    bar = setmetatable(frame, barPrototype_meta)
+    local frame = CreateFrame("Frame", "BGWCOrbBuffTimerFrame", UIParent)
+    bar = {}
 
     bar.label = label
 
-    local text = bar:CreateFontString(nil, "ARTWORK")
+    local text = frame:CreateFontString(nil, "ARTWORK")
     text:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, 0)
     bar.text = text
 
-    local updater = bar:CreateAnimationGroup()
+    local updater = frame:CreateAnimationGroup()
     updater:SetLooping("REPEAT")
-    updater.parent = bar
+    -- updater.parent = bar
 
     local anim = updater:CreateAnimation()
     anim:SetDuration(0.04)
 
     bar.updater = updater
     bar.repeater = anim
+    bar.frame = frame
   else
     buffCache[bar] = nil
   end
 
-  bar:SetFrameStrata("MEDIUM")
-  bar:SetFrameLevel(100)
-  bar:ClearAllPoints()
-  bar:SetMovable(false)
-  bar:SetScale(1)
-  bar:SetAlpha(1)
-  bar:SetClampedToScreen(false)
-  bar:EnableMouse(false)
+  bar.frame:SetFrameStrata("MEDIUM")
+  bar.frame:SetFrameLevel(100)
+  bar.frame:ClearAllPoints()
+  bar.frame:SetMovable(false)
+  bar.frame:SetScale(1)
+  bar.frame:SetAlpha(1)
+  bar.frame:SetClampedToScreen(false)
+  bar.frame:EnableMouse(false)
 
   return bar
 end
@@ -62,8 +62,8 @@ local function stopBuff(bar)
   bar.funcs = nil
   bar.running = nil
   bar.paused = nil
-  bar:Hide()
-  bar:SetParent(UIParent)
+  bar.frame:Hide()
+  bar.frame:SetParent(UIParent)
   buffCache[bar] = true
 end
 
@@ -75,20 +75,19 @@ end
 local buffformat1 = "%s get 4x points in %s"
 local buffformat2 = "%s are earning 4x points"
 
-local function buffUpdate(updater)
-  local bar = updater.parent
+local function buffUpdate(bar, winTeam, updater)
   local t = GetTime()
   if t >= bar.exp then
     bar.updater:Stop()
     bar.running = nil
     bar.paused = nil
-    bar.text:SetFormattedText(buffformat2, bar.winTeam)
-    -- bar:Hide()
-    -- bar:SetParent(UIParent)
+    bar.text:SetFormattedText(buffformat2, winTeam)
+    -- bar.frame:Hide()
+    -- bar.frame:SetParent(UIParent)
   else
     local time = bar.exp - t
     bar.remaining = time
-    bar.text:SetFormattedText(buffformat1, bar.winTeam, NS.formatTime(time))
+    bar.text:SetFormattedText(buffformat1, winTeam, NS.formatTime(time))
   end
 end
 
@@ -98,22 +97,27 @@ function OrbBuffTimer:Start(bar, winTeam)
   bar.gap = 0
   bar.start = GetTime()
   bar.exp = bar.start + time
-  bar.winTeam = winTeam
 
-  bar.text:SetFormattedText(buffformat1, bar.winTeam, NS.formatTime(time))
+  bar.text:SetFormattedText(buffformat1, winTeam, NS.formatTime(time))
 
-  bar.updater:SetScript("OnLoop", buffUpdate)
+  bar.updater:SetScript("OnLoop", function(updater)
+    buffUpdate(bar, winTeam, updater)
+  end)
+
   bar.updater:Play()
-
-  bar:Show()
+  bar.frame:Show()
 end
 
 function OrbBuffTimer:HideBuff(bar)
-  bar:SetAlpha(0)
+  if bar.frame then
+    bar.frame:SetAlpha(0)
+  end
 end
 
 function OrbBuffTimer:ShowBuff(bar)
-  bar:SetAlpha(1)
+  if bar.frame then
+    bar.frame:SetAlpha(1)
+  end
 end
 
 function OrbBuffTimer:UpdateBuff(bar, remaining, winTeam)

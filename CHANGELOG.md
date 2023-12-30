@@ -1,5 +1,22 @@
 # Battleground Win Conditions
 
+## [v8.1.9](https://github.com/rbgdevx/battleground-win-conditions/releases/tag/v8.1.9) (2023-12-30)
+
+- fixing TIE game support
+- making sure you cant click the anchor when its set to hidden while locked
+- adding all new slash commands (see description for info)
+- major code cleanup on code warnings to make things as clean and performant as possible
+- refactoring some of the algorithm based on recent testing and bugs found to reduce code and sync mid-cap to end of cap data
+- refactoring the all of the event for base tracking, flag tracking, and score tracking to use a single event UPDATE_UI_WIDGET
+- added new support for mid-game loading where i make an initial call to get active bases by mapID instead of widgetID
+- fixed a bug related to the algorithm to ensure the correct minimum bases you need to hold
+- fixed missing variable assignments in the score trigger checks
+- clearing the interface upon joining any pvp game in order to hide it on maps that aren't yet supported or in arena
+- removed unused code and some remnants of the old ways of getting bases and handling bars
+- adding foundational code for silvershard mines, warsong gulch, and twin peaks
+- update to mod events in the new cleanup
+- making some remaining static strings config variables to be fully dynamic
+
 ## [v8.0.8](https://github.com/rbgdevx/battleground-win-conditions/releases/tag/v8.0.8) (2023-12-18)
 
 - adding support for TIE games

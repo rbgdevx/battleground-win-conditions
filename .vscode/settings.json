@@ -19,6 +19,7 @@
     "table",
     "C_Timer",
     "C_AreaPoiInfo",
-    "C_UIWidgetManager"
+    "C_UIWidgetManager",
+    "SlashCmdList"
   ]
 }

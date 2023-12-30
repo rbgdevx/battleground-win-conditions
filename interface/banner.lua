@@ -4,13 +4,11 @@ local Banner = {}
 NS.Banner = Banner
 NS.barCache = NS.barCache or {}
 
-local barPrototype_meta = NS.barPrototype_mt
 local barCache = NS.barCache
 
 local next = next
 local GetTime = GetTime
 local CreateFrame = CreateFrame
-local setmetatable = setmetatable
 
 local mmin = math.min
 local mmax = math.max
@@ -25,74 +23,75 @@ end
 
 function Banner:Create(label, width, height)
   local bar = next(barCache)
-  if not bar then
-    local frame = CreateFrame("Frame", nil, UIParent)
-    bar = setmetatable(frame, barPrototype_meta)
 
-    local bg = bar:CreateTexture(nil, "BACKGROUND")
-    bg:SetAllPoints()
-    bar.bg = bg
+  if not bar then
+    local frame = CreateFrame("Frame", "BGWCBannerFrame", UIParent)
+    bar = {}
 
     bar.label = label
 
-    local text = bar:CreateFontString(nil, "ARTWORK")
+    local bg = frame:CreateTexture(nil, "BACKGROUND")
+    bg:SetAllPoints()
+    bar.bg = bg
+
+    local text = frame:CreateFontString(nil, "ARTWORK")
     text:SetPoint("CENTER", bg, "CENTER", 0, 0)
     bar.text = text
 
-    local updater = bar:CreateAnimationGroup()
+    local updater = frame:CreateAnimationGroup()
     updater:SetLooping("REPEAT")
-    updater.parent = bar
+    -- updater.parent = bar
 
     local anim = updater:CreateAnimation()
     anim:SetDuration(0.04)
 
     bar.updater = updater
     bar.repeater = anim
+    bar.frame = frame
   else
     barCache[bar] = nil
   end
 
-  bar:SetFrameStrata("MEDIUM")
-  bar:SetFrameLevel(100)
-  bar:ClearAllPoints()
-  bar:SetWidth(width)
-  bar:SetHeight(height)
-  bar:SetMovable(false)
-  bar:SetScale(1)
-  bar:SetAlpha(1)
-  bar:SetClampedToScreen(false)
-  bar:EnableMouse(false)
+  bar.frame:SetFrameStrata("MEDIUM")
+  bar.frame:SetFrameLevel(100)
+  bar.frame:ClearAllPoints()
+  bar.frame:SetWidth(width)
+  bar.frame:SetHeight(height)
+  bar.frame:SetMovable(false)
+  bar.frame:SetScale(1)
+  bar.frame:SetAlpha(1)
+  bar.frame:SetClampedToScreen(false)
+  bar.frame:EnableMouse(false)
 
   return bar
 end
 
-local function stopBar(bar)
+local function stopBanner(bar)
   bar.updater:Stop()
   bar.data = nil
   bar.funcs = nil
   bar.running = nil
   bar.paused = nil
-  bar:Hide()
-  bar:SetParent(UIParent)
+  bar.frame:Hide()
+  bar.frame:SetParent(UIParent)
   barCache[bar] = true
 end
 
 function Banner:Stop(bar)
-  stopBar(bar)
+  stopBanner(bar)
   barCache[bar] = true
 end
 
 local bannerformat = "GG YOU %s IN %s"
 
-local function barUpdate(updater)
-  local bar = updater.parent
+local function bannerUpdate(bar, updater)
   local t = GetTime()
   if t >= bar.exp then
     bar.updater:Stop()
     bar.running = nil
     bar.paused = nil
-    -- bar:Hide()
-    -- bar:SetParent(UIParent)
+    -- bar.frame:Hide()
+    -- bar.frame:SetParent(UIParent)
   else
     local time = bar.exp - t
     bar.remaining = time
@@ -110,18 +109,33 @@ function Banner:Start(bar, text)
 
   bar.text:SetFormattedText(bannerformat, bar.winName, NS.formatTime(time))
 
-  bar.updater:SetScript("OnLoop", barUpdate)
+  bar.updater:SetScript("OnLoop", function(updater)
+    bannerUpdate(bar, updater)
+  end)
+
   bar.updater:Play()
-  bar:Show()
+  bar.frame:Show()
 end
 
-function Banner:UpdateBar(bar, remaining, text, color)
+function Banner:HideBanner(bar)
+  if bar.frame then
+    bar.frame:SetAlpha(0)
+  end
+end
+
+function Banner:ShowBanner(bar)
+  if bar.frame then
+    bar.frame:SetAlpha(1)
+  end
+end
+
+function Banner:UpdateBanner(bar, remaining, text, color)
   self:Stop(bar)
   self:SetBackgroundColor(bar, color)
   self:SetDuration(bar, remaining)
   self:Start(bar, text)
 end
 
-function Banner:StopBar(bar)
+function Banner:StopBanner(bar)
   self:Stop(bar)
 end
