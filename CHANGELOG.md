@@ -1,5 +1,9 @@
 # Battleground Win Conditions
 
+## [v8.1.10](https://github.com/rbgdevx/battleground-win-conditions/releases/tag/v8.1.10) (2023-12-30)
+
+- fixing a bug where the enemy base timer wasn't getting reset when you got a base back them before it finished capping or if you stole a base from them mid-cap
+
 ## [v8.1.9](https://github.com/rbgdevx/battleground-win-conditions/releases/tag/v8.1.9) (2023-12-30)
 
 - fixing TIE game support

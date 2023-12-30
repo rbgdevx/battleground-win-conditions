@@ -54,6 +54,7 @@ do
   end
 
   local function GetObjectivesByMapID(mapID)
+    -- mapID == Zone ID in-game
     -- TOK = 417
     -- DWG = 1576
     -- EOTS = 112, 397
@@ -63,6 +64,7 @@ do
     -- WSG = 1339
     -- TP = 206
     if mapID == 417 then
+      -- Templf of Kotmogu
       allyOrbs, hordeOrbs = 0, 0
 
       local baseInfo = GetDoubleStateIconRowVisualizationInfo(1683)
@@ -109,6 +111,7 @@ do
         end
       end
     elseif mapID == 1366 or mapID == 1383 or mapID == 837 then
+      -- Arathi Basin
       allyBases, allyIncBases, allyFinalBases = 0, 0, 0
       hordeBases, hordeIncBases, hordeFinalBases = 0, 0, 0
 
@@ -125,9 +128,11 @@ do
           allyIncBases = allyIncBases + 1
 
           local base = smatch(str, "(.-) %-%s")
+          -- if horde had the base, now they dont
           if hordeTimers[base] then
             hordeTimers[base] = nil
           end
+          -- if fresh capture for alliance, or they once had it lose it fully then got it again
           if allyTimers[base] == nil or (allyTimers[base] and allyTimers[base] - GetTime() <= 0) then
             allyTimers[base] = NS.CONTESTED_TIME + GetTime()
           end
@@ -137,6 +142,11 @@ do
           allyBases = allyBases + 1
 
           local base = smatch(str, "(.-) %-%s")
+          -- if taking a base from horde mid-cap
+          if hordeTimers[base] then
+            hordeTimers[base] = nil
+          end
+          -- if alliance finished capping a base, now its theirs
           if allyTimers[base] then
             allyTimers[base] = nil
           end
@@ -150,9 +160,11 @@ do
           hordeIncBases = hordeIncBases + 1
 
           local base = smatch(str, "(.-) %-%s")
+          -- if alliance had the base, now they dont
           if allyTimers[base] then
             allyTimers[base] = nil
           end
+          -- if fresh capture for horde, or they once had it lose it fully then got it again
           if hordeTimers[base] == nil or (hordeTimers[base] and hordeTimers[base] - GetTime() <= 0) then
             hordeTimers[base] = NS.CONTESTED_TIME + GetTime()
           end
@@ -162,6 +174,11 @@ do
           hordeBases = hordeBases + 1
 
           local base = smatch(str, "(.-) %-%s")
+          -- if taking a base from alliance mid-cap
+          if allyTimers[base] then
+            allyTimers[base] = nil
+          end
+          -- if horde finished capping a base, now its theirs
           if hordeTimers[base] then
             hordeTimers[base] = nil
           end
@@ -171,6 +188,7 @@ do
       allyFinalBases = allyBases + allyIncBases
       hordeFinalBases = hordeBases + hordeIncBases
     elseif mapID == 1576 then
+      -- Deepwind Gorge
       allyBases, allyIncBases, allyFinalBases = 0, 0, 0
       hordeBases, hordeIncBases, hordeFinalBases = 0, 0, 0
 
@@ -187,9 +205,11 @@ do
           allyIncBases = allyIncBases + 1
 
           local base = smatch(str, "(.-) %-%s")
+          -- if horde had the base, now they dont
           if hordeTimers[base] then
             hordeTimers[base] = nil
           end
+          -- if fresh capture for alliance
           if allyTimers[base] == nil or (allyTimers[base] and allyTimers[base] - GetTime() <= 0) then
             allyTimers[base] = NS.CONTESTED_TIME + GetTime()
           end
@@ -199,6 +219,11 @@ do
           allyBases = allyBases + 1
 
           local base = smatch(str, "(.-) %-%s")
+          -- if taking a base from horde mid-cap
+          if hordeTimers[base] then
+            hordeTimers[base] = nil
+          end
+          -- if alliance finished capping a base, now its theirs
           if allyTimers[base] then
             allyTimers[base] = nil
           end
@@ -212,9 +237,11 @@ do
           hordeIncBases = hordeIncBases + 1
 
           local base = smatch(str, "(.-) %-%s")
+          -- if alliance had the base, now they dont
           if allyTimers[base] then
             allyTimers[base] = nil
           end
+          -- if fresh capture for horde
           if hordeTimers[base] == nil or (hordeTimers[base] and hordeTimers[base] - GetTime() <= 0) then
             hordeTimers[base] = NS.CONTESTED_TIME + GetTime()
           end
@@ -224,6 +251,11 @@ do
           hordeBases = hordeBases + 1
 
           local base = smatch(str, "(.-) %-%s")
+          -- if taking a base from alliance mid-cap
+          if allyTimers[base] then
+            allyTimers[base] = nil
+          end
+          -- if horde finished capping a base, now its theirs
           if hordeTimers[base] then
             hordeTimers[base] = nil
           end
@@ -233,6 +265,7 @@ do
       allyFinalBases = allyBases + allyIncBases
       hordeFinalBases = hordeBases + hordeIncBases
     elseif mapID == 275 then
+      -- The Battle for Gilneas
       allyBases, allyIncBases, allyFinalBases = 0, 0, 0
       hordeBases, hordeIncBases, hordeFinalBases = 0, 0, 0
 
@@ -249,9 +282,11 @@ do
           allyIncBases = allyIncBases + 1
 
           local base = smatch(str, "(.-) %-%s")
+          -- if horde had the base, now they dont
           if hordeTimers[base] then
             hordeTimers[base] = nil
           end
+          -- if fresh capture for alliance
           if allyTimers[base] == nil or (allyTimers[base] and allyTimers[base] - GetTime() <= 0) then
             allyTimers[base] = NS.CONTESTED_TIME + GetTime()
           end
@@ -261,6 +296,11 @@ do
           allyBases = allyBases + 1
 
           local base = smatch(str, "(.-) %-%s")
+          -- if taking a base from horde mid-cap
+          if hordeTimers[base] then
+            hordeTimers[base] = nil
+          end
+          -- if alliance finished capping a base, now its theirs
           if allyTimers[base] then
             allyTimers[base] = nil
           end
@@ -274,9 +314,11 @@ do
           hordeIncBases = hordeIncBases + 1
 
           local base = smatch(str, "(.-) %-%s")
+          -- if alliance had the base, now they dont
           if allyTimers[base] then
             allyTimers[base] = nil
           end
+          -- if fresh capture for horde
           if hordeTimers[base] == nil or (hordeTimers[base] and hordeTimers[base] - GetTime() <= 0) then
             hordeTimers[base] = NS.CONTESTED_TIME + GetTime()
           end
@@ -286,6 +328,11 @@ do
           hordeBases = hordeBases + 1
 
           local base = smatch(str, "(.-) %-%s")
+          -- if taking a base from alliance mid-cap
+          if allyTimers[base] then
+            allyTimers[base] = nil
+          end
+          -- if horde finished capping a base, now its theirs
           if hordeTimers[base] then
             hordeTimers[base] = nil
           end
@@ -295,6 +342,7 @@ do
       allyFinalBases = allyBases + allyIncBases
       hordeFinalBases = hordeBases + hordeIncBases
     elseif mapID == 112 or mapID == 397 then
+      -- Eye of the Storm
       allyBases, allyIncBases, allyFinalBases = 0, 0, 0
       hordeBases, hordeIncBases, hordeFinalBases = 0, 0, 0
 
@@ -312,9 +360,11 @@ do
             allyIncBases = allyIncBases + 1
 
             local base = smatch(str, "assaulted the (.+)")
+            -- if horde had the base, now they dont
             if hordeTimers[base] then
               hordeTimers[base] = nil
             end
+            -- if fresh capture for alliance
             if allyTimers[base] == nil or (allyTimers[base] and allyTimers[base] - GetTime() <= 0) then
               allyTimers[base] = NS.CONTESTED_TIME + GetTime()
             end
@@ -325,6 +375,11 @@ do
           allyBases = allyBases + 1
 
           local base = smatch(str, "captured the (.+)[%p]*")
+          -- if taking a base from horde mid-cap
+          if hordeTimers[base] then
+            hordeTimers[base] = nil
+          end
+          -- if alliance finished capping a base, now its theirs
           if allyTimers[base] then
             allyTimers[base] = nil
           end
@@ -339,9 +394,11 @@ do
             hordeIncBases = hordeIncBases + 1
 
             local base = smatch(str, "assaulted the (.+)")
+            -- if alliance had the base, now they dont
             if allyTimers[base] then
               allyTimers[base] = nil
             end
+            -- if fresh capture for horde
             if hordeTimers[base] == nil or (hordeTimers[base] and hordeTimers[base] - GetTime() <= 0) then
               hordeTimers[base] = NS.CONTESTED_TIME + GetTime()
             end
@@ -352,6 +409,11 @@ do
           hordeBases = hordeBases + 1
 
           local base = smatch(str, "captured the (.+)[%p]*")
+          -- if taking a base from alliance mid-cap
+          if allyTimers[base] then
+            allyTimers[base] = nil
+          end
+          -- if horde finished capping a base, now its theirs
           if hordeTimers[base] then
             hordeTimers[base] = nil
           end
@@ -363,6 +425,7 @@ do
       allyFinalBases = allyBases + allyIncBases
       hordeFinalBases = hordeBases + hordeIncBases
     elseif mapID == 423 then
+      -- Silvershard Mines
       allyCarts, hordeCarts = 0, 0
 
       local baseInfo = GetDoubleStateIconRowVisualizationInfo(1700)
@@ -416,6 +479,7 @@ do
     -- 1672 = EOTS
     -- 1640 = WSG, TP
     if widgetID == 1672 then
+      -- Eye of the Storm
       allyFlags = 0
       hordeFlags = 0
 
@@ -445,6 +509,7 @@ do
         end
       end
     elseif widgetID == 1640 then
+      -- Warsong Gulch, Twin Peaks
       allyFlags = 0
       hordeFlags = 0
 
@@ -478,6 +543,7 @@ do
     -- 1700 = SSM
     -- 1640 = WSG, TP
     if widgetID == 1683 then
+      -- Templf of Kotmogu
       allyOrbs, hordeOrbs = 0, 0
 
       local baseInfo = GetDoubleStateIconRowVisualizationInfo(widgetID)
@@ -524,6 +590,7 @@ do
         end
       end
     elseif widgetID == 1645 or widgetID == 1670 or widgetID == 2339 then
+      -- Arathi Basin, The Battle for Gilneas, Deepwind Gorge
       allyBases, allyIncBases, allyFinalBases = 0, 0, 0
       hordeBases, hordeIncBases, hordeFinalBases = 0, 0, 0
 
@@ -540,9 +607,11 @@ do
           allyIncBases = allyIncBases + 1
 
           local base = smatch(str, "(.-) %-%s")
+          -- if horde had the base, now they dont
           if hordeTimers[base] then
             hordeTimers[base] = nil
           end
+          -- if fresh capture for alliance, or they once had it lose it fully then got it again
           if allyTimers[base] == nil or (allyTimers[base] and allyTimers[base] - GetTime() <= 0) then
             allyTimers[base] = NS.CONTESTED_TIME + GetTime()
           end
@@ -552,6 +621,11 @@ do
           allyBases = allyBases + 1
 
           local base = smatch(str, "(.-) %-%s")
+          -- if taking a base from horde mid-cap
+          if hordeTimers[base] then
+            hordeTimers[base] = nil
+          end
+          -- if alliance finished capping a base, now its theirs
           if allyTimers[base] then
             allyTimers[base] = nil
           end
@@ -565,9 +639,11 @@ do
           hordeIncBases = hordeIncBases + 1
 
           local base = smatch(str, "(.-) %-%s")
+          -- if alliance had the base, now they dont
           if allyTimers[base] then
             allyTimers[base] = nil
           end
+          -- if fresh capture for horde, or they once had it lose it fully then got it again
           if hordeTimers[base] == nil or (hordeTimers[base] and hordeTimers[base] - GetTime() <= 0) then
             hordeTimers[base] = NS.CONTESTED_TIME + GetTime()
           end
@@ -577,6 +653,11 @@ do
           hordeBases = hordeBases + 1
 
           local base = smatch(str, "(.-) %-%s")
+          -- if taking a base from alliance mid-cap
+          if allyTimers[base] then
+            allyTimers[base] = nil
+          end
+          -- if horde finished capping a base, now its theirs
           if hordeTimers[base] then
             hordeTimers[base] = nil
           end
@@ -586,6 +667,7 @@ do
       allyFinalBases = allyBases + allyIncBases
       hordeFinalBases = hordeBases + hordeIncBases
     elseif widgetID == 1672 then
+      -- Eye of the Storm
       allyBases, allyIncBases, allyFinalBases = 0, 0, 0
       hordeBases, hordeIncBases, hordeFinalBases = 0, 0, 0
 
@@ -603,9 +685,11 @@ do
             allyIncBases = allyIncBases + 1
 
             local base = smatch(str, "assaulted the (.+)")
+            -- if horde had the base, now they dont
             if hordeTimers[base] then
               hordeTimers[base] = nil
             end
+            -- if fresh capture for alliance, or they once had it lose it fully then got it again
             if allyTimers[base] == nil or (allyTimers[base] and allyTimers[base] - GetTime() <= 0) then
               allyTimers[base] = NS.CONTESTED_TIME + GetTime()
             end
@@ -616,6 +700,11 @@ do
           allyBases = allyBases + 1
 
           local base = smatch(str, "captured the (.+)[%p]*")
+          -- if taking a base from horde mid-cap
+          if hordeTimers[base] then
+            hordeTimers[base] = nil
+          end
+          -- if alliance finished capping a base, now its theirs
           if allyTimers[base] then
             allyTimers[base] = nil
           end
@@ -630,9 +719,11 @@ do
             hordeIncBases = hordeIncBases + 1
 
             local base = smatch(str, "assaulted the (.+)")
+            -- if alliance had the base, now they dont
             if allyTimers[base] then
               allyTimers[base] = nil
             end
+            -- if fresh capture for horde, or they once had it lose it fully then got it again
             if hordeTimers[base] == nil or (hordeTimers[base] and hordeTimers[base] - GetTime() <= 0) then
               hordeTimers[base] = NS.CONTESTED_TIME + GetTime()
             end
@@ -643,6 +734,11 @@ do
           hordeBases = hordeBases + 1
 
           local base = smatch(str, "captured the (.+)[%p]*")
+          -- if taking a base from alliance mid-cap
+          if allyTimers[base] then
+            allyTimers[base] = nil
+          end
+          -- if horde finished capping a base, now its theirs
           if hordeTimers[base] then
             hordeTimers[base] = nil
           end
@@ -654,6 +750,7 @@ do
       allyFinalBases = allyBases + allyIncBases
       hordeFinalBases = hordeBases + hordeIncBases
     elseif widgetID == 1700 then
+      -- Silvershard Mines
       allyCarts, hordeCarts = 0, 0
 
       local baseInfo = GetDoubleStateIconRowVisualizationInfo(widgetID)
@@ -712,7 +809,7 @@ do
         local currentHWinTime = hTicksToWin
         local currentWinTime = mmin(currentAWinTime, currentHWinTime)
 
-        if allyIncBases == 0 and hordeIncBases == 0 then
+        if aIncBases == 0 and hIncBases == 0 then
           winTime = currentWinTime
 
           local aWins = currentAWinTime < currentHWinTime
