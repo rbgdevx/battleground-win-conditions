@@ -1,6 +1,6 @@
 # Battleground Win Conditions
 
-## [v8.1.9](https://github.com/rbgdevx/battleground-win-conditions/releases/tag/v8.1.9) (2023-12-29)
+## [v8.1.9](https://github.com/rbgdevx/battleground-win-conditions/releases/tag/v8.1.9) (2023-12-30)
 
 - fixing TIE game support
 - making sure you cant click the anchor when its set to hidden while locked
