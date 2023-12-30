@@ -3,12 +3,14 @@ local _, NS = ...
 local Interface = {}
 NS.Interface = Interface
 
-local CreateFrame = CreateFrame
 local GetTime = GetTime
+local CreateFrame = CreateFrame
 
 local sformat = string.format
 
-local InterfaceFrame = CreateFrame("Frame", "BGWCInterfaceFrame", UIParent)
+local InterfaceFrame = {}
+InterfaceFrame.frame = CreateFrame("Frame", "BGWCInterfaceFrame", UIParent)
+NS.InterfaceFrame = InterfaceFrame
 
 -- IMPORTANT: don't use this more than once
 -- I removed support for creating multiple
@@ -22,8 +24,8 @@ function Interface:CreateBanner(label, width, height)
   banner.text:SetJustifyH("MIDDLE")
   banner.text:SetJustifyV("MIDDLE")
 
-  banner:SetParent(InterfaceFrame)
-  banner:SetPoint("TOPLEFT", InterfaceFrame, "BOTTOMLEFT", 0, 0)
+  banner.frame:SetParent(InterfaceFrame.frame)
+  banner.frame:SetPoint("TOPLEFT", InterfaceFrame.frame, "BOTTOMLEFT", 0, 0)
 
   return banner
 end
@@ -38,8 +40,8 @@ function Interface:CreateInfo(label, anchor)
   info.text:SetJustifyH("LEFT")
   info.text:SetJustifyV("TOP")
 
-  info:SetParent(InterfaceFrame)
-  info:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, 0)
+  info.frame:SetParent(InterfaceFrame.frame)
+  info.frame:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, 0)
 
   return info
 end
@@ -54,14 +56,14 @@ function Interface:CreateBuff(label, anchor)
   buff.text:SetJustifyH("LEFT")
   buff.text:SetJustifyV("TOP")
 
-  buff:SetParent(InterfaceFrame)
-  buff:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, 0)
+  buff.frame:SetParent(InterfaceFrame.frame)
+  buff.frame:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, 0)
 
   return buff
 end
 
 function Interface:UpdateBanner(bar, remaining, text, color)
-  NS.Banner:UpdateBar(bar, remaining, text, color)
+  NS.Banner:UpdateBanner(bar, remaining, text, color)
 end
 
 function Interface:UpdateInfo(bar, winTime, winCondition)
@@ -73,7 +75,7 @@ function Interface:UpdateBuff(bar, time, winTeam)
 end
 
 function Interface:StopBanner(bar)
-  NS.Banner:StopBar(bar)
+  NS.Banner:StopBanner(bar)
 end
 
 function Interface:StopInfo(bar)
@@ -169,34 +171,34 @@ function Interface:UpdateFlagValue(bar, value)
 end
 
 function Interface:StopMovement()
-  InterfaceFrame:SetMovable(false)
+  InterfaceFrame.frame:SetMovable(false)
 end
 
 function Interface:StopHover()
-  InterfaceFrame:SetScript("OnEnter", function(f)
+  InterfaceFrame.frame:SetScript("OnEnter", function(f)
     f:SetAlpha(1)
   end)
-  InterfaceFrame:SetScript("OnLeave", function(f)
+  InterfaceFrame.frame:SetScript("OnLeave", function(f)
     f:SetAlpha(1)
   end)
 end
 
 function Interface:MakeHoverable()
-  InterfaceFrame:SetScript("OnEnter", function(f)
+  InterfaceFrame.frame:SetScript("OnEnter", function(f)
     f:SetAlpha(1)
   end)
-  InterfaceFrame:SetScript("OnLeave", function(f)
+  InterfaceFrame.frame:SetScript("OnLeave", function(f)
     f:SetAlpha(0)
   end)
 end
 
 function Interface:MakeMoveable()
-  InterfaceFrame:SetMovable(true)
-  InterfaceFrame:RegisterForDrag("LeftButton")
-  InterfaceFrame:SetScript("OnDragStart", function(f)
+  InterfaceFrame.frame:SetMovable(true)
+  InterfaceFrame.frame:RegisterForDrag("LeftButton")
+  InterfaceFrame.frame:SetScript("OnDragStart", function(f)
     f:StartMoving()
   end)
-  InterfaceFrame:SetScript("OnDragStop", function(f)
+  InterfaceFrame.frame:SetScript("OnDragStop", function(f)
     f:StopMovingOrSizing()
     local a, _, b, c, d = f:GetPoint()
     NS.db.position[1] = a
@@ -206,59 +208,63 @@ function Interface:MakeMoveable()
   end)
 end
 
-function Interface:ToggleShow(value)
-  InterfaceFrame:SetAlpha(value)
+function Interface:ToggleShow(show)
+  if show then
+    InterfaceFrame.frame:Show()
+  else
+    InterfaceFrame.frame:Hide()
+  end
 end
 
 function Interface:Lock()
   self:StopMovement()
-  self:ToggleShow(0)
+  self:ToggleShow(false)
 end
 
 function Interface:Unlock()
   self:MakeMoveable()
-  self:ToggleShow(1)
+  self:ToggleShow(true)
 end
 
 function Interface:AddControls()
-  InterfaceFrame:SetPoint(NS.db.position[1], UIParent, NS.db.position[2], NS.db.position[3], NS.db.position[4])
-  InterfaceFrame:SetWidth(175)
-  InterfaceFrame:SetHeight(15)
-  InterfaceFrame:SetClampedToScreen(true)
-  InterfaceFrame:EnableMouse(true)
-  InterfaceFrame:SetScript("OnMouseUp", function(_, btn)
+  InterfaceFrame.frame:SetPoint(NS.db.position[1], UIParent, NS.db.position[2], NS.db.position[3], NS.db.position[4])
+  InterfaceFrame.frame:SetWidth(175)
+  InterfaceFrame.frame:SetHeight(15)
+  InterfaceFrame.frame:SetClampedToScreen(true)
+  InterfaceFrame.frame:EnableMouse(true)
+  InterfaceFrame.frame:SetScript("OnMouseUp", function(_, btn)
     if btn == "RightButton" then
-      InterfaceOptionsFrame_OpenToCategory("BG Win Conditions")
+      InterfaceOptionsFrame_OpenToCategory(NS.OPTIONS_LABEL)
     end
   end)
 
   if NS.db.lock then
     self:StopMovement()
-    self:ToggleShow(0)
+    self:ToggleShow(false)
   else
     self:MakeMoveable()
-    self:ToggleShow(1)
+    self:ToggleShow(true)
   end
 end
 
 function Interface:InitializeInterface()
   self:AddControls()
 
-  local bg = InterfaceFrame:CreateTexture()
-  bg:SetAllPoints(InterfaceFrame)
+  local bg = InterfaceFrame.frame:CreateTexture()
+  bg:SetAllPoints(InterfaceFrame.frame)
   bg:SetColorTexture(0, 1, 0, 0.3)
   InterfaceFrame.bg = bg
 
-  local header = InterfaceFrame:CreateFontString(nil, "OVERLAY")
+  local header = InterfaceFrame.frame:CreateFontString(nil, "OVERLAY")
   header:SetFont("Fonts\\FRIZQT__.TTF", 12, "THINOUTLINE")
-  header:SetAllPoints(InterfaceFrame)
+  header:SetAllPoints(InterfaceFrame.frame)
   header:SetText("anchor")
   InterfaceFrame.header = header
 
   local GGBar = self:CreateBanner("GG BANNER", 175, 25)
   InterfaceFrame.banner = GGBar
 
-  local GGScoreFrame = CreateFrame("Frame", "BGWCInfoFrame", UIParent)
+  local GGScoreFrame = CreateFrame("Frame", "BGWCScoreFrame", UIParent)
   local GGScore = GGScoreFrame:CreateFontString(nil, "OVERLAY")
   GGScore:SetFont("Fonts\\FRIZQT__.TTF", 12, "THINOUTLINE")
   GGScore:SetTextColor(1, 1, 1, 1)
@@ -266,13 +272,13 @@ function Interface:InitializeInterface()
   GGScore:SetShadowColor(0, 0, 0, 1)
   GGScore:SetJustifyH("LEFT")
   GGScore:SetJustifyV("TOP")
-  GGScore:SetPoint("TOPLEFT", InterfaceFrame.banner, "BOTTOMLEFT", 0, -10)
+  GGScore:SetPoint("TOPLEFT", InterfaceFrame.banner.frame, "BOTTOMLEFT", 0, -10)
   InterfaceFrame.score = GGScore
 
   local GGInfo = self:CreateInfo("GG INFO", InterfaceFrame.score)
   InterfaceFrame.info = GGInfo
 
-  local GGFlagFrame = CreateFrame("Frame", "BGWCInfoFrame", UIParent)
+  local GGFlagFrame = CreateFrame("Frame", "BGWCFlagFrame", UIParent)
   local GGFlag = GGFlagFrame:CreateFontString(nil, "ARTWORK")
   GGFlag:SetFont("Fonts\\FRIZQT__.TTF", 12, "THINOUTLINE")
   GGFlag:SetTextColor(1, 1, 1, 1)
@@ -285,16 +291,18 @@ function Interface:InitializeInterface()
 
   local GGBuff = self:CreateBuff("GG BUFF", InterfaceFrame.flag)
   InterfaceFrame.buff = GGBuff
-
-  NS.Interface.frame = InterfaceFrame
 end
 
 function Interface:CreateTestBannerInfo()
-  self:UpdateBanner(InterfaceFrame.banner, 1500, "LOSE", { r = 0, g = 0, b = 0 })
+  self:UpdateBanner(InterfaceFrame.banner, 1500, "WIN", { r = 0, g = 0, b = 0 })
 end
 
 function Interface:CreateTestWinInfo()
-  self:UpdateFinalScore(InterfaceFrame.score, 1500, 800)
+  self:UpdateFinalScore(
+    InterfaceFrame.score,
+    NS.PLAYER_FACTION == NS.ALLIANCE_NAME and 1500 or 800,
+    NS.PLAYER_FACTION == NS.ALLIANCE_NAME and 800 or 1500
+  )
   self:UpdateInfo(InterfaceFrame.info, 1500, {
     [4] = {
       bases = 4,
@@ -304,8 +312,8 @@ function Interface:CreateTestWinInfo()
       capScore = 1299 - (NS.ASSAULT_TIME * 2),
       minBases = 2,
       maxBases = 5,
-      winName = NS.HORDE_NAME,
-      loseName = NS.ALLIANCE_NAME,
+      winName = NS.PLAYER_FACTION,
+      loseName = NS.PLAYER_FACTION == NS.ALLIANCE_NAME and NS.HORDE_NAME or NS.ALLIANCE_NAME,
     },
     [5] = {
       bases = 5,
@@ -315,12 +323,12 @@ function Interface:CreateTestWinInfo()
       capScore = 1499 - (NS.ASSAULT_TIME * 2),
       minBases = 1,
       maxBases = 5,
-      winName = NS.HORDE_NAME,
-      loseName = NS.ALLIANCE_NAME,
+      winName = NS.PLAYER_FACTION,
+      loseName = NS.PLAYER_FACTION == NS.ALLIANCE_NAME and NS.HORDE_NAME or NS.ALLIANCE_NAME,
     },
   })
   self:UpdateBuff(InterfaceFrame.buff, NS.ORB_BUFF_TIME, NS.formatTeamName(NS.PLAYER_FACTION, NS.PLAYER_FACTION))
-  self:UpdateFlagValue(InterfaceFrame.flag, NS.formatScore(NS.ALLIANCE_NAME, 85))
+  self:UpdateFlagValue(InterfaceFrame.flag, NS.formatScore(NS.PLAYER_FACTION, 85))
   self:ShowWinInfo()
 end
 

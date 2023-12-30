@@ -4,13 +4,11 @@ local WinInfo = {}
 NS.WinInfo = WinInfo
 NS.infoCache = NS.infoCache or {}
 
-local barPrototype_meta = NS.barPrototype_mt
 local infoCache = NS.infoCache
 
 local next = next
 local GetTime = GetTime
 local CreateFrame = CreateFrame
-local setmetatable = setmetatable
 
 local mmin = math.min
 local mmax = math.max
@@ -22,37 +20,39 @@ end
 
 function WinInfo:Create(label, anchor)
   local bar = next(infoCache)
+
   if not bar then
-    local frame = CreateFrame("Frame", nil, UIParent)
-    bar = setmetatable(frame, barPrototype_meta)
+    local frame = CreateFrame("Frame", "BGWCWinInfoFrame", UIParent)
+    bar = {}
 
     bar.label = label
 
-    local text = bar:CreateFontString(nil, "ARTWORK")
+    local text = frame:CreateFontString(nil, "ARTWORK")
     text:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, 0)
     bar.text = text
 
-    local updater = bar:CreateAnimationGroup()
+    local updater = frame:CreateAnimationGroup()
     updater:SetLooping("REPEAT")
-    updater.parent = bar
+    -- bar.updater.parent = bar
 
     local anim = updater:CreateAnimation()
     anim:SetDuration(0.04)
 
     bar.updater = updater
     bar.repeater = anim
+    bar.frame = frame
   else
     infoCache[bar] = nil
   end
 
-  bar:SetFrameStrata("MEDIUM")
-  bar:SetFrameLevel(100) -- Lots of room to create above or below this level
-  bar:ClearAllPoints()
-  bar:SetMovable(false)
-  bar:SetScale(1)
-  bar:SetAlpha(1)
-  bar:SetClampedToScreen(false)
-  bar:EnableMouse(false)
+  bar.frame:SetFrameStrata("MEDIUM")
+  bar.frame:SetFrameLevel(100) -- Lots of room to create above or below this level
+  bar.frame:ClearAllPoints()
+  bar.frame:SetMovable(false)
+  bar.frame:SetScale(1)
+  bar.frame:SetAlpha(1)
+  bar.frame:SetClampedToScreen(false)
+  bar.frame:EnableMouse(false)
 
   return bar
 end
@@ -63,8 +63,8 @@ local function stopInfo(bar)
   bar.funcs = nil
   bar.running = nil
   bar.paused = nil
-  bar:Hide()
-  bar:SetParent(UIParent)
+  bar.frame:Hide()
+  bar.frame:SetParent(UIParent)
   infoCache[bar] = true
 end
 
@@ -121,22 +121,21 @@ local function loseMessage(text, winCondition)
   text:SetFormattedText(message)
 end
 
-local function infoUpdate(updater)
-  local bar = updater.parent
+local function infoUpdate(bar, updater, winTable)
   local t = GetTime()
   local winCondition
 
-  local firstKey, _ = next(bar.winTable)
-  if firstKey and bar.winTable[firstKey] then
-    winCondition = bar.winTable[firstKey]
+  local firstKey, _ = next(winTable)
+  if firstKey and winTable[firstKey] then
+    winCondition = winTable[firstKey]
   end
 
   if t >= bar.exp then
     bar.updater:Stop()
     bar.running = nil
     bar.paused = nil
-    -- bar:Hide()
-    -- bar:SetParent(UIParent)
+    -- bar.frame:Hide()
+    -- bar.frame:SetParent(UIParent)
   else
     local time = bar.exp - t
     bar.remaining = time
@@ -159,8 +158,8 @@ local function infoUpdate(updater)
         end
       else
         local secondKey = winCondition.bases + 1
-        if secondKey and bar.winTable[secondKey] then
-          winCondition = bar.winTable[secondKey]
+        if secondKey and winTable[secondKey] then
+          winCondition = winTable[secondKey]
           ownTime = winCondition.ownTime - t
 
           -- 3
@@ -178,8 +177,8 @@ local function infoUpdate(updater)
             end
           else
             local thirdKey = winCondition.bases + 1
-            if thirdKey and bar.winTable[thirdKey] then
-              winCondition = bar.winTable[thirdKey]
+            if thirdKey and winTable[thirdKey] then
+              winCondition = winTable[thirdKey]
               ownTime = winCondition.ownTime - t
 
               -- 4
@@ -197,8 +196,8 @@ local function infoUpdate(updater)
                 end
               else
                 local fourthKey = winCondition.bases + 1
-                if fourthKey and bar.winTable[fourthKey] then
-                  winCondition = bar.winTable[fourthKey]
+                if fourthKey and winTable[fourthKey] then
+                  winCondition = winTable[fourthKey]
                   ownTime = winCondition.ownTime - t
 
                   -- 5
@@ -216,8 +215,8 @@ local function infoUpdate(updater)
                     end
                   else
                     local fifthKey = winCondition.bases + 1
-                    if fifthKey and bar.winTable[fifthKey] then
-                      winCondition = bar.winTable[fifthKey]
+                    if fifthKey and winTable[fifthKey] then
+                      winCondition = winTable[fifthKey]
                       ownTime = winCondition.ownTime - t
 
                       -- 6
@@ -254,31 +253,36 @@ function WinInfo:Start(bar, winTable)
   bar.gap = 0
   bar.start = GetTime()
   bar.exp = bar.start + time
-  bar.winTable = winTable
 
   local firstKey, _ = next(winTable)
   if firstKey and winTable[firstKey] then
     local winCondition = winTable[firstKey]
 
-    if winCondition.winName == NS.WIN_NOUN then
+    if winCondition.winName == NS.PLAYER_FACTION then
       winMessage(bar.text, winCondition)
     else
       loseMessage(bar.text, winCondition)
     end
 
-    bar.updater:SetScript("OnLoop", infoUpdate)
-    bar.updater:Play()
+    bar.updater:SetScript("OnLoop", function(updater)
+      infoUpdate(bar, updater, winTable)
+    end)
 
-    bar:Show()
+    bar.updater:Play()
+    bar.frame:Show()
   end
 end
 
 function WinInfo:HideInfo(bar)
-  bar:SetAlpha(0)
+  if bar.frame then
+    bar.frame:SetAlpha(0)
+  end
 end
 
 function WinInfo:ShowInfo(bar)
-  bar:SetAlpha(1)
+  if bar.frame then
+    bar.frame:SetAlpha(1)
+  end
 end
 
 function WinInfo:UpdateInfo(bar, remaining, winTable)

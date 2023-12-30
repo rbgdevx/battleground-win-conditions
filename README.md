@@ -1,4 +1,4 @@
-# battleground-win-conditions
+# Battleground Win Conditions
 
 Credits:
 

@@ -22,18 +22,13 @@ local instanceIdToMapId = {
 }
 
 function mod:EnterZone(id)
-  NS.Info:StartBaseTracker(instanceIdToMapId[id].id, instanceIdToMapId[id].maxBases, 60)
-  NS.Info:StartScoreTracker(
-    instanceIdToMapId[id].id,
-    instanceIdToMapId[id].resourcesFromBases,
-    instanceIdToMapId[id].tickRate,
-    {}
-  )
+  NS.Info:StartInfoTracker(instanceIdToMapId[id].id, instanceIdToMapId[id].tickRate, {
+    baseResources = instanceIdToMapId[id].resourcesFromBases,
+  }, instanceIdToMapId[id].maxBases)
 end
 
 function mod:ExitZone()
-  NS.Info:StopScoreTracker()
-  NS.Info:StopBaseTracker()
+  NS.Info:StopInfoTracker()
 end
 
 for id in next, instanceIdToMapId do

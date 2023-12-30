@@ -1,6 +1,7 @@
 local _, NS = ...
 
 local Interface = NS.Interface
+local InterfaceFrame = NS.InterfaceFrame
 local Options = {}
 NS.Options = Options
 
@@ -25,7 +26,7 @@ function Options:InitDB()
 end
 
 local function updateBanner(value)
-  if Interface.frame then
+  if InterfaceFrame.frame then
     if value then
       Interface:HideWinInfo()
     else
@@ -42,7 +43,7 @@ local function updateBanner(value)
 end
 
 local function updateTestInfo(value)
-  if Interface.frame then
+  if InterfaceFrame.frame then
     if value then
       if NS.IN_GAME == false then
         if NS.db.banner then
@@ -61,7 +62,7 @@ local function updateTestInfo(value)
 end
 
 local function updateControls(value)
-  if Interface.frame then
+  if InterfaceFrame.frame then
     if value then
       Interface:Lock()
     else
@@ -78,6 +79,7 @@ function Options:CreateCheckbox(option, label, parent, updateFunc)
   local function UpdateOption(value)
     NS.db[option] = value
     cb:SetChecked(value)
+
     if updateFunc then
       updateFunc(value)
     end
@@ -97,20 +99,25 @@ function Options:CreateCheckbox(option, label, parent, updateFunc)
 end
 
 function Options:InitializeOptions()
-  -- main panel
-  self.panel_main = CreateFrame("Frame")
-  self.panel_main.name = "BG Win Conditions"
+  local panel_main = {}
+  panel_main.frame = CreateFrame("Frame", "BGWCOptionsFrame")
 
-  local cb_lock = self:CreateCheckbox("lock", "Lock the position", self.panel_main, updateControls)
-  cb_lock:SetPoint("TOPLEFT", 20, -20)
+  panel_main.frame.name = NS.OPTIONS_LABEL
 
-  local cb_test = self:CreateCheckbox("test", "Show placeholder info", self.panel_main, updateTestInfo)
+  local cb_title = panel_main.frame:CreateFontString("ARTWORK", nil, "GameFontNormalLarge")
+  cb_title:SetPoint("TOPLEFT", 10, -15)
+  cb_title:SetText(NS.OPTIONS_LABEL)
+
+  local cb_lock = self:CreateCheckbox("lock", "Lock the position", panel_main.frame, updateControls)
+  cb_lock:SetPoint("TOPLEFT", cb_title, 0, -30)
+
+  local cb_test = self:CreateCheckbox("test", "Show placeholder info", panel_main.frame, updateTestInfo)
   cb_test:SetPoint("TOPLEFT", cb_lock, 0, -30)
 
-  local cb_banner = self:CreateCheckbox("banner", "Show banner only", self.panel_main, updateBanner)
+  local cb_banner = self:CreateCheckbox("banner", "Show banner only", panel_main.frame, updateBanner)
   cb_banner:SetPoint("TOPLEFT", cb_test, 0, -30)
 
-  local btn_reset = CreateFrame("Button", nil, self.panel_main, "UIPanelButtonTemplate")
+  local btn_reset = CreateFrame("Button", nil, panel_main.frame, "UIPanelButtonTemplate")
   btn_reset:SetPoint("TOPLEFT", cb_banner, 0, -40)
   btn_reset:SetText(RESET)
   btn_reset:SetWidth(100)
@@ -118,5 +125,40 @@ function Options:InitializeOptions()
     EventRegistry:TriggerEvent("Options.OnReset")
   end)
 
-  InterfaceOptions_AddCategory(Options.panel_main)
+  InterfaceOptions_AddCategory(panel_main.frame)
+
+  local function SlashHandler(message)
+    if message == "lock" then
+      NS.db["lock"] = true
+      cb_lock:SetChecked(true)
+      updateControls(true)
+    elseif message == "unlock" then
+      NS.db["lock"] = false
+      cb_lock:SetChecked(false)
+      updateControls(false)
+    elseif message == "show placeholder" then
+      NS.db["test"] = true
+      cb_test:SetChecked(true)
+      updateTestInfo(true)
+    elseif message == "hide placeholder" then
+      NS.db["test"] = false
+      cb_test:SetChecked(false)
+      updateTestInfo(false)
+    elseif message == "toggle obanner" then
+      if NS.db["banner"] == false then
+        NS.db["banner"] = true
+        cb_test:SetChecked(true)
+        updateBanner(true)
+      else
+        NS.db["banner"] = false
+        cb_test:SetChecked(false)
+        updateBanner(false)
+      end
+    else
+      InterfaceOptionsFrame_OpenToCategory(NS.OPTIONS_LABEL)
+    end
+  end
+
+  SLASH_BGWC1 = "/bgwc"
+  SlashCmdList.BGWC = SlashHandler
 end

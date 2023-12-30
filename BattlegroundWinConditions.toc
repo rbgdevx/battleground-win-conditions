@@ -1,6 +1,6 @@
 ## Interface: 100200
 ## Title: BattlegroundWinConditions
-## Version: 8.0.8
+## Version: 8.1.9
 ## Author: Ajax
 ## Notes: Provides real time win conditions for battlegrounds
 ## X-Flavor: Mainline
@@ -29,3 +29,6 @@ maps/DeepwindGorge.lua
 maps/EyeoftheStorm.lua
 maps/TempleofKotmogu.lua
 maps/TheBattleforGilneas.lua
+maps/SilvershardMines.lua
+maps/WarsongGulch.lua
+maps/TwinPeaks.lua
