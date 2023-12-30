@@ -37,6 +37,15 @@ do
     zoneIds[instanceID] = mod
   end
 
+  function BGWC:PLAYER_LEAVING_WORLD()
+    BGWCFrame:UnregisterEvent("PLAYER_LEAVING_WORLD")
+
+    Interface:ClearInterface()
+    NS.IN_GAME = false
+
+    zoneIds[prevZone]:ExitZone()
+  end
+
   function BGWC:Enable(instanceID)
     BGWCFrame:RegisterEvent("PLAYER_LEAVING_WORLD")
 
@@ -45,6 +54,10 @@ do
     NS.IN_GAME = true
 
     zoneIds[instanceID]:EnterZone(instanceID)
+  end
+
+  function BGWC:Disable()
+    BGWCFrame:RegisterEvent("LOADING_SCREEN_DISABLED")
   end
 
   function BGWC:ToggleForZone()
@@ -65,19 +78,6 @@ do
     else
       self:Disable()
     end
-  end
-
-  function BGWC:PLAYER_LEAVING_WORLD()
-    BGWCFrame:UnregisterEvent("PLAYER_LEAVING_WORLD")
-
-    Interface:ClearInterface()
-    NS.IN_GAME = false
-
-    zoneIds[prevZone]:ExitZone()
-  end
-
-  function BGWC:Disable()
-    BGWCFrame:RegisterEvent("LOADING_SCREEN_DISABLED")
   end
 end
 
