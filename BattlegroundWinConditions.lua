@@ -12,12 +12,12 @@ local IsInInstance = IsInInstance
 local GetInstanceInfo = GetInstanceInfo
 local UnitName = UnitName
 local GetRealmName = GetRealmName
-local strsplit = strsplit
-local tonumber = tonumber
 
 local sformat = string.format
 
 local GetPlayerFactionGroup = GetPlayerFactionGroup
+
+local RegisterAddonMessagePrefix = C_ChatInfo.RegisterAddonMessagePrefix
 
 local BGWC = {}
 NS.BGWC = BGWC
@@ -28,6 +28,20 @@ BGWCFrame:SetScript("OnEvent", function(_, event, ...)
     BGWC[event](BGWC, ...)
   end
 end)
+
+function BGWC:LOADING_SCREEN_DISABLED()
+  BGWCFrame:UnregisterEvent("LOADING_SCREEN_DISABLED")
+
+  NS.Timer(0, function() -- Timers aren't fully functional until 1 frame after loading is done
+    if NS.db.test then
+      if NS.db.banner then
+        Interface:CreateTestBannerInfo()
+      else
+        Interface:CreateTestInfo()
+      end
+    end
+  end)
+end
 
 do
   local prevZone = 0
@@ -69,6 +83,7 @@ do
 
         if instanceType == "pvp" then
           Interface:ClearInterface()
+          API:SendVersion()
 
           if zoneIds[instanceID] and maxPlayers > 8 then
             self:Enable(instanceID)
@@ -81,6 +96,20 @@ do
   end
 end
 
+function BGWC:CHAT_MSG_ADDON(prefix, text, _, sender, ...)
+  if sender == NS.userNameWithRealm then
+    return
+  end
+
+  if prefix == NS.ADDON_PREFIX then
+    API:CheckVersion(text)
+  end
+end
+
+function BGWC:PLAYER_ENTERING_WORLD()
+  self:ToggleForZone()
+end
+
 function BGWC:ADDON_LOADED(addon)
   if addon == AddonName then
     BGWCFrame:UnregisterEvent("ADDON_LOADED")
@@ -88,6 +117,7 @@ function BGWC:ADDON_LOADED(addon)
     Options:InitDB()
     Interface:InitializeInterface()
     Options:InitializeOptions()
+    RegisterAddonMessagePrefix(NS.ADDON_PREFIX)
 
     BGWCFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
     BGWCFrame:RegisterEvent("CHAT_MSG_ADDON")
@@ -107,39 +137,3 @@ function BGWC:PLAYER_LOGIN()
   NS.userNameWithRealm = sformat("%s-%s", NS.userName, NS.userRealm)
 end
 BGWCFrame:RegisterEvent("PLAYER_LOGIN")
-
-function BGWC:CHAT_MSG_ADDON(prefix, version, _, sender, ...)
-  if sender == NS.userNameWithRealm then
-    return
-  end
-
-  if prefix == "BGWC_VERSION" then
-    local messageEx = { strsplit(";", version) }
-    if messageEx[1] == "Version" then
-      if not NS.FoundNewVersion and tonumber(messageEx[2]) > NS.Static_Version then
-        local text = sformat("New version released!")
-        NS.write(text)
-        NS.FoundNewVersion = true
-      end
-    end
-  end
-end
-
-function BGWC:PLAYER_ENTERING_WORLD()
-  self:ToggleForZone()
-  API:CheckVersion()
-end
-
-function BGWC:LOADING_SCREEN_DISABLED()
-  BGWCFrame:UnregisterEvent("LOADING_SCREEN_DISABLED")
-
-  NS.Timer(0, function() -- Timers aren't fully functional until 1 frame after loading is done
-    if NS.db.test then
-      if NS.db.banner then
-        Interface:CreateTestBannerInfo()
-      else
-        Interface:CreateTestInfo()
-      end
-    end
-  end)
-end

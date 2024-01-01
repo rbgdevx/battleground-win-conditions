@@ -20,6 +20,7 @@
     "C_Timer",
     "C_AreaPoiInfo",
     "C_UIWidgetManager",
-    "SlashCmdList"
+    "SlashCmdList",
+    "message"
   ]
 }

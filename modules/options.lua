@@ -128,30 +128,34 @@ function Options:InitializeOptions()
   InterfaceOptions_AddCategory(panel_main.frame)
 
   local function SlashHandler(message)
-    if message == "lock" then
-      NS.db["lock"] = true
-      cb_lock:SetChecked(true)
-      updateControls(true)
-    elseif message == "unlock" then
-      NS.db["lock"] = false
-      cb_lock:SetChecked(false)
-      updateControls(false)
-    elseif message == "show placeholder" then
-      NS.db["test"] = true
-      cb_test:SetChecked(true)
-      updateTestInfo(true)
-    elseif message == "hide placeholder" then
-      NS.db["test"] = false
-      cb_test:SetChecked(false)
-      updateTestInfo(false)
-    elseif message == "toggle obanner" then
+    if message == "toggle lock" then
+      if NS.db["lock"] == false then
+        NS.db["lock"] = true
+        cb_lock:SetChecked(true)
+        updateControls(true)
+      else
+        NS.db["lock"] = false
+        cb_lock:SetChecked(false)
+        updateControls(false)
+      end
+    elseif message == "toggle placeholder" then
+      if NS.db["test"] == false then
+        NS.db["test"] = true
+        cb_test:SetChecked(true)
+        updateTestInfo(true)
+      else
+        NS.db["test"] = false
+        cb_test:SetChecked(false)
+        updateTestInfo(false)
+      end
+    elseif message == "toggle banner" then
       if NS.db["banner"] == false then
         NS.db["banner"] = true
-        cb_test:SetChecked(true)
+        cb_banner:SetChecked(true)
         updateBanner(true)
       else
         NS.db["banner"] = false
-        cb_test:SetChecked(false)
+        cb_banner:SetChecked(false)
         updateBanner(false)
       end
     else

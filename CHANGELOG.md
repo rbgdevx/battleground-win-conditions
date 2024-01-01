@@ -1,5 +1,11 @@
 # Battleground Win Conditions
 
+## [v8.1.11](https://github.com/rbgdevx/battleground-win-conditions/releases/tag/v8.1.11) (2024-01-01)
+
+- updating implementation of new version handling
+- main file event re-order to remove hoisting
+- win info variable cleanup
+
 ## [v8.1.10](https://github.com/rbgdevx/battleground-win-conditions/releases/tag/v8.1.10) (2023-12-30)
 
 - fixing a bug where the enemy base timer wasn't getting reset when you got a base back them before it finished capping or if you stole a base from them mid-cap

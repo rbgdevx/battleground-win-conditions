@@ -197,7 +197,7 @@ NS.getIncomingBaseInfo = function(timers, ownedBases, incomingBases, resources, 
 end
 
 NS.write = function(...)
-  print(NS.userClassHexColor .. "BGWC|r: ", ...)
+  print(NS.userClassHexColor .. "BattlegroundWinConditions|r: ", ...)
 end
 
 -- Copies table values from src to dst if they don't exist in dst

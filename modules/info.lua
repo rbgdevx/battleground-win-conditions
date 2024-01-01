@@ -773,13 +773,12 @@ do
   end
 
   do
-    local prevText, prevFutText, prevFlagMessage = "", "", ""
+    local prevText, prevFutText = "", ""
     local prevTime, prevAScore, prevHScore, prevAIncrease, prevHIncrease = 0, 0, 0, 0, 0
     local timeBetweenEachTick, prevTick, prevWinTime, prevFutWinTime = 0, 0, 0, 0
     local minScore, maxScore, aScore, hScore, aIncrease, hIncrease = 0, 0, 0, 0, 0, 0
-    local aRemain, hRemain, aTicksToWin, hTicksToWin, winTime = 0, 0, 0, 0, 0
+    local aTicksToWin, hTicksToWin, winTime = 0, 0, 0
     local aIncBases, prevAIncBases, hIncBases, prevHIncBases = 0, 0, 0, 0
-    local aWinTime, hWinTime = 0, 0
 
     local function ScorePredictor()
       if
@@ -788,8 +787,6 @@ do
         or timeBetweenEachTick ~= prevTick
         or aIncBases ~= prevAIncBases
         or hIncBases ~= prevHIncBases
-        or aWinTime == mfloor(NS.ASSAULT_TIME + NS.CONTESTED_TIME - curTickRate)
-        or hWinTime == mfloor(NS.ASSAULT_TIME + NS.CONTESTED_TIME - curTickRate)
       then
         -- Scores can reduce in DWG
         if aIncrease > 60 or hIncrease > 60 or aIncrease < 0 or hIncrease < 0 then
@@ -1027,14 +1024,10 @@ do
           hIncrease = hScore - prevHScore
           aIncBases = allyIncBases
           hIncBases = hordeIncBases
-          aRemain = maxScore - aScore
-          hRemain = maxScore - hScore
           -- Always round ticks upwards. 1.2 ticks will always be 2 ticks to end.
           -- If ticks are 0 (no bases) then set to a random huge number (10,000)
           aTicksToWin = NS.getWinTime(maxScore, aScore, curMapInfo.baseResources[allyBases])
           hTicksToWin = NS.getWinTime(maxScore, hScore, curMapInfo.baseResources[hordeBases])
-          aWinTime = aTicksToWin == 10000 and aTicksToWin or aTicksToWin * curTickRate
-          hWinTime = hTicksToWin == 10000 and hTicksToWin or hTicksToWin * curTickRate
           -- Round to the closest time
           timeBetweenEachTick = elapsed % 1 >= 0.5 and mceil(elapsed) or mfloor(elapsed)
           prevAScore, prevHScore = aScore, hScore
@@ -1050,11 +1043,9 @@ do
           hScore = scoreInfo.rightBarValue -- Horde Bar
           hIncrease = hScore - prevHScore
           hIncBases = hordeIncBases
-          hRemain = maxScore - hScore
           -- Always round ticks upwards. 1.2 ticks will always be 2 ticks to end.
           -- If ticks are 0 (no bases) then set to a random huge number (10,000)
           hTicksToWin = NS.getWinTime(maxScore, hScore, curMapInfo.baseResources[hordeBases])
-          hWinTime = hTicksToWin == 10000 and hTicksToWin or hTicksToWin * curTickRate
           prevHScore = hScore
           prevHIncBases = hIncBases
         end
@@ -1079,13 +1070,12 @@ do
 
     function Info:StartInfoTracker(mapID, tickRate, mapResources, maxResources)
       -- local
-      prevText, prevFutText, prevFlagMessage = "", "", ""
+      prevText, prevFutText = "", ""
       prevTime, prevAScore, prevHScore, prevAIncrease, prevHIncrease = 0, 0, 0, 0, 0
       timeBetweenEachTick, prevTick, prevWinTime, prevFutWinTime = 0, 0, 0, 0
       minScore, maxScore, aScore, hScore, aIncrease, hIncrease = 0, 0, 0, 0, 0, 0
-      aRemain, hRemain, aTicksToWin, hTicksToWin, winTime = 0, 0, 0, 0, 0
+      aTicksToWin, hTicksToWin, winTime = 0, 0, 0
       aIncBases, prevAIncBases, hIncBases, prevHIncBases = 0, 0, 0, 0
-      aWinTime, hWinTime = 0, 0
       -- global
       curMapID, curTickRate, curMapInfo = mapID, tickRate, mapResources
       allyBases, allyIncBases, allyFinalBases = 0, 0, 0

@@ -7,35 +7,43 @@ local next = next
 local IsInRaid = IsInRaid
 local IsInGroup = IsInGroup
 local IsInGuild = IsInGuild
+local strsplit = strsplit
+local tonumber = tonumber
+
+local sformat = string.format
+
+local LE_PARTY_CATEGORY_HOME = LE_PARTY_CATEGORY_HOME
+local LE_PARTY_CATEGORY_INSTANCE = LE_PARTY_CATEGORY_INSTANCE
 
 local SendAddonMessage = C_ChatInfo.SendAddonMessage
-local RegisterAddonMessagePrefix = C_ChatInfo.RegisterAddonMessagePrefix
 
-local checkTimer = nil
+function API:SendVersion()
+  local channel
 
-local function SendVersion()
   if IsInRaid() then
-    SendAddonMessage(
-      "BGWC_VERSION",
-      "Version;" .. NS.Static_Version,
-      (not IsInRaid(LE_PARTY_CATEGORY_HOME) and IsInRaid(LE_PARTY_CATEGORY_INSTANCE)) and "INSTANCE_CHAT" or "RAID"
-    )
+    channel = (not IsInRaid(LE_PARTY_CATEGORY_HOME) and IsInRaid(LE_PARTY_CATEGORY_INSTANCE)) and "INSTANCE_CHAT"
+      or "RAID"
   elseif IsInGroup() then
-    SendAddonMessage(
-      "BGWC_VERSION",
-      "Version;" .. NS.Static_Version,
-      (not IsInGroup(LE_PARTY_CATEGORY_HOME) and IsInGroup(LE_PARTY_CATEGORY_INSTANCE)) and "INSTANCE_CHAT" or "PARTY"
-    )
+    channel = (not IsInGroup(LE_PARTY_CATEGORY_HOME) and IsInGroup(LE_PARTY_CATEGORY_INSTANCE)) and "INSTANCE_CHAT"
+      or "PARTY"
   elseif IsInGuild() then
-    SendAddonMessage("BGWC_VERSION", "Version;" .. NS.Static_Version, "GUILD")
+    channel = "GUILD"
+  end
+
+  if channel then
+    SendAddonMessage(NS.ADDON_PREFIX, "Version;" .. NS.Version, channel)
   end
 end
 
-function API:CheckVersion()
-  RegisterAddonMessagePrefix("BGWC_VERSION")
+function API:CheckVersion(text)
+  local textEx = { strsplit(";", text) }
 
-  if checkTimer == nil then
-    checkTimer = C_Timer.NewTimer(10, SendVersion)
+  if textEx[1] == "Version" then
+    if not NS.FoundNewVersion and tonumber(textEx[2]) > NS.Version then
+      local message = sformat("New version released!")
+      NS.write(message)
+      NS.FoundNewVersion = true
+    end
   end
 end
 

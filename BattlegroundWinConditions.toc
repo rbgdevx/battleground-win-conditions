@@ -1,6 +1,6 @@
 ## Interface: 100200
 ## Title: BattlegroundWinConditions
-## Version: 8.1.10
+## Version: 8.1.11
 ## Author: Ajax
 ## Notes: Provides real time win conditions for battlegrounds
 ## X-Flavor: Mainline
@@ -8,6 +8,7 @@
 ## X-Credits: Ajax
 ## X-License: All Rights Reserved
 ## X-Website: https://www.curseforge.com/wow/addons/battleground-win-conditions
+## IconTexture: Interface\AddOns\BattlegroundWinConditions\logo.tga
 ## X-Curse-Project-ID: 932307
 ## X-Wago-ID: 96E7paGg
 ## X-WoWI-ID: 26660
