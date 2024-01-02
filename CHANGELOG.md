@@ -1,10 +1,15 @@
 # Battleground Win Conditions
 
+## [v8.1.12](https://github.com/rbgdevx/battleground-win-conditions/releases/tag/v8.1.12) (2024-01-02)
+
+- refactor update check to fix an issue where the it wasn't properly getting the the correct incoming base counts
+
 ## [v8.1.11](https://github.com/rbgdevx/battleground-win-conditions/releases/tag/v8.1.11) (2024-01-01)
 
 - updating implementation of new version handling
 - main file event re-order to remove hoisting
 - win info variable cleanup
+- update slash commands to all be toggle based
 
 ## [v8.1.10](https://github.com/rbgdevx/battleground-win-conditions/releases/tag/v8.1.10) (2023-12-30)
 

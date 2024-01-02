@@ -778,15 +778,17 @@ do
     local timeBetweenEachTick, prevTick, prevWinTime, prevFutWinTime = 0, 0, 0, 0
     local minScore, maxScore, aScore, hScore, aIncrease, hIncrease = 0, 0, 0, 0, 0, 0
     local aTicksToWin, hTicksToWin, winTime = 0, 0, 0
-    local aIncBases, prevAIncBases, hIncBases, prevHIncBases = 0, 0, 0, 0
+    local prevABases, prevHBases, prevAIncBases, prevHIncBases = 0, 0, 0, 0
 
     local function ScorePredictor()
       if
         aIncrease ~= prevAIncrease
         or hIncrease ~= prevHIncrease
         or timeBetweenEachTick ~= prevTick
-        or aIncBases ~= prevAIncBases
-        or hIncBases ~= prevHIncBases
+        or allyBases ~= prevABases
+        or hordeBases ~= prevHBases
+        or allyIncBases ~= prevAIncBases
+        or hordeIncBases ~= prevHIncBases
       then
         -- Scores can reduce in DWG
         if aIncrease > 60 or hIncrease > 60 or aIncrease < 0 or hIncrease < 0 then
@@ -799,14 +801,19 @@ do
           return
         end
 
-        prevAIncrease, prevHIncrease, prevTick, prevAIncBases, prevHIncBases =
-          aIncrease, hIncrease, timeBetweenEachTick, aIncBases, hIncBases
+        prevAIncrease = aIncrease
+        prevHIncrease = hIncrease
+        prevTick = timeBetweenEachTick
+        prevABases = allyBases
+        prevHBases = hordeBases
+        prevAIncBases = allyIncBases
+        prevHIncBases = hordeIncBases
 
         local currentAWinTime = aTicksToWin
         local currentHWinTime = hTicksToWin
         local currentWinTime = mmin(currentAWinTime, currentHWinTime)
 
-        if aIncBases == 0 and hIncBases == 0 then
+        if allyIncBases == 0 and hordeIncBases == 0 then
           winTime = currentWinTime
 
           local aWins = currentAWinTime < currentHWinTime
@@ -1022,8 +1029,6 @@ do
           hScore = scoreInfo.rightBarValue -- Horde Bar
           aIncrease = aScore - prevAScore
           hIncrease = hScore - prevHScore
-          aIncBases = allyIncBases
-          hIncBases = hordeIncBases
           -- Always round ticks upwards. 1.2 ticks will always be 2 ticks to end.
           -- If ticks are 0 (no bases) then set to a random huge number (10,000)
           aTicksToWin = NS.getWinTime(maxScore, aScore, curMapInfo.baseResources[allyBases])
@@ -1031,7 +1036,8 @@ do
           -- Round to the closest time
           timeBetweenEachTick = elapsed % 1 >= 0.5 and mceil(elapsed) or mfloor(elapsed)
           prevAScore, prevHScore = aScore, hScore
-          prevAIncBases, prevHIncBases = aIncBases, hIncBases
+          prevABases, prevHBases = allyBases, hordeBases
+          prevAIncBases, prevHIncBases = allyIncBases, hordeIncBases
 
           Timer(0.5, ScorePredictor)
         else
@@ -1042,12 +1048,12 @@ do
           -- In this one where we have 2 updates, we overwrite the horde stats from the 1st update.
           hScore = scoreInfo.rightBarValue -- Horde Bar
           hIncrease = hScore - prevHScore
-          hIncBases = hordeIncBases
           -- Always round ticks upwards. 1.2 ticks will always be 2 ticks to end.
           -- If ticks are 0 (no bases) then set to a random huge number (10,000)
           hTicksToWin = NS.getWinTime(maxScore, hScore, curMapInfo.baseResources[hordeBases])
           prevHScore = hScore
-          prevHIncBases = hIncBases
+          prevHBases = hordeBases
+          prevHIncBases = hordeIncBases
         end
       end
     end
@@ -1075,7 +1081,7 @@ do
       timeBetweenEachTick, prevTick, prevWinTime, prevFutWinTime = 0, 0, 0, 0
       minScore, maxScore, aScore, hScore, aIncrease, hIncrease = 0, 0, 0, 0, 0, 0
       aTicksToWin, hTicksToWin, winTime = 0, 0, 0
-      aIncBases, prevAIncBases, hIncBases, prevHIncBases = 0, 0, 0, 0
+      prevABases, prevHBases, prevAIncBases, prevHIncBases = 0, 0, 0, 0
       -- global
       curMapID, curTickRate, curMapInfo = mapID, tickRate, mapResources
       allyBases, allyIncBases, allyFinalBases = 0, 0, 0
