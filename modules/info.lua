@@ -53,7 +53,7 @@ do
     end
   end
 
-  local function GetObjectivesByMapID(mapID)
+  function Info:GetObjectivesByMapID(mapID)
     -- mapID == Zone ID in-game
     -- TOK = 417
     -- DWG = 1576
@@ -1092,13 +1092,13 @@ do
       prevAOrbs, prevHOrbs = 0, 0
       maxObjectives = maxResources
 
-      GetObjectivesByMapID(curMapID)
+      self:GetObjectivesByMapID(curMapID)
 
       InfoFrame:RegisterEvent("UPDATE_UI_WIDGET")
     end
   end
+end
 
-  function Info:StopInfoTracker()
-    InfoFrame:UnregisterEvent("UPDATE_UI_WIDGET")
-  end
+function Info:StopInfoTracker()
+  InfoFrame:UnregisterEvent("UPDATE_UI_WIDGET")
 end

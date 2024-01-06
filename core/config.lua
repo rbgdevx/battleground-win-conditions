@@ -23,7 +23,7 @@ NS.userClassHexColor = "|c" .. select(4, GetClassColor(NS.userClass))
 NS.ADDON_PREFIX = "BGWC_VERSION"
 NS.OPTIONS_LABEL = AddonName
 NS.FoundNewVersion = false
-NS.Version = 8112
+NS.Version = 8113
 
 -------------------------------------------------------
 -- Default SavedVariables

@@ -116,8 +116,8 @@ NS.checkWinCondition = function(
   local potentialWinTeamBaseCount = ((bases + currentWinningTeamBaseCount) > maxBases) and maxBases - bases
     or currentWinningTeamBaseCount
 
-  -- local loseTeamGapScore = NS.CONTESTED_TIME * resources[currentLosingTeamBaseCount]
-  -- local winTeamGapScore = NS.CONTESTED_TIME * resources[potentialWinTeamBaseCount]
+  local loseTeamGapScore = NS.CONTESTED_TIME * resources[currentLosingTeamBaseCount]
+  local winTeamGapScore = NS.CONTESTED_TIME * resources[potentialWinTeamBaseCount]
   local assaultScore = NS.ASSAULT_TIME * resources[currentWinningTeamBaseCount]
 
   local timeMax = currentFutureWinTime
@@ -129,8 +129,11 @@ NS.checkWinCondition = function(
     local loseTeamScoreNow = currentLoseTeamScore + loseTeamScoreIncrease
     local winTeamScoreNow = currentWinTeamScore + winTeamScoreIncrease
 
-    local loseGapScore = loseTeamScoreNow
-    local winGapScore = winTeamScoreNow
+    local loseGapScore = (currentWinTime < NS.CONTESTED_TIME) and loseTeamScoreNow
+      or loseTeamScoreNow + loseTeamGapScore
+    local winGapScore = (currentWinTime < NS.CONTESTED_TIME) and winTeamScoreNow or winTeamScoreNow + winTeamGapScore
+    -- local loseGapScore = loseTeamScoreNow
+    -- local winGapScore = winTeamScoreNow
 
     local l = NS.getWinTime(maxScore, loseGapScore, resources[potentialLoseTeamBaseCount])
     local w = NS.getWinTime(maxScore, winGapScore, resources[potentialWinTeamBaseCount])
