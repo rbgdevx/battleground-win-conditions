@@ -1,5 +1,9 @@
 # Battleground Win Conditions
 
+## [v8.1.13](https://github.com/rbgdevx/battleground-win-conditions/releases/tag/v8.1.13) (2024-01-05)
+
+- fixing potential win time algorithm
+
 ## [v8.1.12](https://github.com/rbgdevx/battleground-win-conditions/releases/tag/v8.1.12) (2024-01-02)
 
 - refactor update check to fix an issue where the it wasn't properly getting the the correct incoming base counts
