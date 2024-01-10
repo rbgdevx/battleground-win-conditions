@@ -120,7 +120,7 @@ local function infoUpdate(bar, updater, winTable)
   local t = GetTime()
   local winCondition
 
-  local firstKey, _ = next(winTable)
+  local firstKey = next(winTable)
   if firstKey and winTable[firstKey] then
     winCondition = winTable[firstKey]
   end

@@ -80,7 +80,7 @@ do
 
     if inInstance then
       After(0, function() -- Some info isn't available until 1 frame after loading is done
-        local _, instanceType, _, _, maxPlayers, _, _, instanceID, _, _, _, _ = GetInstanceInfo()
+        local _, instanceType, _, _, maxPlayers, _, _, instanceID = GetInstanceInfo()
 
         if instanceType == "pvp" then
           Interface:ClearInterface()
@@ -97,7 +97,7 @@ do
   end
 end
 
-function BGWC:CHAT_MSG_ADDON(prefix, text, _, sender, ...)
+function BGWC:CHAT_MSG_ADDON(prefix, text, _, sender)
   if sender == NS.userNameWithRealm then
     return
   end

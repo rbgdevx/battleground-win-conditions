@@ -89,13 +89,13 @@ do
       allyFlags = 0
       hordeFlags = 0
 
-      local baseInfo = GetDoubleStateIconRowVisualizationInfo(widgetID)
+      local flagInfo = GetDoubleStateIconRowVisualizationInfo(widgetID)
 
-      if not baseInfo or not baseInfo.leftIcons or not baseInfo.rightIcons then
+      if not flagInfo or not flagInfo.leftIcons or not flagInfo.rightIcons then
         return
       end
 
-      for _, v in pairs(baseInfo.leftIcons) do
+      for _, v in pairs(flagInfo.leftIcons) do
         if v.iconState == 1 then
           local str = v.state1Tooltip
 
@@ -105,7 +105,7 @@ do
         end
       end
 
-      for _, v in pairs(baseInfo.rightIcons) do
+      for _, v in pairs(flagInfo.rightIcons) do
         if v.iconState == 1 then
           local str = v.state1Tooltip
 
@@ -119,19 +119,19 @@ do
       allyFlags = 0
       hordeFlags = 0
 
-      local baseInfo = GetDoubleStateIconRowVisualizationInfo(widgetID)
+      local flagInfo = GetDoubleStateIconRowVisualizationInfo(widgetID)
 
-      if not baseInfo or not baseInfo.leftIcons or not baseInfo.rightIcons then
+      if not flagInfo or not flagInfo.leftIcons or not flagInfo.rightIcons then
         return
       end
 
-      for _, v in pairs(baseInfo.leftIcons) do
+      for _, v in pairs(flagInfo.leftIcons) do
         if v.iconState == 1 then
           allyFlags = allyFlags + 1
         end
       end
 
-      for _, v in pairs(baseInfo.rightIcons) do
+      for _, v in pairs(flagInfo.rightIcons) do
         if v.iconState == 1 then
           hordeFlags = hordeFlags + 1
         end
@@ -147,7 +147,7 @@ do
     local prevABases, prevHBases, prevAIncBases, prevHIncBases = 0, 0, 0, 0
 
     function Info:Predictor()
-      if (aScore > 0 or hScore > 0) and (aScore < 1500 and hScore < 1500) then
+      if aScore > 0 or hScore > 0 then
         local currentAWinTime = NS.getWinTime(maxScore, aScore, curMapInfo.baseResources[allyBases])
         local currentHWinTime = NS.getWinTime(maxScore, hScore, curMapInfo.baseResources[hordeBases])
         local currentWinTime = mmin(currentAWinTime, currentHWinTime)
@@ -643,7 +643,7 @@ do
             if sfind(str, "flag") == nil then
               allyIncBases = allyIncBases + 1
 
-              local base = smatch(str, "assaulted the (.+)")
+              local base = smatch(str, "assaulted the (.-)!")
               -- if horde had the base, now they dont
               if hordeTimers[base] then
                 hordeTimers[base] = nil
@@ -658,7 +658,7 @@ do
 
             allyBases = allyBases + 1
 
-            local base = smatch(str, "captured the (.+)[%p]*")
+            local base = smatch(str, "control of the (.-)!")
             -- if taking a base from horde mid-cap
             if hordeTimers[base] then
               hordeTimers[base] = nil
@@ -677,7 +677,7 @@ do
             if sfind(str, "flag") == nil then
               hordeIncBases = hordeIncBases + 1
 
-              local base = smatch(str, "assaulted the (.+)")
+              local base = smatch(str, "assaulted the (.-)!*")
               -- if alliance had the base, now they dont
               if allyTimers[base] then
                 allyTimers[base] = nil
@@ -692,7 +692,7 @@ do
 
             hordeBases = hordeBases + 1
 
-            local base = smatch(str, "captured the (.+)[%p]*")
+            local base = smatch(str, "control of the (.-)!")
             -- if taking a base from alliance mid-cap
             if allyTimers[base] then
               allyTimers[base] = nil
@@ -943,7 +943,7 @@ do
             if sfind(str, "flag") == nil then
               allyIncBases = allyIncBases + 1
 
-              local base = smatch(str, "assaulted the (.+)")
+              local base = smatch(str, "assaulted the (.-)!")
               -- if horde had the base, now they dont
               if hordeTimers[base] then
                 hordeTimers[base] = nil
@@ -958,7 +958,7 @@ do
 
             allyBases = allyBases + 1
 
-            local base = smatch(str, "captured the (.+)[%p]*")
+            local base = smatch(str, "control of the (.-)!")
             -- if taking a base from horde mid-cap
             if hordeTimers[base] then
               hordeTimers[base] = nil
@@ -977,7 +977,7 @@ do
             if sfind(str, "flag") == nil then
               hordeIncBases = hordeIncBases + 1
 
-              local base = smatch(str, "assaulted the (.+)")
+              local base = smatch(str, "assaulted the (.-)!")
               -- if alliance had the base, now they dont
               if allyTimers[base] then
                 allyTimers[base] = nil
@@ -992,7 +992,7 @@ do
 
             hordeBases = hordeBases + 1
 
-            local base = smatch(str, "captured the (.+)[%p]*")
+            local base = smatch(str, "control of the (.-)!")
             -- if taking a base from alliance mid-cap
             if allyTimers[base] then
               allyTimers[base] = nil
@@ -1130,8 +1130,8 @@ do
         -- local visInfo = typeInfo.visInfoDataFunction(widgetID)
 
         self:CaptureBarTracker(widgetID)
-        self:ObjectiveTracker(widgetID)
         self:FlagTracker(widgetID)
+        self:ObjectiveTracker(widgetID)
         self:ScoreTracker(widgetID)
       end
     end
