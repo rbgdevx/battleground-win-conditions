@@ -17,6 +17,7 @@ local sformat = string.format
 
 local GetPlayerFactionGroup = GetPlayerFactionGroup
 
+local After = C_Timer.After
 local RegisterAddonMessagePrefix = C_ChatInfo.RegisterAddonMessagePrefix
 
 local BGWC = {}
@@ -32,7 +33,7 @@ end)
 function BGWC:LOADING_SCREEN_DISABLED()
   BGWCFrame:UnregisterEvent("LOADING_SCREEN_DISABLED")
 
-  NS.Timer(0, function() -- Timers aren't fully functional until 1 frame after loading is done
+  After(0, function() -- Timers aren't fully functional until 1 frame after loading is done
     if NS.db.test then
       if NS.db.banner then
         Interface:CreateTestBannerInfo()
@@ -78,7 +79,7 @@ do
     local inInstance = IsInInstance()
 
     if inInstance then
-      NS.Timer(0, function() -- Some info isn't available until 1 frame after loading is done
+      After(0, function() -- Some info isn't available until 1 frame after loading is done
         local _, instanceType, _, _, maxPlayers, _, _, instanceID, _, _, _, _ = GetInstanceInfo()
 
         if instanceType == "pvp" then

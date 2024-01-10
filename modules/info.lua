@@ -12,7 +12,7 @@ local mmin = math.min
 local mceil = math.ceil
 local mfloor = math.floor
 
-local Timer = C_Timer.After
+local After = C_Timer.After
 local GetDoubleStatusBarWidgetVisualizationInfo = C_UIWidgetManager.GetDoubleStatusBarWidgetVisualizationInfo
 local GetDoubleStateIconRowVisualizationInfo = C_UIWidgetManager.GetDoubleStateIconRowVisualizationInfo
 local GetCaptureBarWidgetVisualizationInfo = C_UIWidgetManager.GetCaptureBarWidgetVisualizationInfo
@@ -37,7 +37,7 @@ do
   local prevAOrbs, prevHOrbs = 0, 0
   local maxObjectives = 0
 
-  local function GetFlagValue()
+  function Info:GetFlagValue()
     if NS.isEOTS(curMapID) and (allyBases > 0 or hordeBases > 0) then
       if NS.PLAYER_FACTION == NS.ALLIANCE_NAME and allyBases > 0 then
         local flagValue = curMapInfo.flagResources[allyBases]
@@ -49,400 +49,6 @@ do
         local flagMessage = NS.formatScore(NS.HORDE_NAME, flagValue)
 
         NS.Interface:UpdateFlagValue(NS.InterfaceFrame.flag, flagMessage)
-      end
-    end
-  end
-
-  function Info:GetObjectivesByMapID(mapID)
-    -- mapID == Zone ID in-game
-    -- TOK = 417
-    -- DWG = 1576
-    -- EOTS = 112, 397
-    -- AB = 1366, 1383, 837
-    -- TBFG = 275
-    -- SSM = 423
-    -- WSG = 1339
-    -- TP = 206
-    if mapID == 417 then
-      -- Templf of Kotmogu
-      allyOrbs, hordeOrbs = 0, 0
-
-      local baseInfo = GetDoubleStateIconRowVisualizationInfo(1683)
-
-      if not baseInfo or not baseInfo.leftIcons or not baseInfo.rightIcons then
-        return
-      end
-
-      -- temple base states are always state 1 which is technically contested in all other maps
-      for _, v in pairs(baseInfo.leftIcons) do
-        if v.iconState == 1 then
-          allyOrbs = allyOrbs + 1
-        end
-      end
-
-      for _, v in pairs(baseInfo.rightIcons) do
-        if v.iconState == 1 then
-          hordeOrbs = hordeOrbs + 1
-        end
-      end
-
-      if allyOrbs ~= prevAOrbs or hordeOrbs ~= prevHOrbs then
-        prevAOrbs = allyOrbs
-        prevHOrbs = hordeOrbs
-
-        if allyOrbs == maxObjectives then
-          NS.Interface:UpdateBuff(
-            NS.InterfaceFrame.buff,
-            NS.ORB_BUFF_TIME,
-            NS.formatTeamName(NS.ALLIANCE_NAME, NS.PLAYER_FACTION)
-          )
-        end
-
-        if hordeOrbs == maxObjectives then
-          NS.Interface:UpdateBuff(
-            NS.InterfaceFrame.buff,
-            NS.ORB_BUFF_TIME,
-            NS.formatTeamName(NS.HORDE_NAME, NS.PLAYER_FACTION)
-          )
-        end
-
-        if allyOrbs ~= maxObjectives and hordeOrbs ~= maxObjectives then
-          NS.Interface:StopBuff(NS.InterfaceFrame.buff)
-        end
-      end
-    elseif mapID == 1366 or mapID == 1383 or mapID == 837 then
-      -- Arathi Basin
-      allyBases, allyIncBases, allyFinalBases = 0, 0, 0
-      hordeBases, hordeIncBases, hordeFinalBases = 0, 0, 0
-
-      local baseInfo = GetDoubleStateIconRowVisualizationInfo(1645)
-
-      if not baseInfo or not baseInfo.leftIcons or not baseInfo.rightIcons then
-        return
-      end
-
-      for _, v in pairs(baseInfo.leftIcons) do
-        if v.iconState == 1 then
-          local str = v.state1Tooltip
-
-          allyIncBases = allyIncBases + 1
-
-          local base = smatch(str, "(.-) %-%s")
-          -- if horde had the base, now they dont
-          if hordeTimers[base] then
-            hordeTimers[base] = nil
-          end
-          -- if fresh capture for alliance, or they once had it lose it fully then got it again
-          if allyTimers[base] == nil or (allyTimers[base] and allyTimers[base] - GetTime() <= 0) then
-            allyTimers[base] = NS.CONTESTED_TIME + GetTime()
-          end
-        elseif v.iconState == 2 then
-          local str = v.state2Tooltip
-
-          allyBases = allyBases + 1
-
-          local base = smatch(str, "(.-) %-%s")
-          -- if taking a base from horde mid-cap
-          if hordeTimers[base] then
-            hordeTimers[base] = nil
-          end
-          -- if alliance finished capping a base, now its theirs
-          if allyTimers[base] then
-            allyTimers[base] = nil
-          end
-        end
-      end
-
-      for _, v in pairs(baseInfo.rightIcons) do
-        if v.iconState == 1 then
-          local str = v.state1Tooltip
-
-          hordeIncBases = hordeIncBases + 1
-
-          local base = smatch(str, "(.-) %-%s")
-          -- if alliance had the base, now they dont
-          if allyTimers[base] then
-            allyTimers[base] = nil
-          end
-          -- if fresh capture for horde, or they once had it lose it fully then got it again
-          if hordeTimers[base] == nil or (hordeTimers[base] and hordeTimers[base] - GetTime() <= 0) then
-            hordeTimers[base] = NS.CONTESTED_TIME + GetTime()
-          end
-        elseif v.iconState == 2 then
-          local str = v.state2Tooltip
-
-          hordeBases = hordeBases + 1
-
-          local base = smatch(str, "(.-) %-%s")
-          -- if taking a base from alliance mid-cap
-          if allyTimers[base] then
-            allyTimers[base] = nil
-          end
-          -- if horde finished capping a base, now its theirs
-          if hordeTimers[base] then
-            hordeTimers[base] = nil
-          end
-        end
-      end
-
-      allyFinalBases = allyBases + allyIncBases
-      hordeFinalBases = hordeBases + hordeIncBases
-    elseif mapID == 1576 then
-      -- Deepwind Gorge
-      allyBases, allyIncBases, allyFinalBases = 0, 0, 0
-      hordeBases, hordeIncBases, hordeFinalBases = 0, 0, 0
-
-      local baseInfo = GetDoubleStateIconRowVisualizationInfo(2339)
-
-      if not baseInfo or not baseInfo.leftIcons or not baseInfo.rightIcons then
-        return
-      end
-
-      for _, v in pairs(baseInfo.leftIcons) do
-        if v.iconState == 1 then
-          local str = v.state1Tooltip
-
-          allyIncBases = allyIncBases + 1
-
-          local base = smatch(str, "(.-) %-%s")
-          -- if horde had the base, now they dont
-          if hordeTimers[base] then
-            hordeTimers[base] = nil
-          end
-          -- if fresh capture for alliance
-          if allyTimers[base] == nil or (allyTimers[base] and allyTimers[base] - GetTime() <= 0) then
-            allyTimers[base] = NS.CONTESTED_TIME + GetTime()
-          end
-        elseif v.iconState == 2 then
-          local str = v.state2Tooltip
-
-          allyBases = allyBases + 1
-
-          local base = smatch(str, "(.-) %-%s")
-          -- if taking a base from horde mid-cap
-          if hordeTimers[base] then
-            hordeTimers[base] = nil
-          end
-          -- if alliance finished capping a base, now its theirs
-          if allyTimers[base] then
-            allyTimers[base] = nil
-          end
-        end
-      end
-
-      for _, v in pairs(baseInfo.rightIcons) do
-        if v.iconState == 1 then
-          local str = v.state1Tooltip
-
-          hordeIncBases = hordeIncBases + 1
-
-          local base = smatch(str, "(.-) %-%s")
-          -- if alliance had the base, now they dont
-          if allyTimers[base] then
-            allyTimers[base] = nil
-          end
-          -- if fresh capture for horde
-          if hordeTimers[base] == nil or (hordeTimers[base] and hordeTimers[base] - GetTime() <= 0) then
-            hordeTimers[base] = NS.CONTESTED_TIME + GetTime()
-          end
-        elseif v.iconState == 2 then
-          local str = v.state2Tooltip
-
-          hordeBases = hordeBases + 1
-
-          local base = smatch(str, "(.-) %-%s")
-          -- if taking a base from alliance mid-cap
-          if allyTimers[base] then
-            allyTimers[base] = nil
-          end
-          -- if horde finished capping a base, now its theirs
-          if hordeTimers[base] then
-            hordeTimers[base] = nil
-          end
-        end
-      end
-
-      allyFinalBases = allyBases + allyIncBases
-      hordeFinalBases = hordeBases + hordeIncBases
-    elseif mapID == 275 then
-      -- The Battle for Gilneas
-      allyBases, allyIncBases, allyFinalBases = 0, 0, 0
-      hordeBases, hordeIncBases, hordeFinalBases = 0, 0, 0
-
-      local baseInfo = GetDoubleStateIconRowVisualizationInfo(1670)
-
-      if not baseInfo or not baseInfo.leftIcons or not baseInfo.rightIcons then
-        return
-      end
-
-      for _, v in pairs(baseInfo.leftIcons) do
-        if v.iconState == 1 then
-          local str = v.state1Tooltip
-
-          allyIncBases = allyIncBases + 1
-
-          local base = smatch(str, "(.-) %-%s")
-          -- if horde had the base, now they dont
-          if hordeTimers[base] then
-            hordeTimers[base] = nil
-          end
-          -- if fresh capture for alliance
-          if allyTimers[base] == nil or (allyTimers[base] and allyTimers[base] - GetTime() <= 0) then
-            allyTimers[base] = NS.CONTESTED_TIME + GetTime()
-          end
-        elseif v.iconState == 2 then
-          local str = v.state2Tooltip
-
-          allyBases = allyBases + 1
-
-          local base = smatch(str, "(.-) %-%s")
-          -- if taking a base from horde mid-cap
-          if hordeTimers[base] then
-            hordeTimers[base] = nil
-          end
-          -- if alliance finished capping a base, now its theirs
-          if allyTimers[base] then
-            allyTimers[base] = nil
-          end
-        end
-      end
-
-      for _, v in pairs(baseInfo.rightIcons) do
-        if v.iconState == 1 then
-          local str = v.state1Tooltip
-
-          hordeIncBases = hordeIncBases + 1
-
-          local base = smatch(str, "(.-) %-%s")
-          -- if alliance had the base, now they dont
-          if allyTimers[base] then
-            allyTimers[base] = nil
-          end
-          -- if fresh capture for horde
-          if hordeTimers[base] == nil or (hordeTimers[base] and hordeTimers[base] - GetTime() <= 0) then
-            hordeTimers[base] = NS.CONTESTED_TIME + GetTime()
-          end
-        elseif v.iconState == 2 then
-          local str = v.state2Tooltip
-
-          hordeBases = hordeBases + 1
-
-          local base = smatch(str, "(.-) %-%s")
-          -- if taking a base from alliance mid-cap
-          if allyTimers[base] then
-            allyTimers[base] = nil
-          end
-          -- if horde finished capping a base, now its theirs
-          if hordeTimers[base] then
-            hordeTimers[base] = nil
-          end
-        end
-      end
-
-      allyFinalBases = allyBases + allyIncBases
-      hordeFinalBases = hordeBases + hordeIncBases
-    elseif mapID == 112 or mapID == 397 then
-      -- Eye of the Storm
-      allyBases, allyIncBases, allyFinalBases = 0, 0, 0
-      hordeBases, hordeIncBases, hordeFinalBases = 0, 0, 0
-
-      local baseInfo = GetDoubleStateIconRowVisualizationInfo(1672)
-
-      if not baseInfo or not baseInfo.leftIcons or not baseInfo.rightIcons then
-        return
-      end
-
-      for _, v in pairs(baseInfo.leftIcons) do
-        if v.iconState == 1 then
-          local str = v.state1Tooltip
-
-          if sfind(str, "flag") == nil then
-            allyIncBases = allyIncBases + 1
-
-            local base = smatch(str, "assaulted the (.+)")
-            -- if horde had the base, now they dont
-            if hordeTimers[base] then
-              hordeTimers[base] = nil
-            end
-            -- if fresh capture for alliance
-            if allyTimers[base] == nil or (allyTimers[base] and allyTimers[base] - GetTime() <= 0) then
-              allyTimers[base] = NS.CONTESTED_TIME + GetTime()
-            end
-          end
-        elseif v.iconState == 2 then
-          local str = v.state2Tooltip
-
-          allyBases = allyBases + 1
-
-          local base = smatch(str, "captured the (.+)[%p]*")
-          -- if taking a base from horde mid-cap
-          if hordeTimers[base] then
-            hordeTimers[base] = nil
-          end
-          -- if alliance finished capping a base, now its theirs
-          if allyTimers[base] then
-            allyTimers[base] = nil
-          end
-        end
-      end
-
-      for _, v in pairs(baseInfo.rightIcons) do
-        if v.iconState == 1 then
-          local str = v.state1Tooltip
-
-          if sfind(str, "flag") == nil then
-            hordeIncBases = hordeIncBases + 1
-
-            local base = smatch(str, "assaulted the (.+)")
-            -- if alliance had the base, now they dont
-            if allyTimers[base] then
-              allyTimers[base] = nil
-            end
-            -- if fresh capture for horde
-            if hordeTimers[base] == nil or (hordeTimers[base] and hordeTimers[base] - GetTime() <= 0) then
-              hordeTimers[base] = NS.CONTESTED_TIME + GetTime()
-            end
-          end
-        elseif v.iconState == 2 then
-          local str = v.state2Tooltip
-
-          hordeBases = hordeBases + 1
-
-          local base = smatch(str, "captured the (.+)[%p]*")
-          -- if taking a base from alliance mid-cap
-          if allyTimers[base] then
-            allyTimers[base] = nil
-          end
-          -- if horde finished capping a base, now its theirs
-          if hordeTimers[base] then
-            hordeTimers[base] = nil
-          end
-        end
-      end
-
-      GetFlagValue()
-
-      allyFinalBases = allyBases + allyIncBases
-      hordeFinalBases = hordeBases + hordeIncBases
-    elseif mapID == 423 then
-      -- Silvershard Mines
-      allyCarts, hordeCarts = 0, 0
-
-      local baseInfo = GetDoubleStateIconRowVisualizationInfo(1700)
-
-      if not baseInfo or not baseInfo.leftIcons or not baseInfo.rightIcons then
-        return
-      end
-
-      for _, v in pairs(baseInfo.leftIcons) do
-        if v.iconState == 1 then
-          allyCarts = allyCarts + 1
-        end
-      end
-      for _, v in pairs(baseInfo.rightIcons) do
-        if v.iconState == 1 then
-          hordeCarts = hordeCarts + 1
-        end
       end
     end
   end
@@ -533,284 +139,17 @@ do
     end
   end
 
-  function Info:ObjectiveTracker(widgetID)
-    -- widgetType == 14
-    -- 1683 = TOK
-    -- 2339 = DWG
-    -- 1672 = EOTS
-    -- 1645 = AB
-    -- 1670 = TBFG
-    -- 1700 = SSM
-    -- 1640 = WSG, TP
-    if widgetID == 1683 then
-      -- Templf of Kotmogu
-      allyOrbs, hordeOrbs = 0, 0
-
-      local baseInfo = GetDoubleStateIconRowVisualizationInfo(widgetID)
-
-      if not baseInfo or not baseInfo.leftIcons or not baseInfo.rightIcons then
-        return
-      end
-
-      -- temple base states are always state 1 which is technically contested in all other maps
-      for _, v in pairs(baseInfo.leftIcons) do
-        if v.iconState == 1 then
-          allyOrbs = allyOrbs + 1
-        end
-      end
-
-      for _, v in pairs(baseInfo.rightIcons) do
-        if v.iconState == 1 then
-          hordeOrbs = hordeOrbs + 1
-        end
-      end
-
-      if allyOrbs ~= prevAOrbs or hordeOrbs ~= prevHOrbs then
-        prevAOrbs = allyOrbs
-        prevHOrbs = hordeOrbs
-
-        if allyOrbs == maxObjectives then
-          NS.Interface:UpdateBuff(
-            NS.InterfaceFrame.buff,
-            NS.ORB_BUFF_TIME,
-            NS.formatTeamName(NS.ALLIANCE_NAME, NS.PLAYER_FACTION)
-          )
-        end
-
-        if hordeOrbs == maxObjectives then
-          NS.Interface:UpdateBuff(
-            NS.InterfaceFrame.buff,
-            NS.ORB_BUFF_TIME,
-            NS.formatTeamName(NS.HORDE_NAME, NS.PLAYER_FACTION)
-          )
-        end
-
-        if allyOrbs ~= maxObjectives and hordeOrbs ~= maxObjectives then
-          NS.Interface:StopBuff(NS.InterfaceFrame.buff)
-        end
-      end
-    elseif widgetID == 1645 or widgetID == 1670 or widgetID == 2339 then
-      -- Arathi Basin, The Battle for Gilneas, Deepwind Gorge
-      allyBases, allyIncBases, allyFinalBases = 0, 0, 0
-      hordeBases, hordeIncBases, hordeFinalBases = 0, 0, 0
-
-      local baseInfo = GetDoubleStateIconRowVisualizationInfo(widgetID)
-
-      if not baseInfo or not baseInfo.leftIcons or not baseInfo.rightIcons then
-        return
-      end
-
-      for _, v in pairs(baseInfo.leftIcons) do
-        if v.iconState == 1 then
-          local str = v.state1Tooltip
-
-          allyIncBases = allyIncBases + 1
-
-          local base = smatch(str, "(.-) %-%s")
-          -- if horde had the base, now they dont
-          if hordeTimers[base] then
-            hordeTimers[base] = nil
-          end
-          -- if fresh capture for alliance, or they once had it lose it fully then got it again
-          if allyTimers[base] == nil or (allyTimers[base] and allyTimers[base] - GetTime() <= 0) then
-            allyTimers[base] = NS.CONTESTED_TIME + GetTime()
-          end
-        elseif v.iconState == 2 then
-          local str = v.state2Tooltip
-
-          allyBases = allyBases + 1
-
-          local base = smatch(str, "(.-) %-%s")
-          -- if taking a base from horde mid-cap
-          if hordeTimers[base] then
-            hordeTimers[base] = nil
-          end
-          -- if alliance finished capping a base, now its theirs
-          if allyTimers[base] then
-            allyTimers[base] = nil
-          end
-        end
-      end
-
-      for _, v in pairs(baseInfo.rightIcons) do
-        if v.iconState == 1 then
-          local str = v.state1Tooltip
-
-          hordeIncBases = hordeIncBases + 1
-
-          local base = smatch(str, "(.-) %-%s")
-          -- if alliance had the base, now they dont
-          if allyTimers[base] then
-            allyTimers[base] = nil
-          end
-          -- if fresh capture for horde, or they once had it lose it fully then got it again
-          if hordeTimers[base] == nil or (hordeTimers[base] and hordeTimers[base] - GetTime() <= 0) then
-            hordeTimers[base] = NS.CONTESTED_TIME + GetTime()
-          end
-        elseif v.iconState == 2 then
-          local str = v.state2Tooltip
-
-          hordeBases = hordeBases + 1
-
-          local base = smatch(str, "(.-) %-%s")
-          -- if taking a base from alliance mid-cap
-          if allyTimers[base] then
-            allyTimers[base] = nil
-          end
-          -- if horde finished capping a base, now its theirs
-          if hordeTimers[base] then
-            hordeTimers[base] = nil
-          end
-        end
-      end
-
-      allyFinalBases = allyBases + allyIncBases
-      hordeFinalBases = hordeBases + hordeIncBases
-    elseif widgetID == 1672 then
-      -- Eye of the Storm
-      allyBases, allyIncBases, allyFinalBases = 0, 0, 0
-      hordeBases, hordeIncBases, hordeFinalBases = 0, 0, 0
-
-      local baseInfo = GetDoubleStateIconRowVisualizationInfo(widgetID)
-
-      if not baseInfo or not baseInfo.leftIcons or not baseInfo.rightIcons then
-        return
-      end
-
-      for _, v in pairs(baseInfo.leftIcons) do
-        if v.iconState == 1 then
-          local str = v.state1Tooltip
-
-          if sfind(str, "flag") == nil then
-            allyIncBases = allyIncBases + 1
-
-            local base = smatch(str, "assaulted the (.+)")
-            -- if horde had the base, now they dont
-            if hordeTimers[base] then
-              hordeTimers[base] = nil
-            end
-            -- if fresh capture for alliance, or they once had it lose it fully then got it again
-            if allyTimers[base] == nil or (allyTimers[base] and allyTimers[base] - GetTime() <= 0) then
-              allyTimers[base] = NS.CONTESTED_TIME + GetTime()
-            end
-          end
-        elseif v.iconState == 2 then
-          local str = v.state2Tooltip
-
-          allyBases = allyBases + 1
-
-          local base = smatch(str, "captured the (.+)[%p]*")
-          -- if taking a base from horde mid-cap
-          if hordeTimers[base] then
-            hordeTimers[base] = nil
-          end
-          -- if alliance finished capping a base, now its theirs
-          if allyTimers[base] then
-            allyTimers[base] = nil
-          end
-        end
-      end
-
-      for _, v in pairs(baseInfo.rightIcons) do
-        if v.iconState == 1 then
-          local str = v.state1Tooltip
-
-          if sfind(str, "flag") == nil then
-            hordeIncBases = hordeIncBases + 1
-
-            local base = smatch(str, "assaulted the (.+)")
-            -- if alliance had the base, now they dont
-            if allyTimers[base] then
-              allyTimers[base] = nil
-            end
-            -- if fresh capture for horde, or they once had it lose it fully then got it again
-            if hordeTimers[base] == nil or (hordeTimers[base] and hordeTimers[base] - GetTime() <= 0) then
-              hordeTimers[base] = NS.CONTESTED_TIME + GetTime()
-            end
-          end
-        elseif v.iconState == 2 then
-          local str = v.state2Tooltip
-
-          hordeBases = hordeBases + 1
-
-          local base = smatch(str, "captured the (.+)[%p]*")
-          -- if taking a base from alliance mid-cap
-          if allyTimers[base] then
-            allyTimers[base] = nil
-          end
-          -- if horde finished capping a base, now its theirs
-          if hordeTimers[base] then
-            hordeTimers[base] = nil
-          end
-        end
-      end
-
-      GetFlagValue()
-
-      allyFinalBases = allyBases + allyIncBases
-      hordeFinalBases = hordeBases + hordeIncBases
-    elseif widgetID == 1700 then
-      -- Silvershard Mines
-      allyCarts, hordeCarts = 0, 0
-
-      local baseInfo = GetDoubleStateIconRowVisualizationInfo(widgetID)
-
-      if not baseInfo or not baseInfo.leftIcons or not baseInfo.rightIcons then
-        return
-      end
-
-      for _, v in pairs(baseInfo.leftIcons) do
-        if v.iconState == 1 then
-          allyCarts = allyCarts + 1
-        end
-      end
-      for _, v in pairs(baseInfo.rightIcons) do
-        if v.iconState == 1 then
-          hordeCarts = hordeCarts + 1
-        end
-      end
-    end
-  end
-
   do
     local prevText, prevFutText = "", ""
     local prevTime, prevAScore, prevHScore, prevAIncrease, prevHIncrease = 0, 0, 0, 0, 0
-    local timeBetweenEachTick, prevTick, prevWinTime, prevFutWinTime = 0, 0, 0, 0
+    local timeBetweenEachTick, prevTick, prevWinTime, prevFutWinTime, winTime = 0, 0, 0, 0, 0
     local minScore, maxScore, aScore, hScore, aIncrease, hIncrease = 0, 0, 0, 0, 0, 0
-    local aTicksToWin, hTicksToWin, winTime = 0, 0, 0
     local prevABases, prevHBases, prevAIncBases, prevHIncBases = 0, 0, 0, 0
 
-    local function ScorePredictor()
-      if
-        aIncrease ~= prevAIncrease
-        or hIncrease ~= prevHIncrease
-        or timeBetweenEachTick ~= prevTick
-        or allyBases ~= prevABases
-        or hordeBases ~= prevHBases
-        or allyIncBases ~= prevAIncBases
-        or hordeIncBases ~= prevHIncBases
-      then
-        -- Scores can reduce in DWG
-        if aIncrease > 60 or hIncrease > 60 or aIncrease < 0 or hIncrease < 0 then
-          -- > 60 increase means captured a flag/cart in EOTS/DWG
-          NS.Interface:StopBanner(NS.InterfaceFrame.banner)
-          NS.Interface:StopInfo(NS.InterfaceFrame.info)
-          NS.Interface:ClearAllText()
-
-          prevAIncrease, prevHIncrease = -1, -1
-          return
-        end
-
-        prevAIncrease = aIncrease
-        prevHIncrease = hIncrease
-        prevTick = timeBetweenEachTick
-        prevABases = allyBases
-        prevHBases = hordeBases
-        prevAIncBases = allyIncBases
-        prevHIncBases = hordeIncBases
-
-        local currentAWinTime = aTicksToWin
-        local currentHWinTime = hTicksToWin
+    function Info:Predictor()
+      if (aScore > 0 or hScore > 0) and (aScore < 1500 and hScore < 1500) then
+        local currentAWinTime = NS.getWinTime(maxScore, aScore, curMapInfo.baseResources[allyBases])
+        local currentHWinTime = NS.getWinTime(maxScore, hScore, curMapInfo.baseResources[hordeBases])
         local currentWinTime = mmin(currentAWinTime, currentHWinTime)
 
         if allyIncBases == 0 and hordeIncBases == 0 then
@@ -989,12 +328,723 @@ do
           end
         end
 
-        local firstKey, _ = next(winTable)
+        local firstKey = next(winTable)
         if firstKey and winTable[firstKey] then
           NS.Interface:UpdateInfo(NS.InterfaceFrame.info, winTime - 0.5, winTable)
         end
 
-        GetFlagValue()
+        self:GetFlagValue()
+      end
+    end
+
+    function Info:GetObjectivesByMapID(mapID)
+      -- mapID == Zone ID in-game
+      -- TOK = 417
+      -- DWG = 1576
+      -- EOTS = 112, 397
+      -- AB = 1366, 1383, 837
+      -- TBFG = 275
+      -- SSM = 423
+      -- WSG = 1339
+      -- TP = 206
+      if mapID == 417 then
+        -- Templf of Kotmogu
+        allyOrbs, hordeOrbs = 0, 0
+
+        local baseInfo = GetDoubleStateIconRowVisualizationInfo(1683)
+
+        if not baseInfo or not baseInfo.leftIcons or not baseInfo.rightIcons then
+          return
+        end
+
+        -- temple base states are always state 1 which is technically contested in all other maps
+        for _, v in pairs(baseInfo.leftIcons) do
+          if v.iconState == 1 then
+            allyOrbs = allyOrbs + 1
+          end
+        end
+
+        for _, v in pairs(baseInfo.rightIcons) do
+          if v.iconState == 1 then
+            hordeOrbs = hordeOrbs + 1
+          end
+        end
+
+        if allyOrbs ~= prevAOrbs or hordeOrbs ~= prevHOrbs then
+          prevAOrbs = allyOrbs
+          prevHOrbs = hordeOrbs
+
+          if allyOrbs == maxObjectives then
+            NS.Interface:UpdateBuff(
+              NS.InterfaceFrame.buff,
+              NS.ORB_BUFF_TIME,
+              NS.formatTeamName(NS.ALLIANCE_NAME, NS.PLAYER_FACTION)
+            )
+          end
+
+          if hordeOrbs == maxObjectives then
+            NS.Interface:UpdateBuff(
+              NS.InterfaceFrame.buff,
+              NS.ORB_BUFF_TIME,
+              NS.formatTeamName(NS.HORDE_NAME, NS.PLAYER_FACTION)
+            )
+          end
+
+          if allyOrbs ~= maxObjectives and hordeOrbs ~= maxObjectives then
+            NS.Interface:StopBuff(NS.InterfaceFrame.buff)
+          end
+        end
+      elseif mapID == 1366 or mapID == 1383 or mapID == 837 then
+        -- Arathi Basin
+        allyBases, allyIncBases, allyFinalBases = 0, 0, 0
+        hordeBases, hordeIncBases, hordeFinalBases = 0, 0, 0
+
+        local baseInfo = GetDoubleStateIconRowVisualizationInfo(1645)
+
+        if not baseInfo or not baseInfo.leftIcons or not baseInfo.rightIcons then
+          return
+        end
+
+        for _, v in pairs(baseInfo.leftIcons) do
+          if v.iconState == 1 then
+            local str = v.state1Tooltip
+
+            allyIncBases = allyIncBases + 1
+
+            local base = smatch(str, "(.-) %-%s")
+            -- if horde had the base, now they dont
+            if hordeTimers[base] then
+              hordeTimers[base] = nil
+            end
+            -- if fresh capture for alliance, or they once had it lose it fully then got it again
+            if allyTimers[base] == nil or (allyTimers[base] and allyTimers[base] - GetTime() <= 0) then
+              allyTimers[base] = NS.CONTESTED_TIME + GetTime()
+            end
+          elseif v.iconState == 2 then
+            local str = v.state2Tooltip
+
+            allyBases = allyBases + 1
+
+            local base = smatch(str, "(.-) %-%s")
+            -- if taking a base from horde mid-cap
+            if hordeTimers[base] then
+              hordeTimers[base] = nil
+            end
+            -- if alliance finished capping a base, now its theirs
+            if allyTimers[base] then
+              allyTimers[base] = nil
+            end
+          end
+        end
+
+        for _, v in pairs(baseInfo.rightIcons) do
+          if v.iconState == 1 then
+            local str = v.state1Tooltip
+
+            hordeIncBases = hordeIncBases + 1
+
+            local base = smatch(str, "(.-) %-%s")
+            -- if alliance had the base, now they dont
+            if allyTimers[base] then
+              allyTimers[base] = nil
+            end
+            -- if fresh capture for horde, or they once had it lose it fully then got it again
+            if hordeTimers[base] == nil or (hordeTimers[base] and hordeTimers[base] - GetTime() <= 0) then
+              hordeTimers[base] = NS.CONTESTED_TIME + GetTime()
+            end
+          elseif v.iconState == 2 then
+            local str = v.state2Tooltip
+
+            hordeBases = hordeBases + 1
+
+            local base = smatch(str, "(.-) %-%s")
+            -- if taking a base from alliance mid-cap
+            if allyTimers[base] then
+              allyTimers[base] = nil
+            end
+            -- if horde finished capping a base, now its theirs
+            if hordeTimers[base] then
+              hordeTimers[base] = nil
+            end
+          end
+        end
+
+        allyFinalBases = allyBases + allyIncBases
+        hordeFinalBases = hordeBases + hordeIncBases
+      elseif mapID == 1576 then
+        -- Deepwind Gorge
+        allyBases, allyIncBases, allyFinalBases = 0, 0, 0
+        hordeBases, hordeIncBases, hordeFinalBases = 0, 0, 0
+
+        local baseInfo = GetDoubleStateIconRowVisualizationInfo(2339)
+
+        if not baseInfo or not baseInfo.leftIcons or not baseInfo.rightIcons then
+          return
+        end
+
+        for _, v in pairs(baseInfo.leftIcons) do
+          if v.iconState == 1 then
+            local str = v.state1Tooltip
+
+            allyIncBases = allyIncBases + 1
+
+            local base = smatch(str, "(.-) %-%s")
+            -- if horde had the base, now they dont
+            if hordeTimers[base] then
+              hordeTimers[base] = nil
+            end
+            -- if fresh capture for alliance
+            if allyTimers[base] == nil or (allyTimers[base] and allyTimers[base] - GetTime() <= 0) then
+              allyTimers[base] = NS.CONTESTED_TIME + GetTime()
+            end
+          elseif v.iconState == 2 then
+            local str = v.state2Tooltip
+
+            allyBases = allyBases + 1
+
+            local base = smatch(str, "(.-) %-%s")
+            -- if taking a base from horde mid-cap
+            if hordeTimers[base] then
+              hordeTimers[base] = nil
+            end
+            -- if alliance finished capping a base, now its theirs
+            if allyTimers[base] then
+              allyTimers[base] = nil
+            end
+          end
+        end
+
+        for _, v in pairs(baseInfo.rightIcons) do
+          if v.iconState == 1 then
+            local str = v.state1Tooltip
+
+            hordeIncBases = hordeIncBases + 1
+
+            local base = smatch(str, "(.-) %-%s")
+            -- if alliance had the base, now they dont
+            if allyTimers[base] then
+              allyTimers[base] = nil
+            end
+            -- if fresh capture for horde
+            if hordeTimers[base] == nil or (hordeTimers[base] and hordeTimers[base] - GetTime() <= 0) then
+              hordeTimers[base] = NS.CONTESTED_TIME + GetTime()
+            end
+          elseif v.iconState == 2 then
+            local str = v.state2Tooltip
+
+            hordeBases = hordeBases + 1
+
+            local base = smatch(str, "(.-) %-%s")
+            -- if taking a base from alliance mid-cap
+            if allyTimers[base] then
+              allyTimers[base] = nil
+            end
+            -- if horde finished capping a base, now its theirs
+            if hordeTimers[base] then
+              hordeTimers[base] = nil
+            end
+          end
+        end
+
+        allyFinalBases = allyBases + allyIncBases
+        hordeFinalBases = hordeBases + hordeIncBases
+      elseif mapID == 275 then
+        -- The Battle for Gilneas
+        allyBases, allyIncBases, allyFinalBases = 0, 0, 0
+        hordeBases, hordeIncBases, hordeFinalBases = 0, 0, 0
+
+        local baseInfo = GetDoubleStateIconRowVisualizationInfo(1670)
+
+        if not baseInfo or not baseInfo.leftIcons or not baseInfo.rightIcons then
+          return
+        end
+
+        for _, v in pairs(baseInfo.leftIcons) do
+          if v.iconState == 1 then
+            local str = v.state1Tooltip
+
+            allyIncBases = allyIncBases + 1
+
+            local base = smatch(str, "(.-) %-%s")
+            -- if horde had the base, now they dont
+            if hordeTimers[base] then
+              hordeTimers[base] = nil
+            end
+            -- if fresh capture for alliance
+            if allyTimers[base] == nil or (allyTimers[base] and allyTimers[base] - GetTime() <= 0) then
+              allyTimers[base] = NS.CONTESTED_TIME + GetTime()
+            end
+          elseif v.iconState == 2 then
+            local str = v.state2Tooltip
+
+            allyBases = allyBases + 1
+
+            local base = smatch(str, "(.-) %-%s")
+            -- if taking a base from horde mid-cap
+            if hordeTimers[base] then
+              hordeTimers[base] = nil
+            end
+            -- if alliance finished capping a base, now its theirs
+            if allyTimers[base] then
+              allyTimers[base] = nil
+            end
+          end
+        end
+
+        for _, v in pairs(baseInfo.rightIcons) do
+          if v.iconState == 1 then
+            local str = v.state1Tooltip
+
+            hordeIncBases = hordeIncBases + 1
+
+            local base = smatch(str, "(.-) %-%s")
+            -- if alliance had the base, now they dont
+            if allyTimers[base] then
+              allyTimers[base] = nil
+            end
+            -- if fresh capture for horde
+            if hordeTimers[base] == nil or (hordeTimers[base] and hordeTimers[base] - GetTime() <= 0) then
+              hordeTimers[base] = NS.CONTESTED_TIME + GetTime()
+            end
+          elseif v.iconState == 2 then
+            local str = v.state2Tooltip
+
+            hordeBases = hordeBases + 1
+
+            local base = smatch(str, "(.-) %-%s")
+            -- if taking a base from alliance mid-cap
+            if allyTimers[base] then
+              allyTimers[base] = nil
+            end
+            -- if horde finished capping a base, now its theirs
+            if hordeTimers[base] then
+              hordeTimers[base] = nil
+            end
+          end
+        end
+
+        allyFinalBases = allyBases + allyIncBases
+        hordeFinalBases = hordeBases + hordeIncBases
+      elseif mapID == 112 or mapID == 397 then
+        -- Eye of the Storm
+        allyBases, allyIncBases, allyFinalBases = 0, 0, 0
+        hordeBases, hordeIncBases, hordeFinalBases = 0, 0, 0
+
+        local baseInfo = GetDoubleStateIconRowVisualizationInfo(1672)
+
+        if not baseInfo or not baseInfo.leftIcons or not baseInfo.rightIcons then
+          return
+        end
+
+        for _, v in pairs(baseInfo.leftIcons) do
+          if v.iconState == 1 then
+            local str = v.state1Tooltip
+
+            if sfind(str, "flag") == nil then
+              allyIncBases = allyIncBases + 1
+
+              local base = smatch(str, "assaulted the (.+)")
+              -- if horde had the base, now they dont
+              if hordeTimers[base] then
+                hordeTimers[base] = nil
+              end
+              -- if fresh capture for alliance
+              if allyTimers[base] == nil or (allyTimers[base] and allyTimers[base] - GetTime() <= 0) then
+                allyTimers[base] = NS.CONTESTED_TIME + GetTime()
+              end
+            end
+          elseif v.iconState == 2 then
+            local str = v.state2Tooltip
+
+            allyBases = allyBases + 1
+
+            local base = smatch(str, "captured the (.+)[%p]*")
+            -- if taking a base from horde mid-cap
+            if hordeTimers[base] then
+              hordeTimers[base] = nil
+            end
+            -- if alliance finished capping a base, now its theirs
+            if allyTimers[base] then
+              allyTimers[base] = nil
+            end
+          end
+        end
+
+        for _, v in pairs(baseInfo.rightIcons) do
+          if v.iconState == 1 then
+            local str = v.state1Tooltip
+
+            if sfind(str, "flag") == nil then
+              hordeIncBases = hordeIncBases + 1
+
+              local base = smatch(str, "assaulted the (.+)")
+              -- if alliance had the base, now they dont
+              if allyTimers[base] then
+                allyTimers[base] = nil
+              end
+              -- if fresh capture for horde
+              if hordeTimers[base] == nil or (hordeTimers[base] and hordeTimers[base] - GetTime() <= 0) then
+                hordeTimers[base] = NS.CONTESTED_TIME + GetTime()
+              end
+            end
+          elseif v.iconState == 2 then
+            local str = v.state2Tooltip
+
+            hordeBases = hordeBases + 1
+
+            local base = smatch(str, "captured the (.+)[%p]*")
+            -- if taking a base from alliance mid-cap
+            if allyTimers[base] then
+              allyTimers[base] = nil
+            end
+            -- if horde finished capping a base, now its theirs
+            if hordeTimers[base] then
+              hordeTimers[base] = nil
+            end
+          end
+        end
+
+        self:GetFlagValue()
+
+        allyFinalBases = allyBases + allyIncBases
+        hordeFinalBases = hordeBases + hordeIncBases
+      elseif mapID == 423 then
+        -- Silvershard Mines
+        allyCarts, hordeCarts = 0, 0
+
+        local baseInfo = GetDoubleStateIconRowVisualizationInfo(1700)
+
+        if not baseInfo or not baseInfo.leftIcons or not baseInfo.rightIcons then
+          return
+        end
+
+        for _, v in pairs(baseInfo.leftIcons) do
+          if v.iconState == 1 then
+            allyCarts = allyCarts + 1
+          end
+        end
+        for _, v in pairs(baseInfo.rightIcons) do
+          if v.iconState == 1 then
+            hordeCarts = hordeCarts + 1
+          end
+        end
+      end
+    end
+
+    function Info:GetScoreByMapID(mapID)
+      -- mapID == Zone ID in-game
+      -- TOK = 417
+      -- DWG = 1576
+      -- EOTS = 112, 397
+      -- AB = 1366, 1383, 837
+      -- TBFG = 275
+      -- SSM = 423
+      -- WSG = 1339
+      -- TP = 206
+      if mapID == 1366 or mapID == 1383 or mapID == 837 or mapID == 275 or mapID == 112 or mapID == 397 then
+        -- Arathi Basin, The Battle for Gilneas, Eye of the Storm
+        local scoreInfo = GetDoubleStatusBarWidgetVisualizationInfo(1671)
+
+        if not scoreInfo or not scoreInfo.leftBarMax or not scoreInfo.rightBarMax then
+          return
+        end
+
+        minScore = scoreInfo.leftBarMin -- Min Bar
+        maxScore = scoreInfo.leftBarMax -- Max Bar
+        aScore = scoreInfo.leftBarValue -- Alliance Bar
+        hScore = scoreInfo.rightBarValue -- Horde Bar
+      elseif mapID == 1576 then
+        -- Deepwind Gorge
+        local scoreInfo = GetDoubleStatusBarWidgetVisualizationInfo(2074)
+
+        if not scoreInfo or not scoreInfo.leftBarMax or not scoreInfo.rightBarMax then
+          return
+        end
+
+        minScore = scoreInfo.leftBarMin -- Min Bar
+        maxScore = scoreInfo.leftBarMax -- Max Bar
+        aScore = scoreInfo.leftBarValue -- Alliance Bar
+        hScore = scoreInfo.rightBarValue -- Horde Bar
+      end
+    end
+
+    function Info:PredictorByMapID(mapID)
+      -- mapID == Zone ID in-game
+      -- TOK = 417
+      -- DWG = 1576
+      -- EOTS = 112, 397
+      -- AB = 1366, 1383, 837
+      -- TBFG = 275
+      -- SSM = 423
+      -- WSG = 1339
+      -- TP = 206
+      if
+        mapID == 1366
+        or mapID == 1383
+        or mapID == 837
+        or mapID == 275
+        or mapID == 112
+        or mapID == 397
+        or mapID == 1576
+      then
+        -- Arathi Basin, The Battle for Gilneas, Eye of the Storm, Deepwind Gorge
+        self:Predictor()
+      end
+    end
+
+    function Info:ObjectiveTracker(widgetID)
+      -- widgetType == 14
+      -- 1683 = TOK
+      -- 2339 = DWG
+      -- 1672 = EOTS
+      -- 1645 = AB
+      -- 1670 = TBFG
+      -- 1700 = SSM
+      -- 1640 = WSG, TP
+      if widgetID == 1683 then
+        -- Templf of Kotmogu
+        allyOrbs, hordeOrbs = 0, 0
+
+        local baseInfo = GetDoubleStateIconRowVisualizationInfo(widgetID)
+
+        if not baseInfo or not baseInfo.leftIcons or not baseInfo.rightIcons then
+          return
+        end
+
+        -- temple base states are always state 1 which is technically contested in all other maps
+        for _, v in pairs(baseInfo.leftIcons) do
+          if v.iconState == 1 then
+            allyOrbs = allyOrbs + 1
+          end
+        end
+
+        for _, v in pairs(baseInfo.rightIcons) do
+          if v.iconState == 1 then
+            hordeOrbs = hordeOrbs + 1
+          end
+        end
+
+        if allyOrbs ~= prevAOrbs or hordeOrbs ~= prevHOrbs then
+          prevAOrbs = allyOrbs
+          prevHOrbs = hordeOrbs
+
+          if allyOrbs == maxObjectives then
+            NS.Interface:UpdateBuff(
+              NS.InterfaceFrame.buff,
+              NS.ORB_BUFF_TIME,
+              NS.formatTeamName(NS.ALLIANCE_NAME, NS.PLAYER_FACTION)
+            )
+          end
+
+          if hordeOrbs == maxObjectives then
+            NS.Interface:UpdateBuff(
+              NS.InterfaceFrame.buff,
+              NS.ORB_BUFF_TIME,
+              NS.formatTeamName(NS.HORDE_NAME, NS.PLAYER_FACTION)
+            )
+          end
+
+          if allyOrbs ~= maxObjectives and hordeOrbs ~= maxObjectives then
+            NS.Interface:StopBuff(NS.InterfaceFrame.buff)
+          end
+        end
+      elseif widgetID == 1645 or widgetID == 1670 or widgetID == 2339 then
+        -- Arathi Basin, The Battle for Gilneas, Deepwind Gorge
+        allyBases, allyIncBases, allyFinalBases = 0, 0, 0
+        hordeBases, hordeIncBases, hordeFinalBases = 0, 0, 0
+
+        local baseInfo = GetDoubleStateIconRowVisualizationInfo(widgetID)
+
+        if not baseInfo or not baseInfo.leftIcons or not baseInfo.rightIcons then
+          return
+        end
+
+        for _, v in pairs(baseInfo.leftIcons) do
+          if v.iconState == 1 then
+            local str = v.state1Tooltip
+
+            allyIncBases = allyIncBases + 1
+
+            local base = smatch(str, "(.-) %-%s")
+            -- if horde had the base, now they dont
+            if hordeTimers[base] then
+              hordeTimers[base] = nil
+            end
+            -- if fresh capture for alliance, or they once had it lose it fully then got it again
+            if allyTimers[base] == nil or (allyTimers[base] and allyTimers[base] - GetTime() <= 0) then
+              allyTimers[base] = NS.CONTESTED_TIME + GetTime()
+            end
+          elseif v.iconState == 2 then
+            local str = v.state2Tooltip
+
+            allyBases = allyBases + 1
+
+            local base = smatch(str, "(.-) %-%s")
+            -- if taking a base from horde mid-cap
+            if hordeTimers[base] then
+              hordeTimers[base] = nil
+            end
+            -- if alliance finished capping a base, now its theirs
+            if allyTimers[base] then
+              allyTimers[base] = nil
+            end
+          end
+        end
+
+        for _, v in pairs(baseInfo.rightIcons) do
+          if v.iconState == 1 then
+            local str = v.state1Tooltip
+
+            hordeIncBases = hordeIncBases + 1
+
+            local base = smatch(str, "(.-) %-%s")
+            -- if alliance had the base, now they dont
+            if allyTimers[base] then
+              allyTimers[base] = nil
+            end
+            -- if fresh capture for horde, or they once had it lose it fully then got it again
+            if hordeTimers[base] == nil or (hordeTimers[base] and hordeTimers[base] - GetTime() <= 0) then
+              hordeTimers[base] = NS.CONTESTED_TIME + GetTime()
+            end
+          elseif v.iconState == 2 then
+            local str = v.state2Tooltip
+
+            hordeBases = hordeBases + 1
+
+            local base = smatch(str, "(.-) %-%s")
+            -- if taking a base from alliance mid-cap
+            if allyTimers[base] then
+              allyTimers[base] = nil
+            end
+            -- if horde finished capping a base, now its theirs
+            if hordeTimers[base] then
+              hordeTimers[base] = nil
+            end
+          end
+        end
+
+        allyFinalBases = allyBases + allyIncBases
+        hordeFinalBases = hordeBases + hordeIncBases
+      elseif widgetID == 1672 then
+        -- Eye of the Storm
+        allyBases, allyIncBases, allyFinalBases = 0, 0, 0
+        hordeBases, hordeIncBases, hordeFinalBases = 0, 0, 0
+
+        local baseInfo = GetDoubleStateIconRowVisualizationInfo(widgetID)
+
+        if not baseInfo or not baseInfo.leftIcons or not baseInfo.rightIcons then
+          return
+        end
+
+        for _, v in pairs(baseInfo.leftIcons) do
+          if v.iconState == 1 then
+            local str = v.state1Tooltip
+
+            if sfind(str, "flag") == nil then
+              allyIncBases = allyIncBases + 1
+
+              local base = smatch(str, "assaulted the (.+)")
+              -- if horde had the base, now they dont
+              if hordeTimers[base] then
+                hordeTimers[base] = nil
+              end
+              -- if fresh capture for alliance, or they once had it lose it fully then got it again
+              if allyTimers[base] == nil or (allyTimers[base] and allyTimers[base] - GetTime() <= 0) then
+                allyTimers[base] = NS.CONTESTED_TIME + GetTime()
+              end
+            end
+          elseif v.iconState == 2 then
+            local str = v.state2Tooltip
+
+            allyBases = allyBases + 1
+
+            local base = smatch(str, "captured the (.+)[%p]*")
+            -- if taking a base from horde mid-cap
+            if hordeTimers[base] then
+              hordeTimers[base] = nil
+            end
+            -- if alliance finished capping a base, now its theirs
+            if allyTimers[base] then
+              allyTimers[base] = nil
+            end
+          end
+        end
+
+        for _, v in pairs(baseInfo.rightIcons) do
+          if v.iconState == 1 then
+            local str = v.state1Tooltip
+
+            if sfind(str, "flag") == nil then
+              hordeIncBases = hordeIncBases + 1
+
+              local base = smatch(str, "assaulted the (.+)")
+              -- if alliance had the base, now they dont
+              if allyTimers[base] then
+                allyTimers[base] = nil
+              end
+              -- if fresh capture for horde, or they once had it lose it fully then got it again
+              if hordeTimers[base] == nil or (hordeTimers[base] and hordeTimers[base] - GetTime() <= 0) then
+                hordeTimers[base] = NS.CONTESTED_TIME + GetTime()
+              end
+            end
+          elseif v.iconState == 2 then
+            local str = v.state2Tooltip
+
+            hordeBases = hordeBases + 1
+
+            local base = smatch(str, "captured the (.+)[%p]*")
+            -- if taking a base from alliance mid-cap
+            if allyTimers[base] then
+              allyTimers[base] = nil
+            end
+            -- if horde finished capping a base, now its theirs
+            if hordeTimers[base] then
+              hordeTimers[base] = nil
+            end
+          end
+        end
+
+        self:GetFlagValue()
+
+        allyFinalBases = allyBases + allyIncBases
+        hordeFinalBases = hordeBases + hordeIncBases
+      elseif widgetID == 1700 then
+        -- Silvershard Mines
+        allyCarts, hordeCarts = 0, 0
+
+        local baseInfo = GetDoubleStateIconRowVisualizationInfo(widgetID)
+
+        if not baseInfo or not baseInfo.leftIcons or not baseInfo.rightIcons then
+          return
+        end
+
+        for _, v in pairs(baseInfo.leftIcons) do
+          if v.iconState == 1 then
+            allyCarts = allyCarts + 1
+          end
+        end
+        for _, v in pairs(baseInfo.rightIcons) do
+          if v.iconState == 1 then
+            hordeCarts = hordeCarts + 1
+          end
+        end
+      end
+
+      if widgetID == 1645 or widgetID == 1670 or widgetID == 2339 or widgetID == 1672 then
+        -- Arathi Basin, The Battle for Gilneas, Deepwind Gorge, Eye of the Storm
+        if
+          allyBases ~= prevABases
+          or hordeBases ~= prevHBases
+          or allyIncBases ~= prevAIncBases
+          or hordeIncBases ~= prevHIncBases
+        then
+          prevABases = allyBases
+          prevHBases = hordeBases
+          prevAIncBases = allyIncBases
+          prevHIncBases = hordeIncBases
+
+          self:Predictor()
+        end
       end
     end
 
@@ -1005,6 +1055,7 @@ do
       -- 2074 = DWG
       -- 1671 = AB, TBFG, EOTS
       if widgetID == 1671 or widgetID == 2074 then
+        -- Arathi Basin, The Battle for Gilneas, Eye of the Storm, Deepwind Gorge
         local scoreInfo = GetDoubleStatusBarWidgetVisualizationInfo(widgetID)
 
         if not scoreInfo or not scoreInfo.leftBarMax or not scoreInfo.rightBarMax then
@@ -1013,7 +1064,8 @@ do
 
         if prevTime == 0 then
           prevTime = GetTime()
-          prevAScore, prevHScore = scoreInfo.leftBarValue, scoreInfo.rightBarValue
+          prevAScore = scoreInfo.leftBarValue
+          prevHScore = scoreInfo.rightBarValue
           return
         end
 
@@ -1029,17 +1081,32 @@ do
           hScore = scoreInfo.rightBarValue -- Horde Bar
           aIncrease = aScore - prevAScore
           hIncrease = hScore - prevHScore
-          -- Always round ticks upwards. 1.2 ticks will always be 2 ticks to end.
-          -- If ticks are 0 (no bases) then set to a random huge number (10,000)
-          aTicksToWin = NS.getWinTime(maxScore, aScore, curMapInfo.baseResources[allyBases])
-          hTicksToWin = NS.getWinTime(maxScore, hScore, curMapInfo.baseResources[hordeBases])
           -- Round to the closest time
           timeBetweenEachTick = elapsed % 1 >= 0.5 and mceil(elapsed) or mfloor(elapsed)
-          prevAScore, prevHScore = aScore, hScore
-          prevABases, prevHBases = allyBases, hordeBases
-          prevAIncBases, prevHIncBases = allyIncBases, hordeIncBases
+          prevAScore = aScore
+          prevHScore = hScore
 
-          Timer(0.5, ScorePredictor)
+          After(0.5, function()
+            if aIncrease ~= prevAIncrease or hIncrease ~= prevHIncrease or timeBetweenEachTick ~= prevTick then
+              -- Scores can reduce in DWG
+              if aIncrease > 60 or hIncrease > 60 or aIncrease < 0 or hIncrease < 0 then
+                -- > 60 increase means captured a flag/cart in EOTS/DWG
+                NS.Interface:StopBanner(NS.InterfaceFrame.banner)
+                NS.Interface:StopInfo(NS.InterfaceFrame.info)
+                NS.Interface:ClearAllText()
+
+                prevAIncrease = -1
+                prevHIncrease = -1
+                return
+              end
+
+              prevAIncrease = aIncrease
+              prevHIncrease = hIncrease
+              prevTick = timeBetweenEachTick
+
+              self:Predictor()
+            end
+          end)
         else
           -- If elapsed < 0.5 then the event fired twice because both alliance and horde have bases.
           -- 1st update = alliance, 2nd update = horde
@@ -1048,12 +1115,7 @@ do
           -- In this one where we have 2 updates, we overwrite the horde stats from the 1st update.
           hScore = scoreInfo.rightBarValue -- Horde Bar
           hIncrease = hScore - prevHScore
-          -- Always round ticks upwards. 1.2 ticks will always be 2 ticks to end.
-          -- If ticks are 0 (no bases) then set to a random huge number (10,000)
-          hTicksToWin = NS.getWinTime(maxScore, hScore, curMapInfo.baseResources[hordeBases])
           prevHScore = hScore
-          prevHBases = hordeBases
-          prevHIncBases = hordeIncBases
         end
       end
     end
@@ -1067,9 +1129,9 @@ do
         -- local typeInfo = UIWidgetManager:GetWidgetTypeInfo(widgetType)
         -- local visInfo = typeInfo.visInfoDataFunction(widgetID)
 
+        self:CaptureBarTracker(widgetID)
         self:ObjectiveTracker(widgetID)
         self:FlagTracker(widgetID)
-        self:CaptureBarTracker(widgetID)
         self:ScoreTracker(widgetID)
       end
     end
@@ -1078,9 +1140,8 @@ do
       -- local
       prevText, prevFutText = "", ""
       prevTime, prevAScore, prevHScore, prevAIncrease, prevHIncrease = 0, 0, 0, 0, 0
-      timeBetweenEachTick, prevTick, prevWinTime, prevFutWinTime = 0, 0, 0, 0
+      timeBetweenEachTick, prevTick, prevWinTime, prevFutWinTime, winTime = 0, 0, 0, 0, 0
       minScore, maxScore, aScore, hScore, aIncrease, hIncrease = 0, 0, 0, 0, 0, 0
-      aTicksToWin, hTicksToWin, winTime = 0, 0, 0
       prevABases, prevHBases, prevAIncBases, prevHIncBases = 0, 0, 0, 0
       -- global
       curMapID, curTickRate, curMapInfo = mapID, tickRate, mapResources
@@ -1093,6 +1154,8 @@ do
       maxObjectives = maxResources
 
       self:GetObjectivesByMapID(curMapID)
+      self:GetScoreByMapID(curMapID)
+      self:PredictorByMapID(curMapID)
 
       InfoFrame:RegisterEvent("UPDATE_UI_WIDGET")
     end

@@ -196,15 +196,19 @@ function Interface:MakeMoveable()
   InterfaceFrame.frame:SetMovable(true)
   InterfaceFrame.frame:RegisterForDrag("LeftButton")
   InterfaceFrame.frame:SetScript("OnDragStart", function(f)
-    f:StartMoving()
+    if NS.db.lock == false then
+      f:StartMoving()
+    end
   end)
   InterfaceFrame.frame:SetScript("OnDragStop", function(f)
-    f:StopMovingOrSizing()
-    local a, _, b, c, d = f:GetPoint()
-    NS.db.position[1] = a
-    NS.db.position[2] = b
-    NS.db.position[3] = c
-    NS.db.position[4] = d
+    if NS.db.lock == false then
+      f:StopMovingOrSizing()
+      local a, _, b, c, d = f:GetPoint()
+      NS.db.position[1] = a
+      NS.db.position[2] = b
+      NS.db.position[3] = c
+      NS.db.position[4] = d
+    end
   end)
 end
 

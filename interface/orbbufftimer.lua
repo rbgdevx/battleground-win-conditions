@@ -35,10 +35,9 @@ function OrbBuffTimer:Create(label, anchor)
     -- updater.parent = bar
 
     local anim = updater:CreateAnimation()
-    anim:SetDuration(0.04)
+    anim:SetDuration(0.05)
 
     bar.updater = updater
-    bar.repeater = anim
     bar.frame = frame
   else
     buffCache[bar] = nil
@@ -58,10 +57,6 @@ end
 
 local function stopBuff(bar)
   bar.updater:Stop()
-  bar.data = nil
-  bar.funcs = nil
-  bar.running = nil
-  bar.paused = nil
   bar.frame:Hide()
   bar.frame:SetParent(UIParent)
   buffCache[bar] = true
@@ -79,8 +74,6 @@ local function buffUpdate(bar, winTeam, updater)
   local t = GetTime()
   if t >= bar.exp then
     bar.updater:Stop()
-    bar.running = nil
-    bar.paused = nil
     bar.text:SetFormattedText(buffformat2, winTeam)
     -- bar.frame:Hide()
     -- bar.frame:SetParent(UIParent)
@@ -92,20 +85,19 @@ local function buffUpdate(bar, winTeam, updater)
 end
 
 function OrbBuffTimer:Start(bar, winTeam)
-  bar.running = true
   local time = bar.remaining
-  bar.gap = 0
   bar.start = GetTime()
   bar.exp = bar.start + time
 
   bar.text:SetFormattedText(buffformat1, winTeam, NS.formatTime(time))
+
+  bar.frame:Show()
 
   bar.updater:SetScript("OnLoop", function(updater)
     buffUpdate(bar, winTeam, updater)
   end)
 
   bar.updater:Play()
-  bar.frame:Show()
 end
 
 function OrbBuffTimer:HideBuff(bar)

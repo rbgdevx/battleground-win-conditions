@@ -16,8 +16,6 @@ local wipe = table.wipe
 local tinsert = table.insert
 local tsort = table.sort
 
-local Timer = C_Timer.After
-
 NS.getSeconds = function(time)
   return time % 60
 end
@@ -132,8 +130,6 @@ NS.checkWinCondition = function(
     local loseGapScore = (currentWinTime < NS.CONTESTED_TIME) and loseTeamScoreNow
       or loseTeamScoreNow + loseTeamGapScore
     local winGapScore = (currentWinTime < NS.CONTESTED_TIME) and winTeamScoreNow or winTeamScoreNow + winTeamGapScore
-    -- local loseGapScore = loseTeamScoreNow
-    -- local winGapScore = winTeamScoreNow
 
     local l = NS.getWinTime(maxScore, loseGapScore, resources[potentialLoseTeamBaseCount])
     local w = NS.getWinTime(maxScore, winGapScore, resources[potentialWinTeamBaseCount])
@@ -264,8 +260,4 @@ do
       pool = {}
     end
   end
-end
-
-NS.Timer = function(duration, func)
-  Timer(duration, func)
 end

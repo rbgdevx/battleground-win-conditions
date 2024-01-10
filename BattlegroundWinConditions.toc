@@ -1,6 +1,6 @@
 ## Interface: 100200
 ## Title: BattlegroundWinConditions
-## Version: 8.1.13
+## Version: 8.2.14
 ## Author: Ajax
 ## Notes: Provides real time win conditions for battlegrounds
 ## X-Flavor: Mainline

@@ -1,5 +1,11 @@
 # Battleground Win Conditions
 
+## [v8.2.14](https://github.com/rbgdevx/battleground-win-conditions/releases/tag/v8.2.14) (2024-01-10)
+
+- refactoring the predictor code to be its own function so it can be called on base update events and not just score updates
+- removing old unused code for cleanup
+- fixing a drag issue upon locking
+
 ## [v8.1.13](https://github.com/rbgdevx/battleground-win-conditions/releases/tag/v8.1.13) (2024-01-05)
 
 - fixing potential win time algorithm

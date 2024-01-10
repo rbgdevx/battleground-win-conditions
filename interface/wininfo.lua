@@ -36,10 +36,9 @@ function WinInfo:Create(label, anchor)
     -- bar.updater.parent = bar
 
     local anim = updater:CreateAnimation()
-    anim:SetDuration(0.04)
+    anim:SetDuration(0.05)
 
     bar.updater = updater
-    bar.repeater = anim
     bar.frame = frame
   else
     infoCache[bar] = nil
@@ -59,10 +58,6 @@ end
 
 local function stopInfo(bar)
   bar.updater:Stop()
-  bar.data = nil
-  bar.funcs = nil
-  bar.running = nil
-  bar.paused = nil
   bar.frame:Hide()
   bar.frame:SetParent(UIParent)
   infoCache[bar] = true
@@ -132,8 +127,6 @@ local function infoUpdate(bar, updater, winTable)
 
   if t >= bar.exp then
     bar.updater:Stop()
-    bar.running = nil
-    bar.paused = nil
     -- bar.frame:Hide()
     -- bar.frame:SetParent(UIParent)
   else
@@ -248,13 +241,11 @@ local function infoUpdate(bar, updater, winTable)
 end
 
 function WinInfo:Start(bar, winTable)
-  bar.running = true
   local time = bar.remaining
-  bar.gap = 0
   bar.start = GetTime()
   bar.exp = bar.start + time
 
-  local firstKey, _ = next(winTable)
+  local firstKey = next(winTable)
   if firstKey and winTable[firstKey] then
     local winCondition = winTable[firstKey]
 
@@ -264,12 +255,13 @@ function WinInfo:Start(bar, winTable)
       loseMessage(bar.text, winCondition)
     end
 
+    bar.frame:Show()
+
     bar.updater:SetScript("OnLoop", function(updater)
       infoUpdate(bar, updater, winTable)
     end)
 
     bar.updater:Play()
-    bar.frame:Show()
   end
 end
 
