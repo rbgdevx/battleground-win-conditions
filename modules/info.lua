@@ -147,7 +147,7 @@ do
     local prevABases, prevHBases, prevAIncBases, prevHIncBases = 0, 0, 0, 0
 
     function Info:Predictor()
-      if aScore > 0 or hScore > 0 then
+      if (aScore > 0 or hScore > 0) and (aScore < 1500 and hScore < 1500) then
         local currentAWinTime = NS.getWinTime(maxScore, aScore, curMapInfo.baseResources[allyBases])
         local currentHWinTime = NS.getWinTime(maxScore, hScore, curMapInfo.baseResources[hordeBases])
         local currentWinTime = mmin(currentAWinTime, currentHWinTime)
@@ -638,12 +638,12 @@ do
 
         for _, v in pairs(baseInfo.leftIcons) do
           if v.iconState == 1 then
-            local str = v.state1Tooltip
+            local str = v.state1Tooltip -- Alliance has assaulted the Mage Tower
 
             if sfind(str, "flag") == nil then
               allyIncBases = allyIncBases + 1
 
-              local base = smatch(str, "assaulted the (.-)!")
+              local base = smatch(str, "assaulted the (.+)")
               -- if horde had the base, now they dont
               if hordeTimers[base] then
                 hordeTimers[base] = nil
@@ -654,11 +654,11 @@ do
               end
             end
           elseif v.iconState == 2 then
-            local str = v.state2Tooltip
+            local str = v.state2Tooltip -- Alliance has captured the Mage Tower
 
             allyBases = allyBases + 1
 
-            local base = smatch(str, "control of the (.-)!")
+            local base = smatch(str, "captured the (.+)")
             -- if taking a base from horde mid-cap
             if hordeTimers[base] then
               hordeTimers[base] = nil
@@ -672,12 +672,12 @@ do
 
         for _, v in pairs(baseInfo.rightIcons) do
           if v.iconState == 1 then
-            local str = v.state1Tooltip
+            local str = v.state1Tooltip -- Horde has assaulted the Mage Tower
 
             if sfind(str, "flag") == nil then
               hordeIncBases = hordeIncBases + 1
 
-              local base = smatch(str, "assaulted the (.-)!*")
+              local base = smatch(str, "assaulted the (.+)")
               -- if alliance had the base, now they dont
               if allyTimers[base] then
                 allyTimers[base] = nil
@@ -688,11 +688,11 @@ do
               end
             end
           elseif v.iconState == 2 then
-            local str = v.state2Tooltip
+            local str = v.state2Tooltip -- Horde has captured the Mage Tower
 
             hordeBases = hordeBases + 1
 
-            local base = smatch(str, "control of the (.-)!")
+            local base = smatch(str, "captured the (.+)")
             -- if taking a base from alliance mid-cap
             if allyTimers[base] then
               allyTimers[base] = nil
@@ -765,30 +765,6 @@ do
         maxScore = scoreInfo.leftBarMax -- Max Bar
         aScore = scoreInfo.leftBarValue -- Alliance Bar
         hScore = scoreInfo.rightBarValue -- Horde Bar
-      end
-    end
-
-    function Info:PredictorByMapID(mapID)
-      -- mapID == Zone ID in-game
-      -- TOK = 417
-      -- DWG = 1576
-      -- EOTS = 112, 397
-      -- AB = 1366, 1383, 837
-      -- TBFG = 275
-      -- SSM = 423
-      -- WSG = 1339
-      -- TP = 206
-      if
-        mapID == 1366
-        or mapID == 1383
-        or mapID == 837
-        or mapID == 275
-        or mapID == 112
-        or mapID == 397
-        or mapID == 1576
-      then
-        -- Arathi Basin, The Battle for Gilneas, Eye of the Storm, Deepwind Gorge
-        self:Predictor()
       end
     end
 
@@ -938,12 +914,12 @@ do
 
         for _, v in pairs(baseInfo.leftIcons) do
           if v.iconState == 1 then
-            local str = v.state1Tooltip
+            local str = v.state1Tooltip -- Alliance has assaulted the Mage Tower
 
             if sfind(str, "flag") == nil then
               allyIncBases = allyIncBases + 1
 
-              local base = smatch(str, "assaulted the (.-)!")
+              local base = smatch(str, "assaulted the (.+)")
               -- if horde had the base, now they dont
               if hordeTimers[base] then
                 hordeTimers[base] = nil
@@ -954,11 +930,11 @@ do
               end
             end
           elseif v.iconState == 2 then
-            local str = v.state2Tooltip
+            local str = v.state2Tooltip -- Alliance has captured the Mage Tower
 
             allyBases = allyBases + 1
 
-            local base = smatch(str, "control of the (.-)!")
+            local base = smatch(str, "captured the (.+)")
             -- if taking a base from horde mid-cap
             if hordeTimers[base] then
               hordeTimers[base] = nil
@@ -972,12 +948,12 @@ do
 
         for _, v in pairs(baseInfo.rightIcons) do
           if v.iconState == 1 then
-            local str = v.state1Tooltip
+            local str = v.state1Tooltip -- Horde has assaulted the Mage Tower
 
             if sfind(str, "flag") == nil then
               hordeIncBases = hordeIncBases + 1
 
-              local base = smatch(str, "assaulted the (.-)!")
+              local base = smatch(str, "assaulted the (.+)")
               -- if alliance had the base, now they dont
               if allyTimers[base] then
                 allyTimers[base] = nil
@@ -988,11 +964,11 @@ do
               end
             end
           elseif v.iconState == 2 then
-            local str = v.state2Tooltip
+            local str = v.state2Tooltip -- Horde has captured the Mage Tower
 
             hordeBases = hordeBases + 1
 
-            local base = smatch(str, "control of the (.-)!")
+            local base = smatch(str, "captured the (.+)")
             -- if taking a base from alliance mid-cap
             if allyTimers[base] then
               allyTimers[base] = nil
@@ -1155,7 +1131,6 @@ do
 
       self:GetObjectivesByMapID(curMapID)
       self:GetScoreByMapID(curMapID)
-      self:PredictorByMapID(curMapID)
 
       InfoFrame:RegisterEvent("UPDATE_UI_WIDGET")
     end
