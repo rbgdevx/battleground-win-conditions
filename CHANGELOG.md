@@ -1,5 +1,9 @@
 # Battleground Win Conditions
 
+## [v8.2.15](https://github.com/rbgdevx/battleground-win-conditions/releases/tag/v8.2.15) (2024-01-10)
+
+- fixing bugs on eots
+
 ## [v8.2.14](https://github.com/rbgdevx/battleground-win-conditions/releases/tag/v8.2.14) (2024-01-10)
 
 - refactoring the predictor code to be its own function so it can be called on base update events and not just score updates
