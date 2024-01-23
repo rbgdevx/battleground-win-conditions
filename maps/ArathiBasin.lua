@@ -1,8 +1,11 @@
 local _, NS = ...
 
-local mod = NS.API:NewMod()
-
 local next = next
+
+local BasePrediction = NS.BasePrediction
+local Maps = NS.Maps
+
+local AB = Maps:NewMod()
 
 local instanceIdToMapId = {
   -- ArathiBasin
@@ -49,16 +52,20 @@ local instanceIdToMapId = {
   },
 }
 
-function mod:EnterZone(id)
-  NS.Info:StartInfoTracker(instanceIdToMapId[id].id, instanceIdToMapId[id].tickRate, {
-    baseResources = instanceIdToMapId[id].resourcesFromBases,
-  }, instanceIdToMapId[id].maxBases)
+function AB:EnterZone(id)
+  if NS.db.global.maps.arathibasin.enabled then
+    BasePrediction:StartInfoTracker(instanceIdToMapId[id].id, instanceIdToMapId[id].tickRate, {
+      baseResources = instanceIdToMapId[id].resourcesFromBases,
+    }, instanceIdToMapId[id].maxBases)
+  end
 end
 
-function mod:ExitZone()
-  NS.Info:StopInfoTracker()
+function AB:ExitZone()
+  if NS.db.global.maps.arathibasin.enabled then
+    BasePrediction:StopInfoTracker()
+  end
 end
 
 for id in next, instanceIdToMapId do
-  NS.BGWC:RegisterZone(id, mod)
+  AB:RegisterZone(id)
 end

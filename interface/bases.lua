@@ -1,71 +1,51 @@
-local _, NS = ...
+local AddonName, NS = ...
 
-local WinInfo = {}
-NS.WinInfo = WinInfo
-NS.infoCache = NS.infoCache or {}
-
-local infoCache = NS.infoCache
-
-local next = next
-local GetTime = GetTime
 local CreateFrame = CreateFrame
+local GetTime = GetTime
 
 local mmin = math.min
 local mmax = math.max
 local sformat = string.format
 
-function WinInfo:SetDuration(bar, duration)
-  bar.remaining = mmin(mmax(0, duration), 1500)
+local LSM = LibStub("LibSharedMedia-3.0")
+
+local Bases = {}
+NS.Bases = Bases
+
+local BasesFrame = CreateFrame("Frame", AddonName .. "BasesFrame", UIParent)
+
+function Bases:SetAnchor(anchor, x, y)
+  self.frame:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", x, y)
 end
 
-function WinInfo:Create(label, anchor)
-  local bar = next(infoCache)
-
-  if not bar then
-    local frame = CreateFrame("Frame", "BGWCWinInfoFrame", UIParent)
-    bar = {}
-
-    bar.label = label
-
-    local text = frame:CreateFontString(nil, "ARTWORK")
-    text:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, 0)
-    bar.text = text
-
-    local updater = frame:CreateAnimationGroup()
-    updater:SetLooping("REPEAT")
-    -- bar.updater.parent = bar
-
-    local anim = updater:CreateAnimation()
-    anim:SetDuration(0.05)
-
-    bar.updater = updater
-    bar.frame = frame
-  else
-    infoCache[bar] = nil
-  end
-
-  bar.frame:SetFrameStrata("MEDIUM")
-  bar.frame:SetFrameLevel(100) -- Lots of room to create above or below this level
-  bar.frame:ClearAllPoints()
-  bar.frame:SetMovable(false)
-  bar.frame:SetScale(1)
-  bar.frame:SetAlpha(1)
-  bar.frame:SetClampedToScreen(false)
-  bar.frame:EnableMouse(false)
-
-  return bar
+function Bases:SetText(frame, format, ...)
+  frame:SetFormattedText(format, ...)
+  NS.UpdateSize(BasesFrame, frame)
 end
 
-local function stopInfo(bar)
-  bar.updater:Stop()
-  bar.frame:Hide()
-  bar.frame:SetParent(UIParent)
-  infoCache[bar] = true
+function Bases:SetFont(frame)
+  frame:SetFont(
+    LSM:Fetch("font", NS.db.global.general.infogroup.infofont),
+    NS.db.global.general.infogroup.infofontsize,
+    "THINOUTLINE"
+  )
+  NS.UpdateSize(BasesFrame, frame)
 end
 
-function WinInfo:Stop(bar)
-  stopInfo(bar)
-  infoCache[bar] = true
+function Bases:ToggleAlpha()
+  local curAlpha = self.frame:GetAlpha()
+  local newAlpha = curAlpha == 0 and 1 or 0
+  self.frame:SetAlpha(newAlpha)
+end
+
+local function stopAnimation(frame, animationGroup)
+  animationGroup:Stop()
+  frame:Hide()
+  frame:SetFormattedText("")
+end
+
+function Bases:Stop(frame, animationGroup)
+  stopAnimation(frame, animationGroup)
 end
 
 local function winMessage(text, winCondition)
@@ -88,7 +68,7 @@ local function winMessage(text, winCondition)
     end
   end
 
-  text:SetFormattedText(message)
+  Bases:SetText(text, "%s", message)
 end
 
 local function loseMessage(text, winCondition)
@@ -113,10 +93,10 @@ local function loseMessage(text, winCondition)
     message = message .. sformat("Cap within %s\n", NS.formatTime(capTime))
   end
 
-  text:SetFormattedText(message)
+  Bases:SetText(text, "%s", message)
 end
 
-local function infoUpdate(bar, updater, winTable)
+local function animationUpdate(frame, winTable, animationGroup)
   local t = GetTime()
   local winCondition
 
@@ -125,29 +105,27 @@ local function infoUpdate(bar, updater, winTable)
     winCondition = winTable[firstKey]
   end
 
-  if t >= bar.exp then
-    bar.updater:Stop()
-    -- bar.frame:Hide()
-    -- bar.frame:SetParent(UIParent)
+  if t >= frame.exp then
+    animationGroup:Stop()
+    -- frame.text:Hide()
   else
-    local time = bar.exp - t
-    bar.remaining = time
-
+    local time = frame.exp - t
+    frame.remaining = time
     if firstKey and winCondition then
       local ownTime = winCondition.ownTime - t
 
       -- 2
       if ownTime > 0 then
         if winCondition.winName == NS.PLAYER_FACTION then
-          winMessage(bar.text, winCondition)
+          winMessage(frame.text, winCondition)
         else
-          loseMessage(bar.text, winCondition)
+          loseMessage(frame.text, winCondition)
         end
       elseif winCondition.bases == winCondition.maxBases then
         if winCondition.winName == NS.PLAYER_FACTION then
-          winMessage(bar.text, winCondition)
+          winMessage(frame.text, winCondition)
         else
-          loseMessage(bar.text, winCondition)
+          loseMessage(frame.text, winCondition)
         end
       else
         local secondKey = winCondition.bases + 1
@@ -158,15 +136,15 @@ local function infoUpdate(bar, updater, winTable)
           -- 3
           if ownTime > 0 then
             if winCondition.winName == NS.PLAYER_FACTION then
-              winMessage(bar.text, winCondition)
+              winMessage(frame.text, winCondition)
             else
-              loseMessage(bar.text, winCondition)
+              loseMessage(frame.text, winCondition)
             end
           elseif winCondition.bases == winCondition.maxBases then
             if winCondition.winName == NS.PLAYER_FACTION then
-              winMessage(bar.text, winCondition)
+              winMessage(frame.text, winCondition)
             else
-              loseMessage(bar.text, winCondition)
+              loseMessage(frame.text, winCondition)
             end
           else
             local thirdKey = winCondition.bases + 1
@@ -177,15 +155,15 @@ local function infoUpdate(bar, updater, winTable)
               -- 4
               if ownTime > 0 then
                 if winCondition.winName == NS.PLAYER_FACTION then
-                  winMessage(bar.text, winCondition)
+                  winMessage(frame.text, winCondition)
                 else
-                  loseMessage(bar.text, winCondition)
+                  loseMessage(frame.text, winCondition)
                 end
               elseif winCondition.bases == winCondition.maxBases then
                 if winCondition.winName == NS.PLAYER_FACTION then
-                  winMessage(bar.text, winCondition)
+                  winMessage(frame.text, winCondition)
                 else
-                  loseMessage(bar.text, winCondition)
+                  loseMessage(frame.text, winCondition)
                 end
               else
                 local fourthKey = winCondition.bases + 1
@@ -196,15 +174,15 @@ local function infoUpdate(bar, updater, winTable)
                   -- 5
                   if ownTime > 0 then
                     if winCondition.winName == NS.PLAYER_FACTION then
-                      winMessage(bar.text, winCondition)
+                      winMessage(frame.text, winCondition)
                     else
-                      loseMessage(bar.text, winCondition)
+                      loseMessage(frame.text, winCondition)
                     end
                   elseif winCondition.bases == winCondition.maxBases then
                     if winCondition.winName == NS.PLAYER_FACTION then
-                      winMessage(bar.text, winCondition)
+                      winMessage(frame.text, winCondition)
                     else
-                      loseMessage(bar.text, winCondition)
+                      loseMessage(frame.text, winCondition)
                     end
                   else
                     local fifthKey = winCondition.bases + 1
@@ -215,15 +193,15 @@ local function infoUpdate(bar, updater, winTable)
                       -- 6
                       if ownTime > 0 then
                         if winCondition.winName == NS.PLAYER_FACTION then
-                          winMessage(bar.text, winCondition)
+                          winMessage(frame.text, winCondition)
                         else
-                          loseMessage(bar.text, winCondition)
+                          loseMessage(frame.text, winCondition)
                         end
                       elseif winCondition.bases == winCondition.maxBases then
                         if winCondition.winName == NS.PLAYER_FACTION then
-                          winMessage(bar.text, winCondition)
+                          winMessage(frame.text, winCondition)
                         else
-                          loseMessage(bar.text, winCondition)
+                          loseMessage(frame.text, winCondition)
                         end
                       else
                         -- print("NO OPTIONS LEFT")
@@ -237,52 +215,60 @@ local function infoUpdate(bar, updater, winTable)
         end
       end
     end
+    -- frame.text:Show()
   end
 end
 
-function WinInfo:Start(bar, winTable)
-  local time = bar.remaining
-  bar.start = GetTime()
-  bar.exp = bar.start + time
+function Bases:Start(duration, winTable)
+  self:Stop(self.text, self.timerAnimationGroup)
+
+  self.remaining = mmin(mmax(0, duration), 1500)
+  local time = self.remaining
+  self.start = GetTime()
+  self.exp = self.start + time
+
+  self:SetFont(self.text)
 
   local firstKey = next(winTable)
   if firstKey and winTable[firstKey] then
     local winCondition = winTable[firstKey]
 
     if winCondition.winName == NS.PLAYER_FACTION then
-      winMessage(bar.text, winCondition)
+      winMessage(self.text, winCondition)
     else
-      loseMessage(bar.text, winCondition)
+      loseMessage(self.text, winCondition)
     end
 
-    bar.frame:Show()
+    if NS.db.global.general.banner == false then
+      self.frame:SetAlpha(1)
+      self.text:Show()
+    end
 
-    bar.updater:SetScript("OnLoop", function(updater)
-      infoUpdate(bar, updater, winTable)
+    self.timerAnimationGroup:SetScript("OnLoop", function(updatedGroup)
+      if updatedGroup then
+        animationUpdate(Bases, winTable, updatedGroup)
+      end
     end)
 
-    bar.updater:Play()
+    self.timerAnimationGroup:Play()
   end
 end
 
-function WinInfo:HideInfo(bar)
-  if bar.frame then
-    bar.frame:SetAlpha(0)
+function Bases:Create(anchor)
+  if not Bases.frame then
+    local Text = BasesFrame:CreateFontString(nil, "ARTWORK")
+    self:SetFont(Text)
+    Text:SetAllPoints()
+    Text:SetTextColor(1, 1, 1, 1)
+    Text:SetShadowOffset(0, 0)
+    Text:SetShadowColor(0, 0, 0, 1)
+    Text:SetJustifyH("LEFT")
+    Text:SetJustifyV("TOP")
+
+    BasesFrame:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, 0)
+
+    Bases.frame = BasesFrame
+    Bases.text = Text
+    Bases.timerAnimationGroup = NS.CreateTimerAnimation(BasesFrame)
   end
-end
-
-function WinInfo:ShowInfo(bar)
-  if bar.frame then
-    bar.frame:SetAlpha(1)
-  end
-end
-
-function WinInfo:UpdateInfo(bar, remaining, winTable)
-  self:Stop(bar)
-  self:SetDuration(bar, remaining)
-  self:Start(bar, winTable)
-end
-
-function WinInfo:StopInfo(bar)
-  self:Stop(bar)
 end

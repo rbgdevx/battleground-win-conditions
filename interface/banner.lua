@@ -1,134 +1,138 @@
-local _, NS = ...
+local AddonName, NS = ...
 
-local Banner = {}
-NS.Banner = Banner
-NS.barCache = NS.barCache or {}
-
-local barCache = NS.barCache
-
-local next = next
-local GetTime = GetTime
 local CreateFrame = CreateFrame
+local LibStub = LibStub
+local GetTime = GetTime
 
 local mmin = math.min
 local mmax = math.max
 
-function Banner:SetBackgroundColor(bar, color)
-  bar.bg:SetColorTexture(color.r / 255, color.g / 255, color.b / 255, 0.9)
+local LSM = LibStub("LibSharedMedia-3.0")
+
+local Banner = {}
+NS.Banner = Banner
+
+local BannerFrame = CreateFrame("Frame", AddonName .. "BannerFrame", UIParent)
+
+function Banner:SetAnchor(anchor, x, y)
+  self.frame:SetPoint("TOP", anchor, "BOTTOM", x, y)
 end
 
-function Banner:SetDuration(bar, duration)
-  bar.remaining = mmin(mmax(0, duration), 1500)
+function Banner:SetText(frame, format, ...)
+  frame:SetFormattedText(format, ...)
 end
 
-function Banner:Create(label, width, height)
-  local bar = next(barCache)
-
-  if not bar then
-    local frame = CreateFrame("Frame", "BGWCBannerFrame", UIParent)
-    bar = {}
-
-    bar.label = label
-
-    local bg = frame:CreateTexture(nil, "BACKGROUND")
-    bg:SetAllPoints()
-    bar.bg = bg
-
-    local text = frame:CreateFontString(nil, "ARTWORK")
-    text:SetPoint("CENTER", bg, "CENTER", 0, 0)
-    bar.text = text
-
-    local updater = frame:CreateAnimationGroup()
-    updater:SetLooping("REPEAT")
-    -- updater.parent = bar
-
-    local anim = updater:CreateAnimation()
-    anim:SetDuration(0.05)
-
-    bar.updater = updater
-    bar.frame = frame
-  else
-    barCache[bar] = nil
-  end
-
-  bar.frame:SetFrameStrata("MEDIUM")
-  bar.frame:SetFrameLevel(100)
-  bar.frame:ClearAllPoints()
-  bar.frame:SetWidth(width)
-  bar.frame:SetHeight(height)
-  bar.frame:SetMovable(false)
-  bar.frame:SetScale(1)
-  bar.frame:SetAlpha(1)
-  bar.frame:SetClampedToScreen(false)
-  bar.frame:EnableMouse(false)
-
-  return bar
+function Banner:SetBackgroundColor(frame, color)
+  frame:SetColorTexture(color.r, color.g, color.b, color.a)
 end
 
-local function stopBanner(bar)
-  bar.updater:Stop()
-  bar.frame:Hide()
-  bar.frame:SetParent(UIParent)
-  barCache[bar] = true
+function Banner:SetTextColor(frame, color)
+  frame:SetTextColor(color.r, color.g, color.b, color.a)
 end
 
-function Banner:Stop(bar)
-  stopBanner(bar)
-  barCache[bar] = true
+function Banner:SetFont(frame)
+  frame:SetFont(LSM:Fetch("font", NS.db.global.general.bannergroup.bannerfont), 12, "NORMAL")
+end
+
+function Banner:SetScale(frame)
+  frame:SetScale(NS.db.global.general.bannergroup.bannerscale)
+end
+
+function Banner:ToggleAlpha()
+  local curAlpha = self.frame:GetAlpha()
+  local newAlpha = curAlpha == 0 and 1 or 0
+  self.frame:SetAlpha(newAlpha)
+end
+
+local function stopAnimation(frame, animationGroup)
+  animationGroup:Stop()
+  frame.bg:Hide()
+  frame.text:Hide()
+  frame.text:SetFormattedText("")
+end
+
+function Banner:Stop(frame, animationGroup)
+  stopAnimation(frame, animationGroup)
 end
 
 local bannerformat = "GG YOU %s IN %s"
 
-local function bannerUpdate(bar, updater)
+local function animationUpdate(frame, text, animationGroup)
   local t = GetTime()
-  if t >= bar.exp then
-    bar.updater:Stop()
-    -- bar.frame:Hide()
-    -- bar.frame:SetParent(UIParent)
+  if t >= frame.exp then
+    animationGroup:Stop()
+    -- frame.text:Hide()
   else
-    local time = bar.exp - t
-    bar.remaining = time
-    bar.text:SetFormattedText(bannerformat, bar.winName, NS.formatTime(time))
+    local time = frame.exp - t
+    frame.remaining = time
+    Banner:SetText(frame.text, bannerformat, text, NS.formatTime(time))
+    -- frame.text:Show()
   end
 end
 
-function Banner:Start(bar, text)
-  bar.running = true
-  local time = bar.remaining
-  bar.start = GetTime()
-  bar.exp = bar.start + time
-  bar.winName = text
+function Banner:Start(duration, text)
+  self:Stop(self, self.timerAnimationGroup)
 
-  bar.text:SetFormattedText(bannerformat, bar.winName, NS.formatTime(time))
+  local winBGColor
+  local winTextColor
+  if text == "TIE" then
+    winBGColor = NS.db.global.general.bannergroup.tiebgcolor
+    winTextColor = NS.db.global.general.bannergroup.tietextcolor
+  elseif text == "WIN" then
+    winBGColor = NS.db.global.general.bannergroup.winbgcolor
+    winTextColor = NS.db.global.general.bannergroup.wintextcolor
+  else
+    winBGColor = NS.db.global.general.bannergroup.losebgcolor
+    winTextColor = NS.db.global.general.bannergroup.losetextcolor
+  end
 
-  bar.frame:Show()
+  self:SetBackgroundColor(self.bg, winBGColor)
+  self:SetTextColor(self.text, winTextColor)
+  self:SetFont(self.text)
+  self:SetScale(BannerFrame)
 
-  bar.updater:SetScript("OnLoop", function(updater)
-    bannerUpdate(bar, updater)
+  self.remaining = mmin(mmax(0, duration), 1500)
+  local time = self.remaining
+  self.start = GetTime()
+  self.exp = self.start + time
+
+  self:SetText(self.text, bannerformat, text, NS.formatTime(time))
+  self.frame:SetAlpha(1)
+  self.bg:Show()
+  self.text:Show()
+
+  self.timerAnimationGroup:SetScript("OnLoop", function(updatedGroup)
+    if updatedGroup then
+      animationUpdate(Banner, text, updatedGroup)
+    end
   end)
 
-  bar.updater:Play()
+  self.timerAnimationGroup:Play()
 end
 
-function Banner:HideBanner(bar)
-  if bar.frame then
-    bar.frame:SetAlpha(0)
+function Banner:Create(anchor)
+  if not Banner.frame then
+    local BG = BannerFrame:CreateTexture(nil, "BACKGROUND")
+    BG:SetAllPoints()
+    self:SetBackgroundColor(BG, NS.db.global.general.bannergroup.tiebgcolor)
+
+    local Text = BannerFrame:CreateFontString(nil, "ARTWORK")
+    self:SetTextColor(Text, NS.db.global.general.bannergroup.tietextcolor)
+    self:SetFont(Text)
+    Text:SetShadowOffset(1, -1)
+    Text:SetShadowColor(0, 0, 0, 0.9)
+    Text:SetJustifyH("MIDDLE")
+    Text:SetJustifyV("MIDDLE")
+    Text:SetPoint("CENTER", BG, "CENTER", 0, 0)
+
+    BannerFrame:SetPoint("TOP", anchor, "BOTTOM", 0, 0)
+    BannerFrame:SetWidth(175)
+    BannerFrame:SetHeight(25)
+    self:SetScale(BannerFrame)
+
+    Banner.frame = BannerFrame
+    Banner.bg = BG
+    Banner.text = Text
+    Banner.timerAnimationGroup = NS.CreateTimerAnimation(BannerFrame)
   end
-end
-
-function Banner:ShowBanner(bar)
-  if bar.frame then
-    bar.frame:SetAlpha(1)
-  end
-end
-
-function Banner:UpdateBanner(bar, remaining, text, color)
-  self:Stop(bar)
-  self:SetBackgroundColor(bar, color)
-  self:SetDuration(bar, remaining)
-  self:Start(bar, text)
-end
-
-function Banner:StopBanner(bar)
-  self:Stop(bar)
 end

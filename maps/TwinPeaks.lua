@@ -1,8 +1,13 @@
 local _, NS = ...
 
-local mod = NS.API:NewMod()
-
 local next = next
+
+local FlagPrediction = NS.FlagPrediction
+local Banner = NS.Banner
+local Stacks = NS.Stacks
+local Maps = NS.Maps
+
+local TP = Maps:NewMod()
 
 local instanceIdToMapId = {
   -- Twin Peaks
@@ -13,14 +18,21 @@ local instanceIdToMapId = {
   },
 }
 
-function mod:EnterZone(id)
-  NS.Info:StartInfoTracker(instanceIdToMapId[id].id, instanceIdToMapId[id].tickRate, {}, instanceIdToMapId[id].maxFlags)
+function TP:EnterZone(id)
+  if NS.db.global.maps.twinpeaks.enabled then
+    NS.IS_TP = true
+    Stacks:SetAnchor(Banner.frame, 0, -5)
+    FlagPrediction:StartInfoTracker(instanceIdToMapId[id].id)
+  end
 end
 
-function mod:ExitZone()
-  NS.Info:StopInfoTracker()
+function TP:ExitZone()
+  if NS.db.global.maps.twinpeaks.enabled then
+    NS.IS_TP = false
+    FlagPrediction:StopInfoTracker()
+  end
 end
 
 for id in next, instanceIdToMapId do
-  NS.BGWC:RegisterZone(id, mod)
+  TP:RegisterZone(id)
 end

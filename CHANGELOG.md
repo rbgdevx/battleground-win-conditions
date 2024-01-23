@@ -1,5 +1,25 @@
 # Battleground Win Conditions
 
+## [v9.3.16](https://github.com/rbgdevx/battleground-win-conditions/releases/tag/v9.3.16) (2024-01-22)
+
+- Complete overhaul of the settings options to include
+  - Choosing your font size
+  - Banner Scaling
+  - Banner colors for TIE, WIN, LOSE
+  - Enable or Disable by Map
+  - Enable or Disable certain features on EOTS and Flag maps
+- NEW flag map features
+  - Shows a Next stack timer
+  - Shows how many stacks are currently applied
+  - Shows timer to 6 stacks
+  - Shows healing received reduction %
+  - Shows damage taken increase %
+- NEW refactored EOTS flag text
+  - Instead of showing the point value of a flag i now show how many flags you are either ahead or behind by so you know an additional win condition
+- Refactored the win algorithm to be TICK based instead of TIME based to more accurately detect TIE games
+- Performance improvements
+- Win Timer bug fixes during incoming bases
+
 ## [v8.2.15](https://github.com/rbgdevx/battleground-win-conditions/releases/tag/v8.2.15) (2024-01-10)
 
 - fixing bugs on eots

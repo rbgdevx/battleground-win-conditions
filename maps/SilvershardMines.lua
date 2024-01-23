@@ -1,8 +1,11 @@
 local _, NS = ...
 
-local mod = NS.API:NewMod()
-
 local next = next
+
+local CartPrediction = NS.CartPrediction
+local Maps = NS.Maps
+
+local SSM = Maps:NewMod()
 
 local instanceIdToMapId = {
   -- Silvershard Mines
@@ -30,19 +33,20 @@ local instanceIdToMapId = {
   },
 }
 
-function mod:EnterZone(id)
-  NS.IS_SSM = true
-  NS.Info:StartInfoTracker(instanceIdToMapId[id].id, instanceIdToMapId[id].tickRate, {
-    cartResources = instanceIdToMapId[id].cartResources,
-    cartTimers = instanceIdToMapId[id].cartTimers,
-  }, instanceIdToMapId[id].maxCarts)
+function SSM:EnterZone(id)
+  if NS.db.global.maps.silvershardmines.enabled then
+    NS.IS_SSM = true
+    CartPrediction:StartInfoTracker(instanceIdToMapId[id].id)
+  end
 end
 
-function mod:ExitZone()
-  NS.IS_SSM = false
-  NS.Info:StopInfoTracker()
+function SSM:ExitZone()
+  if NS.db.global.maps.silvershardmines.enabled then
+    NS.IS_SSM = false
+    CartPrediction:StopInfoTracker()
+  end
 end
 
 for id in next, instanceIdToMapId do
-  NS.BGWC:RegisterZone(id, mod)
+  SSM:RegisterZone(id)
 end

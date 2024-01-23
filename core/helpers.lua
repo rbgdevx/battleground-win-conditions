@@ -3,29 +3,68 @@ local _, NS = ...
 local tostring = tostring
 local pairs = pairs
 local ipairs = ipairs
-local type = type
-local next = next
 local GetTime = GetTime
 local print = print
+local format = format
+local type = type
+local next = next
 
 local sformat = string.format
 local mfloor = math.floor
 local mceil = math.ceil
 local mmin = math.min
-local wipe = table.wipe
+local mmax = math.max
 local tinsert = table.insert
 local tsort = table.sort
+local wipe = table.wipe
+
+NS.secondsToMinutes = function(seconds)
+  return seconds / SECONDS_PER_MIN
+end
+
+NS.minutesToSeconds = function(minutes)
+  return minutes * SECONDS_PER_MIN
+end
+
+function ConvertSecondsToUnits(timestamp)
+  timestamp = mmax(timestamp, 0)
+  local days = mfloor(timestamp / SECONDS_PER_DAY)
+  timestamp = timestamp - (days * SECONDS_PER_DAY)
+  local hours = mfloor(timestamp / SECONDS_PER_HOUR)
+  timestamp = timestamp - (hours * SECONDS_PER_HOUR)
+  local minutes = mfloor(timestamp / SECONDS_PER_MIN)
+  timestamp = timestamp - (minutes * SECONDS_PER_MIN)
+  local seconds = mfloor(timestamp)
+  local milliseconds = timestamp - seconds
+  return {
+    days = days,
+    hours = hours,
+    minutes = minutes,
+    seconds = seconds,
+    milliseconds = milliseconds,
+  }
+end
+
+NS.secondsToClock = function(seconds, displayZeroHours)
+  local units = ConvertSecondsToUnits(seconds)
+  if units.hours > 0 or displayZeroHours then
+    return format(HOURS_MINUTES_SECONDS, units.hours, units.minutes, units.seconds)
+  else
+    return format(MINUTES_SECONDS, units.minutes, units.seconds)
+  end
+end
 
 NS.getSeconds = function(time)
-  return time % 60
+  return time % SECONDS_PER_MIN
 end
 
 NS.getMinutes = function(time)
-  return mfloor(time / 60)
+  return mfloor(time / SECONDS_PER_MIN)
 end
 
 NS.formatTime = function(time)
-  return sformat("%02d:%02d", NS.getMinutes(time), NS.getSeconds(time))
+  return NS.secondsToClock(time, false)
+  -- return sformat("%02d:%02d", NS.getMinutes(time), NS.getSeconds(time))
 end
 
 NS.isRandomEOTS = function(zoneID)
@@ -52,6 +91,14 @@ local formatToHorde = function(string)
   return sformat("\124cffFF0000%s\124r", string)
 end
 
+NS.formatTextByFaction = function(faction, string)
+  if faction == NS.ALLIANCE_NAME then
+    return formatToAlliance(string)
+  else
+    return formatToHorde(string)
+  end
+end
+
 NS.formatScore = function(team, score)
   if team == NS.ALLIANCE_NAME then
     return formatToAlliance(tostring(mfloor(score)))
@@ -76,6 +123,31 @@ NS.formatTeamName = function(team, faction)
   elseif team == NS.HORDE_NAME then
     return formatToHorde(NS.getCorrectName(team, faction))
   end
+end
+
+NS.calculateFlagsToCatchUp = function(maxScore, winScore, loseScore, winBases, loseBases, curMapInfo)
+  local flagValue = curMapInfo.flagResources[loseBases]
+  local flagsNeeded
+
+  if winScore < loseScore then
+    for flags = 1, 20 do
+      local potentialLoseTeamScore = loseScore + (flagValue * flags)
+      local potentialWinTeamScore = winScore
+
+      local l = NS.getWinTime(maxScore, potentialLoseTeamScore, curMapInfo.baseResources[loseBases])
+      local w = NS.getWinTime(maxScore, potentialWinTeamScore, curMapInfo.baseResources[winBases])
+
+      if l < w then
+        flagsNeeded = flags
+        break
+      end
+    end
+  else
+    local scoreDifference = winScore - loseScore
+    flagsNeeded = mceil(scoreDifference / flagValue)
+  end
+
+  return mmin(mmax(1, flagsNeeded), 20)
 end
 
 NS.getWinMinBases = function(winBases, maxBases, needBases)
@@ -197,6 +269,21 @@ end
 
 NS.write = function(...)
   print(NS.userClassHexColor .. "BattlegroundWinConditions|r: ", ...)
+end
+
+NS.CreateTimerAnimation = function(frame)
+  local TimerAnimationGroup = frame:CreateAnimationGroup()
+  TimerAnimationGroup:SetLooping("REPEAT")
+
+  local TimerAnimation = TimerAnimationGroup:CreateAnimation()
+  TimerAnimation:SetDuration(0.05)
+
+  return TimerAnimationGroup
+end
+
+NS.UpdateSize = function(frame, text)
+  frame:SetWidth(text:GetStringWidth())
+  frame:SetHeight(text:GetStringHeight())
 end
 
 -- Copies table values from src to dst if they don't exist in dst
