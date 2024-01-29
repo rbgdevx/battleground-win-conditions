@@ -42,7 +42,7 @@ end
 
 local function stopAnimation(frame, animationGroup)
   animationGroup:Stop()
-  frame:Hide()
+  frame:SetAlpha(0)
   frame:SetFormattedText("")
 end
 
@@ -200,8 +200,14 @@ function Stacks:Start(duration, stacks)
   textUpdate(self, localStacks, killtime, time)
 
   self:SetFont(self.text)
-  self.frame:SetAlpha(1)
-  self.text:Show()
+
+  if NS.db.global.general.banner == false then
+    self.frame:SetAlpha(1)
+    self.text:SetAlpha(1)
+  else
+    self.frame:SetAlpha(0)
+    self.text:SetAlpha(0)
+  end
 
   self.timerAnimationGroup:SetScript("OnLoop", function(updatedGroup)
     if updatedGroup then

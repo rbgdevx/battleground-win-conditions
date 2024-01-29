@@ -36,7 +36,7 @@ end
 
 local function stopAnimation(frame, animationGroup)
   animationGroup:Stop()
-  frame:Hide()
+  frame:SetAlpha(0)
   frame:SetFormattedText("")
 end
 
@@ -52,7 +52,7 @@ local function animationUpdate(frame, text, animationGroup)
   if t >= frame.exp then
     animationGroup:Stop()
     Buff:SetText(frame.text, buffformat2, text)
-    -- frame.text:Hide()
+  -- frame.text:Hide()
   else
     local time = frame.exp - t
     frame.remaining = time
@@ -71,8 +71,9 @@ function Buff:Start(duration, text)
 
   self:SetText(self.text, buffformat1, text, NS.formatTime(time))
   self:SetFont(self.text)
+
   self.frame:SetAlpha(1)
-  self.text:Show()
+  self.text:SetAlpha(1)
 
   self.timerAnimationGroup:SetScript("OnLoop", function(updatedGroup)
     if updatedGroup then

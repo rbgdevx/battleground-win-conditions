@@ -40,7 +40,7 @@ end
 
 local function stopAnimation(frame, animationGroup)
   animationGroup:Stop()
-  frame:Hide()
+  frame:SetAlpha(0)
   frame:SetFormattedText("")
 end
 
@@ -107,7 +107,7 @@ local function animationUpdate(frame, winTable, animationGroup)
 
   if t >= frame.exp then
     animationGroup:Stop()
-    -- frame.text:Hide()
+  -- frame.text:Hide()
   else
     local time = frame.exp - t
     frame.remaining = time
@@ -241,7 +241,10 @@ function Bases:Start(duration, winTable)
 
     if NS.db.global.general.banner == false then
       self.frame:SetAlpha(1)
-      self.text:Show()
+      self.text:SetAlpha(1)
+    else
+      self.frame:SetAlpha(0)
+      self.text:SetAlpha(0)
     end
 
     self.timerAnimationGroup:SetScript("OnLoop", function(updatedGroup)

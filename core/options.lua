@@ -52,17 +52,99 @@ NS.AceConfig = {
           end,
         },
         banner = {
-          name = "Show banner only",
-          desc = "Turning this feature on hides the win condition info and only shows the GG Banner.",
+          name = "Show banner only (hides win text)",
+          desc = "Turning this feature on hides the win text and only shows the GG Banner.",
           type = "toggle",
           width = "double",
           order = 2,
           set = function(_, val)
             NS.db.global.general.banner = val
-            Interface:ToggleInfoAlpha()
+
+            if val then
+              NS.db.global.general.info = false
+
+              Score:SetAnchor(Anchor.frame, 0, 0)
+
+              if NS.IN_GAME == false then
+                Interface:Clear()
+                Interface:CreateTestBanner()
+              else
+                Interface:ShowBanner()
+                Interface:HideInfo()
+              end
+            else
+              Score:SetAnchor(Banner.frame, 0, -5)
+
+              if NS.db.global.general.info then
+                if NS.IN_GAME == false then
+                  Interface:Clear()
+                  Interface:CreateTestInfo()
+                else
+                  Interface:HideBanner()
+                  Interface:ShowInfo()
+                end
+              else
+                if NS.IN_GAME == false then
+                  Interface:Clear()
+                  Interface:CreateTestBanner()
+                  Interface:CreateTestInfo()
+                else
+                  Interface:ShowBanner()
+                  Interface:ShowInfo()
+                end
+              end
+            end
           end,
           get = function(_)
             return NS.db.global.general.banner
+          end,
+        },
+        info = {
+          name = "Show info only (hides banner bar)",
+          desc = "Turning this feature on hides the GG Banner and only shows the win text.",
+          type = "toggle",
+          width = "double",
+          order = 3,
+          set = function(_, val)
+            NS.db.global.general.info = val
+
+            if val then
+              NS.db.global.general.banner = false
+
+              Score:SetAnchor(Anchor.frame, 0, 0)
+
+              if NS.IN_GAME == false then
+                Interface:Clear()
+                Interface:CreateTestInfo()
+              else
+                Interface:HideBanner()
+                Interface:ShowInfo()
+              end
+            else
+              Score:SetAnchor(Banner.frame, 0, -5)
+
+              if NS.db.global.general.banner then
+                if NS.IN_GAME == false then
+                  Interface:Clear()
+                  Interface:CreateTestBanner()
+                else
+                  Interface:ShowBanner()
+                  Interface:HideInfo()
+                end
+              else
+                if NS.IN_GAME == false then
+                  Interface:Clear()
+                  Interface:CreateTestBanner()
+                  Interface:CreateTestInfo()
+                else
+                  Interface:ShowBanner()
+                  Interface:ShowInfo()
+                end
+              end
+            end
+          end,
+          get = function(_)
+            return NS.db.global.general.info
           end,
         },
         test = {
@@ -70,7 +152,7 @@ NS.AceConfig = {
           desc = "Turning this feature on shows test info while out of a game for placement purposes.",
           type = "toggle",
           width = "double",
-          order = 3,
+          order = 4,
           set = function(_, val)
             NS.db.global.general.test = val
             if val then
@@ -78,6 +160,7 @@ NS.AceConfig = {
                 if NS.db.global.general.banner then
                   Interface:CreateTestBanner()
                 else
+                  Interface:CreateTestBanner()
                   Interface:CreateTestInfo()
                 end
               end
@@ -116,7 +199,7 @@ NS.AceConfig = {
               type = "range",
               name = "Scale",
               width = "double",
-              min = 1,
+              min = 0.75,
               max = 2,
               step = 0.01,
               order = 1,
@@ -277,7 +360,7 @@ NS.AceConfig = {
               type = "range",
               name = "Font Size",
               width = "double",
-              min = 12,
+              min = 10,
               max = 32,
               step = 1,
               order = 2,
@@ -581,7 +664,7 @@ NS.AceConfig = {
             },
             showdebuffinfo = {
               name = "Show Debuff Info for Flag Carriers",
-              desc = "Shows the damage increase and healing received % amounts for FC's.",
+              desc = "Shows the damage taken increase and healing received decrease % amounts for Flag Carriers.",
               type = "toggle",
               width = "normal",
               order = 2,
@@ -624,7 +707,7 @@ NS.AceConfig = {
             },
             showdebuffinfo = {
               name = "Show Debuff Info for Flag Carriers",
-              desc = "Shows the damage increase and healing received % amounts for FC's.",
+              desc = "Shows the damage taken increase and healing received decrease % amounts for Flag Carriers.",
               type = "toggle",
               width = "normal",
               order = 2,

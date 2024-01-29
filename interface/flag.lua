@@ -23,7 +23,10 @@ function Flag:SetText(frame, faction, winName, flagsNeeded)
 
   if NS.db.global.general.banner == false then
     FlagFrame:SetAlpha(1)
-    frame:Show()
+    frame:SetAlpha(1)
+  else
+    FlagFrame:SetAlpha(0)
+    frame:SetAlpha(0)
   end
 end
 

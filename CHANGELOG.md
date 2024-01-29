@@ -1,5 +1,11 @@
 # Battleground Win Conditions
 
+## [v9.3.18](https://github.com/rbgdevx/battleground-win-conditions/releases/tag/v9.3.18) (2024-01-29)
+
+- Adding a new setting to turn off the GG Banner and only show the win text
+- Updated some setting descriptions and labels
+- Updating the minimums for banner scale and font size
+
 ## [v9.3.17](https://github.com/rbgdevx/battleground-win-conditions/releases/tag/v9.3.17) (2024-01-28)
 
 - Fixing setting some vars once joining a game
