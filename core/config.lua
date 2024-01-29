@@ -117,14 +117,15 @@ NS.userClassHexColor = "|c" .. select(4, GetClassColor(NS.userClass))
 
 NS.ADDON_PREFIX = "BGWC_VERSION"
 NS.FoundNewVersion = false
-NS.VERSION = 9317
+NS.VERSION = 9318
 
 NS.DefaultDatabase = {
   global = {
     general = {
       lock = false,
-      test = true,
       banner = false,
+      info = false,
+      test = true,
       bannergroup = {
         bannerfont = "Friz Quadrata TT",
         bannerscale = 1,

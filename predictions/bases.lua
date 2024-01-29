@@ -46,7 +46,7 @@ do
 
       if flagsNeeded == 0 then
         Flag.text:SetFormattedText("")
-        Flag.text:Hide()
+        Flag.text:SetAlpha(0)
       else
         Flag:SetText(Flag.text, NS.PLAYER_FACTION, winName, flagsNeeded)
       end
@@ -116,9 +116,9 @@ do
             Banner:Start(winTime, winText)
             Bases:Stop(Bases.text, Bases.timerAnimationGroup)
             Score.text:SetFormattedText("")
-            Score.text:Hide()
+            Score.text:SetAlpha(0)
             Flag.text:SetFormattedText("")
-            Flag.text:Hide()
+            Flag.text:SetAlpha(0)
 
             prevAIncrease, prevHIncrease = -1, -1
             return
@@ -234,9 +234,9 @@ do
             Banner:Start(winTime, winText)
             Bases:Stop(Bases.text, Bases.timerAnimationGroup)
             Score.text:SetFormattedText("")
-            Score.text:Hide()
+            Score.text:SetAlpha(0)
             Flag.text:SetFormattedText("")
-            Flag.text:Hide()
+            Flag.text:SetAlpha(0)
 
             prevAIncrease, prevHIncrease = -1, -1
             return

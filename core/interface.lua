@@ -1,7 +1,5 @@
 local _, NS = ...
 
-local After = C_Timer.After
-
 local Anchor = NS.Anchor
 local Banner = NS.Banner
 local Score = NS.Score
@@ -13,12 +11,42 @@ local Stacks = NS.Stacks
 local Interface = {}
 NS.Interface = Interface
 
-function Interface:ToggleInfoAlpha()
-  Bases:ToggleAlpha()
-  Buff:ToggleAlpha()
-  Score:ToggleAlpha()
-  Flag:ToggleAlpha()
-  Stacks:ToggleAlpha()
+function Interface:ShowBanner()
+  Banner.frame:SetAlpha(1)
+  Banner.bg:SetAlpha(1)
+  Banner.text:SetAlpha(1)
+end
+
+function Interface:HideBanner()
+  Banner.frame:SetAlpha(0)
+  Banner.bg:SetAlpha(0)
+  Banner.text:SetAlpha(0)
+end
+
+function Interface:ShowInfo()
+  Bases.frame:SetAlpha(1)
+  Bases.text:SetAlpha(1)
+  Buff.frame:SetAlpha(1)
+  Buff.text:SetAlpha(1)
+  Score.frame:SetAlpha(1)
+  Score.text:SetAlpha(1)
+  Flag.frame:SetAlpha(1)
+  Flag.text:SetAlpha(1)
+  Stacks.frame:SetAlpha(1)
+  Stacks.text:SetAlpha(1)
+end
+
+function Interface:HideInfo()
+  Bases.frame:SetAlpha(0)
+  Bases.text:SetAlpha(0)
+  Buff.frame:SetAlpha(0)
+  Buff.text:SetAlpha(0)
+  Score.frame:SetAlpha(0)
+  Score.text:SetAlpha(0)
+  Flag.frame:SetAlpha(0)
+  Flag.text:SetAlpha(0)
+  Stacks.frame:SetAlpha(0)
+  Stacks.text:SetAlpha(0)
 end
 
 function Interface:Clear()
@@ -27,9 +55,9 @@ function Interface:Clear()
   Buff:Stop(Buff.text, Buff.timerAnimationGroup)
   Stacks:Stop(Stacks.text, Stacks.timerAnimationGroup)
   Score.text:SetFormattedText("")
-  Score.text:Hide()
+  Score.text:SetAlpha(0)
   Flag.text:SetFormattedText("")
-  Flag.text:Hide()
+  Flag.text:SetAlpha(0)
 end
 
 function Interface:Refresh()
@@ -50,6 +78,12 @@ function Interface:CreateTestBanner()
 end
 
 function Interface:CreateTestInfo()
+  if NS.db.global.general.info then
+    Score:SetAnchor(Anchor.frame, 0, 0)
+  else
+    Score:SetAnchor(Banner.frame, 0, -5)
+  end
+
   Score:SetText(Score.text, 1500, 1500)
   Bases:Start(1500, {
     [4] = {
@@ -76,20 +110,14 @@ function Interface:CreateTestInfo()
     },
   })
 
-  After(0.5, function()
-    Flag:SetAnchor(Bases.frame, 0, -10)
-    Flag:SetText(Flag.text, NS.PLAYER_FACTION, NS.PLAYER_FACTION, 20)
+  Flag:SetAnchor(Bases.frame, 0, -10)
+  Flag:SetText(Flag.text, NS.PLAYER_FACTION, NS.PLAYER_FACTION, 20)
 
-    After(0.5, function()
-      Buff:SetAnchor(Flag.frame, 0, -10)
-      Buff:Start(NS.ORB_BUFF_TIME, NS.formatTeamName(NS.PLAYER_FACTION, NS.PLAYER_FACTION))
+  Buff:SetAnchor(Flag.frame, 0, -10)
+  Buff:Start(NS.ORB_BUFF_TIME, NS.formatTeamName(NS.PLAYER_FACTION, NS.PLAYER_FACTION))
 
-      After(0.5, function()
-        Stacks:SetAnchor(Buff.frame, 0, -10)
-        Stacks:Start(NS.STACK_TIME, 0)
-      end)
-    end)
-  end)
+  Stacks:SetAnchor(Buff.frame, 0, -10)
+  Stacks:Start(NS.STACK_TIME, 0)
 end
 
 function Interface:Create()

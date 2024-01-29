@@ -10,6 +10,8 @@ local After = C_Timer.After
 local BGWC = NS.BGWC
 local BGWCFrame = NS.BGWC.frame
 
+local Anchor = NS.Anchor
+local Score = NS.Score
 local Interface = NS.Interface
 local Version = NS.Version
 
@@ -26,16 +28,18 @@ function BGWC:LOADING_SCREEN_DISABLED()
       NS.PLAYER_FACTION = GetPlayerFactionGroup()
       NS.IN_GAME = false
 
-      After(0.5, function()
-        if NS.db.global.general.test then
-          if NS.db.global.general.banner then
-            Interface:CreateTestBanner()
+      if NS.db.global.general.test then
+        if NS.db.global.general.banner then
+          Interface:CreateTestBanner()
+        else
+          if NS.db.global.general.info then
+            Interface:CreateTestInfo()
           else
             Interface:CreateTestBanner()
             Interface:CreateTestInfo()
           end
         end
-      end)
+      end
     end
   end)
 end
@@ -68,6 +72,10 @@ do
     prevZone = instanceID
 
     Version:SendVersion()
+
+    if NS.db.global.general.info then
+      Score:SetAnchor(Anchor.frame, 0, 0)
+    end
 
     zoneIds[instanceID]:EnterZone(instanceID)
   end

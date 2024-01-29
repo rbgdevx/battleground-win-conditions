@@ -23,7 +23,10 @@ function Score:SetText(frame, aScore, hScore)
 
   if NS.db.global.general.banner == false then
     ScoreFrame:SetAlpha(1)
-    frame:Show()
+    frame:SetAlpha(1)
+  else
+    ScoreFrame:SetAlpha(0)
+    frame:SetAlpha(0)
   end
 end
 

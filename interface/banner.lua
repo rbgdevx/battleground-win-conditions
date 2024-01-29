@@ -46,8 +46,8 @@ end
 
 local function stopAnimation(frame, animationGroup)
   animationGroup:Stop()
-  frame.bg:Hide()
-  frame.text:Hide()
+  frame.bg:SetAlpha(0)
+  frame.text:SetAlpha(0)
   frame.text:SetFormattedText("")
 end
 
@@ -61,7 +61,7 @@ local function animationUpdate(frame, text, animationGroup)
   local t = GetTime()
   if t >= frame.exp then
     animationGroup:Stop()
-    -- frame.text:Hide()
+  -- frame.text:Hide()
   else
     local time = frame.exp - t
     frame.remaining = time
@@ -97,9 +97,16 @@ function Banner:Start(duration, text)
   self.exp = self.start + time
 
   self:SetText(self.text, bannerformat, text, NS.formatTime(time))
-  self.frame:SetAlpha(1)
-  self.bg:Show()
-  self.text:Show()
+
+  if NS.db.global.general.info == false then
+    self.frame:SetAlpha(1)
+    self.bg:SetAlpha(1)
+    self.text:SetAlpha(1)
+  else
+    self.frame:SetAlpha(0)
+    self.bg:SetAlpha(0)
+    self.text:SetAlpha(0)
+  end
 
   self.timerAnimationGroup:SetScript("OnLoop", function(updatedGroup)
     if updatedGroup then
