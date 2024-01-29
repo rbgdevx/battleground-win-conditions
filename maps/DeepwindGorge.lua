@@ -1,8 +1,11 @@
 local _, NS = ...
 
-local mod = NS.API:NewMod()
-
 local next = next
+
+local BasePrediction = NS.BasePrediction
+local Maps = NS.Maps
+
+local DWG = Maps:NewMod()
 
 local instanceIdToMapId = {
   -- DeepwindGorge
@@ -21,16 +24,20 @@ local instanceIdToMapId = {
   },
 }
 
-function mod:EnterZone(id)
-  NS.Info:StartInfoTracker(instanceIdToMapId[id].id, instanceIdToMapId[id].tickRate, {
-    baseResources = instanceIdToMapId[id].resourcesFromBases,
-  }, instanceIdToMapId[id].maxBases)
+function DWG:EnterZone(id)
+  if NS.db.global.maps.deepwindgorge.enabled then
+    BasePrediction:StartInfoTracker(instanceIdToMapId[id].id, instanceIdToMapId[id].tickRate, {
+      baseResources = instanceIdToMapId[id].resourcesFromBases,
+    }, instanceIdToMapId[id].maxBases)
+  end
 end
 
-function mod:ExitZone()
-  NS.Info:StopInfoTracker()
+function DWG:ExitZone()
+  if NS.db.global.maps.deepwindgorge.enabled then
+    BasePrediction:StopInfoTracker()
+  end
 end
 
 for id in next, instanceIdToMapId do
-  NS.BGWC:RegisterZone(id, mod)
+  DWG:RegisterZone(id)
 end

@@ -1,26 +1,36 @@
 local _, NS = ...
 
-local mod = NS.API:NewMod()
-
 local next = next
+
+local FlagPrediction = NS.FlagPrediction
+local Banner = NS.Banner
+local Stacks = NS.Stacks
+local Maps = NS.Maps
+
+local WG = Maps:NewMod()
 
 local instanceIdToMapId = {
   -- Warsong Gulch
   [2106] = {
     id = 1339,
-    maxFlags = 1,
-    tickRate = 1,
   },
 }
 
-function mod:EnterZone(id)
-  NS.Info:StartInfoTracker(instanceIdToMapId[id].id, instanceIdToMapId[id].tickRate, {}, instanceIdToMapId[id].maxFlags)
+function WG:EnterZone(id)
+  if NS.db.global.maps.warsonggulch.enabled then
+    NS.IS_WG = true
+    Stacks:SetAnchor(Banner.frame, 0, -5)
+    FlagPrediction:StartInfoTracker(instanceIdToMapId[id].id)
+  end
 end
 
-function mod:ExitZone()
-  NS.Info:StopInfoTracker()
+function WG:ExitZone()
+  if NS.db.global.maps.warsonggulch.enabled then
+    NS.IS_WG = false
+    FlagPrediction:StopInfoTracker()
+  end
 end
 
 for id in next, instanceIdToMapId do
-  NS.BGWC:RegisterZone(id, mod)
+  WG:RegisterZone(id)
 end

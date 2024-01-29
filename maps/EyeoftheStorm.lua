@@ -1,8 +1,13 @@
 local _, NS = ...
 
-local mod = NS.API:NewMod()
-
 local next = next
+
+local BasePrediction = NS.BasePrediction
+local Maps = NS.Maps
+local Flag = NS.Flag
+local Bases = NS.Bases
+
+local EOTS = Maps:NewMod()
 
 local instanceIdToMapId = {
   -- EyeoftheStorm
@@ -49,19 +54,24 @@ local instanceIdToMapId = {
   },
 }
 
-function mod:EnterZone(id)
-  NS.IS_EOTS = true
-  NS.Info:StartInfoTracker(instanceIdToMapId[id].id, instanceIdToMapId[id].tickRate, {
-    baseResources = instanceIdToMapId[id].resourcesFromBases,
-    flagResources = instanceIdToMapId[id].resourcesFromFlags,
-  }, instanceIdToMapId[id].maxBases)
+function EOTS:EnterZone(id)
+  if NS.db.global.maps.eyeofthestorm.enabled then
+    NS.IS_EOTS = true
+    Flag:SetAnchor(Bases.frame, 0, 0)
+    BasePrediction:StartInfoTracker(instanceIdToMapId[id].id, instanceIdToMapId[id].tickRate, {
+      baseResources = instanceIdToMapId[id].resourcesFromBases,
+      flagResources = instanceIdToMapId[id].resourcesFromFlags,
+    }, instanceIdToMapId[id].maxBases)
+  end
 end
 
-function mod:ExitZone()
-  NS.IS_EOTS = false
-  NS.Info:StopInfoTracker()
+function EOTS:ExitZone()
+  if NS.db.global.maps.eyeofthestorm.enabled then
+    NS.IS_EOTS = false
+    BasePrediction:StopInfoTracker()
+  end
 end
 
 for id in next, instanceIdToMapId do
-  NS.BGWC:RegisterZone(id, mod)
+  EOTS:RegisterZone(id)
 end

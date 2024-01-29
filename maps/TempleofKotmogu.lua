@@ -1,8 +1,13 @@
 local _, NS = ...
 
-local mod = NS.API:NewMod()
-
 local next = next
+
+local OrbPrediction = NS.OrbPrediction
+local Anchor = NS.Anchor
+local Buff = NS.Buff
+local Maps = NS.Maps
+
+local TOK = Maps:NewMod()
 
 local instanceIdToMapId = {
   -- TempleofKotmogu
@@ -20,20 +25,24 @@ local instanceIdToMapId = {
     id = 417,
     maxOrbs = 4,
     tickRate = 5,
-    resourcesFromBases = {},
   },
 }
 
-function mod:EnterZone(id)
-  NS.IS_TEMPLE = true
-  NS.Info:StartInfoTracker(instanceIdToMapId[id].id, instanceIdToMapId[id].tickRate, {}, instanceIdToMapId[id].maxOrbs)
+function TOK:EnterZone(id)
+  if NS.db.global.maps.templeofkotmogu.enabled then
+    NS.IS_TEMPLE = true
+    Buff:SetAnchor(Anchor.frame, 0, 0)
+    OrbPrediction:StartInfoTracker(instanceIdToMapId[id].id, instanceIdToMapId[id].maxOrbs)
+  end
 end
 
-function mod:ExitZone()
-  NS.IS_TEMPLE = false
-  NS.Info:StopInfoTracker()
+function TOK:ExitZone()
+  if NS.db.global.maps.templeofkotmogu.enabled then
+    NS.IS_TEMPLE = false
+    OrbPrediction:StopInfoTracker()
+  end
 end
 
 for id in next, instanceIdToMapId do
-  NS.BGWC:RegisterZone(id, mod)
+  TOK:RegisterZone(id)
 end

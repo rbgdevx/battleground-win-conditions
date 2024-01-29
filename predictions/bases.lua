@@ -3,11 +3,9 @@ local _, NS = ...
 local next = next
 local pairs = pairs
 local GetTime = GetTime
-local CreateFrame = CreateFrame
 
 local sfind = string.find
 local smatch = string.match
-local sformat = string.format
 local mmin = math.min
 local mceil = math.ceil
 local mfloor = math.floor
@@ -15,75 +13,49 @@ local mfloor = math.floor
 local After = C_Timer.After
 local GetDoubleStatusBarWidgetVisualizationInfo = C_UIWidgetManager.GetDoubleStatusBarWidgetVisualizationInfo
 local GetDoubleStateIconRowVisualizationInfo = C_UIWidgetManager.GetDoubleStateIconRowVisualizationInfo
-local GetCaptureBarWidgetVisualizationInfo = C_UIWidgetManager.GetCaptureBarWidgetVisualizationInfo
 
-local Info = {}
-NS.Info = Info
+local Banner = NS.Banner
+local Score = NS.Score
+local Bases = NS.Bases
+local Flag = NS.Flag
+local Interface = NS.Interface
 
-local InfoFrame = CreateFrame("Frame", "BGWCInfoFrame")
-InfoFrame:SetScript("OnEvent", function(_, event, ...)
-  if Info[event] then
-    Info[event](Info, ...)
+local BasePrediction = {}
+NS.BasePrediction = BasePrediction
+
+local BaseFrame = CreateFrame("Frame", "BaseFrame")
+BaseFrame:SetScript("OnEvent", function(_, event, ...)
+  if BasePrediction[event] then
+    BasePrediction[event](BasePrediction, ...)
   end
 end)
 
 do
-  local allyBases, allyIncBases, allyFinalBases = 0, 0, 0
-  local hordeBases, hordeIncBases, hordeFinalBases = 0, 0, 0
-  local allyCarts, hordeCarts = 0, 0
-  local allyOrbs, hordeOrbs, allyFlags, hordeFlags = 0, 0, 0, 0
+  local allyBases, allyIncBases = 0, 0
+  local hordeBases, hordeIncBases = 0, 0
+  local allyFlags, hordeFlags = 0, 0
   local allyTimers, hordeTimers, winTable = {}, {}, {}
   local curMapID, curTickRate, curMapInfo = 0, 0, {}
-  local prevAOrbs, prevHOrbs = 0, 0
-  local maxObjectives = 0
+  local maxBases = 0
 
-  function Info:GetFlagValue()
+  function BasePrediction:GetFlagValue(winName, maxScore, winScore, loseScore, winBases, loseBases)
     if NS.isEOTS(curMapID) and (allyBases > 0 or hordeBases > 0) then
-      if NS.PLAYER_FACTION == NS.ALLIANCE_NAME and allyBases > 0 then
-        local flagValue = curMapInfo.flagResources[allyBases]
-        local flagMessage = NS.formatScore(NS.ALLIANCE_NAME, flagValue)
+      local flagsNeeded = loseBases > 0
+          and NS.calculateFlagsToCatchUp(maxScore, winScore, loseScore, winBases, loseBases, curMapInfo, curTickRate)
+        or 0
 
-        NS.Interface:UpdateFlagValue(NS.InterfaceFrame.flag, flagMessage)
-      elseif NS.PLAYER_FACTION == NS.HORDE_NAME and hordeBases > 0 then
-        local flagValue = curMapInfo.flagResources[hordeBases]
-        local flagMessage = NS.formatScore(NS.HORDE_NAME, flagValue)
-
-        NS.Interface:UpdateFlagValue(NS.InterfaceFrame.flag, flagMessage)
+      if flagsNeeded == 0 then
+        Flag.text:SetFormattedText("")
+        Flag.text:Hide()
+      else
+        Flag:SetText(Flag.text, NS.PLAYER_FACTION, winName, flagsNeeded)
       end
     end
   end
 
-  function Info:CaptureBarTracker(widgetID)
-    -- widgetType == 1
-    -- 521 -- all bases random eots
-    -- 732 -- lava cart
-    -- 794 -- top cart
-    -- 795 -- mid cart
-    if widgetID == 521 or widgetID == 723 or widgetID == 794 or widgetID == 795 then
-      local captureInfo = GetCaptureBarWidgetVisualizationInfo(widgetID)
-
-      if not captureInfo or not captureInfo.barMaxValue then
-        return
-      end
-
-      -- local barMinValue = captureInfo.barMinValue -- 100 (friendly)
-      -- local barMaxValue = captureInfo.barMaxValue -- 0 (enemy)
-      -- local barValue = captureInfo.barValue -- (starts at 50)
-      -- local isVisible = captureInfo.shownState -- 1 (shown) or 0 (not)
-      -- local neutralZoneCenter = captureInfo.neutralZoneCenter -- 50
-      -- local neutralZoneSize = captureInfo.neutralZoneSize -- 40/4 (40 on random eots/4 on carts)
-      -- so that means your team wins with 71+ (50+(40/2))=70
-      -- 50 being middle and 40 point buffer (20 each side)
-      -- 100 being fully controlled, 0 being enemy controlled
-      -- so positive progression = taking it, negative = losing it
-      -- print("barValue", widgetID, barValue, isVisible == 1, neutralZoneCenter, neutralZoneSize)
-    end
-  end
-
-  function Info:FlagTracker(widgetID)
+  function BasePrediction:FlagTracker(widgetID)
     -- widgetType == 14
     -- 1672 = EOTS
-    -- 1640 = WSG, TP
     if widgetID == 1672 then
       -- Eye of the Storm
       allyFlags = 0
@@ -114,84 +86,59 @@ do
           end
         end
       end
-    elseif widgetID == 1640 then
-      -- Warsong Gulch, Twin Peaks
-      allyFlags = 0
-      hordeFlags = 0
-
-      local flagInfo = GetDoubleStateIconRowVisualizationInfo(widgetID)
-
-      if not flagInfo or not flagInfo.leftIcons or not flagInfo.rightIcons then
-        return
-      end
-
-      for _, v in pairs(flagInfo.leftIcons) do
-        if v.iconState == 1 then
-          allyFlags = allyFlags + 1
-        end
-      end
-
-      for _, v in pairs(flagInfo.rightIcons) do
-        if v.iconState == 1 then
-          hordeFlags = hordeFlags + 1
-        end
-      end
     end
   end
 
   do
-    local prevText, prevFutText = "", ""
     local prevTime, prevAScore, prevHScore, prevAIncrease, prevHIncrease = 0, 0, 0, 0, 0
-    local timeBetweenEachTick, prevTick, prevWinTime, prevFutWinTime, winTime = 0, 0, 0, 0, 0
+    local timeBetweenEachTick, prevTick, winTime = 0, 0, 0
     local minScore, maxScore, aScore, hScore, aIncrease, hIncrease = 0, 0, 0, 0, 0, 0
     local prevABases, prevHBases, prevAIncBases, prevHIncBases = 0, 0, 0, 0
 
-    function Info:Predictor()
+    function BasePrediction:BasePredictor()
       if (aScore > 0 or hScore > 0) and (aScore < 1500 and hScore < 1500) then
-        local currentAWinTime = NS.getWinTime(maxScore, aScore, curMapInfo.baseResources[allyBases])
-        local currentHWinTime = NS.getWinTime(maxScore, hScore, curMapInfo.baseResources[hordeBases])
-        local currentWinTime = mmin(currentAWinTime, currentHWinTime)
+        local allyTicksToWin = NS.getWinTicks(maxScore, aScore, curTickRate, curMapInfo.baseResources[allyBases])
+        local allyTimeToWin = NS.getWinTime(allyTicksToWin, curTickRate)
+
+        local hordeTicksToWin = NS.getWinTicks(maxScore, hScore, curTickRate, curMapInfo.baseResources[hordeBases])
+        local hordeTimeToWin = NS.getWinTime(hordeTicksToWin, curTickRate)
+
+        local currentWinTicks = mmin(allyTicksToWin, hordeTicksToWin)
+        local currentWinTime = mmin(allyTimeToWin, hordeTimeToWin)
 
         if allyIncBases == 0 and hordeIncBases == 0 then
+          local winTicks = currentWinTicks
           winTime = currentWinTime
 
-          local aWins = currentAWinTime < currentHWinTime
-
-          local afs = aWins and maxScore or aScore + (winTime * curMapInfo.baseResources[allyBases])
-          local hfs = aWins and hScore + (winTime * curMapInfo.baseResources[hordeBases]) or maxScore
-          local finalAScore = (allyBases == 0 and allyIncBases == 0) and aScore or afs
-          local finalHScore = (hordeBases == 0 and hordeIncBases == 0) and hScore or hfs
-
-          if currentAWinTime == currentHWinTime or finalAScore == finalHScore then
+          if allyTicksToWin == hordeTicksToWin then
             local winText = "TIE"
-            local winColor = { r = 0, g = 0, b = 0 }
 
-            NS.Interface:UpdateBanner(NS.InterfaceFrame.banner, winTime - 0.5, winText, winColor)
-            if winTime ~= prevWinTime then
-              prevWinTime = winTime
-            end
-
-            NS.Interface:StopInfo(NS.InterfaceFrame.info)
-            NS.Interface:ClearAllText()
+            Banner:Start(winTime, winText)
+            Bases:Stop(Bases.text, Bases.timerAnimationGroup)
+            Score.text:SetFormattedText("")
+            Score.text:Hide()
+            Flag.text:SetFormattedText("")
+            Flag.text:Hide()
 
             prevAIncrease, prevHIncrease = -1, -1
             return
           else
+            local aWins = allyTicksToWin < hordeTicksToWin
+
+            local allyIncrease = curTickRate * curMapInfo.baseResources[allyBases]
+            local afs = aWins and maxScore or aScore + (currentWinTicks * allyIncrease)
+            local finalAScore = (allyBases == 0 and allyIncBases == 0) and aScore or afs
+
+            local hordeIncrease = curTickRate * curMapInfo.baseResources[hordeBases]
+            local hfs = aWins and hScore + (currentWinTicks * hordeIncrease) or maxScore
+            local finalHScore = (hordeBases == 0 and hordeIncBases == 0) and hScore or hfs
+
             local winName = aWins and NS.ALLIANCE_NAME or NS.HORDE_NAME
             local loseName = aWins and NS.HORDE_NAME or NS.ALLIANCE_NAME
             local winText = winName == NS.PLAYER_FACTION and "WIN" or "LOSE"
-            local winColor = winText == "WIN" and { r = 36, g = 126, b = 36 } or { r = 175, g = 34, b = 47 }
-            local txt = sformat("Final Score: %d - %d", finalAScore, finalHScore)
 
-            NS.Interface:UpdateBanner(NS.InterfaceFrame.banner, winTime - 0.5, winText, winColor)
-            if winTime ~= prevWinTime then
-              prevWinTime = winTime
-            end
-
-            NS.Interface:UpdateFinalScore(NS.InterfaceFrame.score, finalAScore, finalHScore)
-            if txt ~= prevText then
-              prevText = txt
-            end
+            Banner:Start(winTime, winText)
+            Score:SetText(Score.text, finalAScore, finalHScore)
 
             local winBases = aWins and allyBases or hordeBases
             local loseBases = aWins and hordeBases or allyBases
@@ -199,26 +146,31 @@ do
             local loseScore = aWins and hScore or aScore
 
             winTable = {}
-            for bases = loseBases + 1, maxObjectives do
+            for needBases = loseBases + 1, maxBases do
               local table = NS.checkWinCondition(
-                bases,
-                maxObjectives,
+                needBases,
                 winBases,
                 loseBases,
-                winTime,
                 winScore,
                 loseScore,
-                curMapInfo.baseResources,
-                maxScore,
-                0,
-                currentWinTime,
                 winName,
-                loseName
+                loseName,
+                winTicks,
+                0,
+                maxBases,
+                maxScore,
+                currentWinTime,
+                curTickRate,
+                curMapInfo.baseResources
               )
 
               for a, b in pairs(table) do
                 winTable[a] = b
               end
+            end
+
+            if NS.db.global.maps.eyeofthestorm.showflaginfo then
+              self:GetFlagValue(winName, maxScore, winScore, loseScore, winBases, loseBases)
             end
           end
         else
@@ -236,53 +188,72 @@ do
           local aFutureScore = newAllyScore
           local hFutureScore = newHordeScore
 
+          local winTimeIncrease = 0
+
           if aTimeIncrease ~= 0 or hTimeIncrease ~= 0 then
             if aTimeIncrease > hTimeIncrease then
               local timeDifference = aTimeIncrease - hTimeIncrease
               local scoreDifference = hFutureScore + timeDifference * curMapInfo.baseResources[newHordeBases]
               if scoreDifference < maxScore then
                 hFutureScore = scoreDifference
+
+                if aTimeIncrease < currentWinTime then
+                  winTimeIncrease = aTimeIncrease
+                end
               end
             elseif hTimeIncrease > aTimeIncrease then
               local timeDifference = hTimeIncrease - aTimeIncrease
               local scoreDifference = aFutureScore + timeDifference * curMapInfo.baseResources[newAllyBases]
               if scoreDifference < maxScore then
                 aFutureScore = scoreDifference
+
+                if hTimeIncrease < currentWinTime then
+                  winTimeIncrease = hTimeIncrease
+                end
               end
             end
           end
 
-          local aFutureTicksToWin = NS.getWinTime(maxScore, aFutureScore, curMapInfo.baseResources[newAllyBases])
-          local hFutureTicksToWin = NS.getWinTime(maxScore, hFutureScore, curMapInfo.baseResources[newHordeBases])
-          local winTicks = mmin(aFutureTicksToWin, hFutureTicksToWin)
+          local allyFutureTicksToWin =
+            NS.getWinTicks(maxScore, aFutureScore, curTickRate, curMapInfo.baseResources[newAllyBases])
+          local allyFutureTimeToWin = NS.getWinTime(allyFutureTicksToWin, curTickRate)
 
-          local aWins = aFutureTicksToWin < hFutureTicksToWin
-          local afs = aWins and maxScore or aFutureScore + (winTicks * curMapInfo.baseResources[newAllyBases])
-          local hfs = aWins and hFutureScore + (winTicks * curMapInfo.baseResources[newHordeBases]) or maxScore
-          local finalAScore = (allyBases == 0 and allyIncBases == 0) and aScore or afs
-          local finalHScore = (hordeBases == 0 and hordeIncBases == 0) and hScore or hfs
+          local hordeFutureTicksToWin =
+            NS.getWinTicks(maxScore, hFutureScore, curTickRate, curMapInfo.baseResources[newHordeBases])
+          local hordeFutureTimeToWin = NS.getWinTime(hordeFutureTicksToWin, curTickRate)
 
-          local winTimeIncrease = aWins and aTimeIncrease or hTimeIncrease
-          winTime = winTicks + winTimeIncrease
+          local futureWinTicks = mmin(allyFutureTicksToWin, hordeFutureTicksToWin)
+          local futureWinTime = mmin(allyFutureTimeToWin, hordeFutureTimeToWin)
 
-          if aFutureTicksToWin == hFutureTicksToWin or finalAScore == finalHScore then
+          local winTicks = futureWinTicks
+          winTime = futureWinTime + winTimeIncrease
+
+          if allyFutureTicksToWin == hordeFutureTicksToWin then
             local winText = "TIE"
-            local winColor = { r = 0, g = 0, b = 0 }
 
-            NS.Interface:UpdateBanner(NS.InterfaceFrame.banner, winTime - 0.5, winText, winColor)
-            if winTime ~= prevWinTime then
-              prevWinTime = winTime
-            end
-
-            NS.Interface:StopInfo(NS.InterfaceFrame.info)
-            NS.Interface:ClearAllText()
+            Banner:Start(winTime, winText)
+            Bases:Stop(Bases.text, Bases.timerAnimationGroup)
+            Score.text:SetFormattedText("")
+            Score.text:Hide()
+            Flag.text:SetFormattedText("")
+            Flag.text:Hide()
 
             prevAIncrease, prevHIncrease = -1, -1
             return
           else
+            local aWins = allyFutureTicksToWin < hordeFutureTicksToWin
+
+            local allyFutureIncrease = curTickRate * curMapInfo.baseResources[newAllyBases]
+            local afs = aWins and maxScore or aFutureScore + (winTicks * allyFutureIncrease)
+            local finalAScore = (allyBases == 0 and allyIncBases == 0) and aScore or afs
+
+            local hordeFutureIncrease = curTickRate * curMapInfo.baseResources[newHordeBases]
+            local hfs = aWins and hFutureScore + (winTicks * hordeFutureIncrease) or maxScore
+            local finalHScore = (hordeBases == 0 and hordeIncBases == 0) and hScore or hfs
+
             local currentLoseBases = aWins and hordeBases or allyBases
 
-            local winbases = aWins and newAllyBases or newHordeBases
+            local winBases = aWins and newAllyBases or newHordeBases
             local loseBases = aWins and newHordeBases or newAllyBases
             local winScore = aWins and aFutureScore or hFutureScore
             local loseScore = aWins and hFutureScore or aFutureScore
@@ -290,114 +261,57 @@ do
             local winName = aWins and NS.ALLIANCE_NAME or NS.HORDE_NAME
             local loseName = aWins and NS.HORDE_NAME or NS.ALLIANCE_NAME
             local winText = winName == NS.PLAYER_FACTION and "WIN" or "LOSE"
-            local winColor = winText == "WIN" and { r = 36, g = 126, b = 36 } or { r = 175, g = 34, b = 47 }
-            local txt = sformat("Final Score: %d - %d", finalAScore, finalHScore)
 
-            NS.Interface:UpdateBanner(NS.InterfaceFrame.banner, winTime - 0.5, winText, winColor)
-            if winTime ~= prevFutWinTime then
-              prevFutWinTime = winTime
-            end
-
-            NS.Interface:UpdateFinalScore(NS.InterfaceFrame.score, finalAScore, finalHScore)
-            if txt ~= prevFutText then
-              prevFutText = txt
-            end
+            Banner:Start(winTime, winText)
+            Score:SetText(Score.text, finalAScore, finalHScore)
 
             winTable = {}
-            for bases = currentLoseBases + 1, maxObjectives do
+            for needBases = currentLoseBases + 1, maxBases do
               local table = NS.checkWinCondition(
-                bases,
-                maxObjectives,
-                winbases,
+                needBases,
+                winBases,
                 loseBases,
-                winTime,
                 winScore,
                 loseScore,
-                curMapInfo.baseResources,
-                maxScore,
-                winTimeIncrease,
-                currentWinTime,
                 winName,
-                loseName
+                loseName,
+                winTicks,
+                winTimeIncrease,
+                maxBases,
+                maxScore,
+                currentWinTime,
+                curTickRate,
+                curMapInfo.baseResources
               )
 
               for a, b in pairs(table) do
                 winTable[a] = b
               end
             end
+
+            if NS.db.global.maps.eyeofthestorm.showflaginfo then
+              self:GetFlagValue(winName, maxScore, winScore, loseScore, winBases, loseBases)
+            end
           end
         end
 
         local firstKey = next(winTable)
         if firstKey and winTable[firstKey] then
-          NS.Interface:UpdateInfo(NS.InterfaceFrame.info, winTime - 0.5, winTable)
+          Bases:Start(winTime, winTable)
         end
-
-        self:GetFlagValue()
       end
     end
 
-    function Info:GetObjectivesByMapID(mapID)
+    function BasePrediction:GetObjectivesByMapID(mapID)
       -- mapID == Zone ID in-game
-      -- TOK = 417
       -- DWG = 1576
       -- EOTS = 112, 397
       -- AB = 1366, 1383, 837
       -- TBFG = 275
-      -- SSM = 423
-      -- WSG = 1339
-      -- TP = 206
-      if mapID == 417 then
-        -- Templf of Kotmogu
-        allyOrbs, hordeOrbs = 0, 0
-
-        local baseInfo = GetDoubleStateIconRowVisualizationInfo(1683)
-
-        if not baseInfo or not baseInfo.leftIcons or not baseInfo.rightIcons then
-          return
-        end
-
-        -- temple base states are always state 1 which is technically contested in all other maps
-        for _, v in pairs(baseInfo.leftIcons) do
-          if v.iconState == 1 then
-            allyOrbs = allyOrbs + 1
-          end
-        end
-
-        for _, v in pairs(baseInfo.rightIcons) do
-          if v.iconState == 1 then
-            hordeOrbs = hordeOrbs + 1
-          end
-        end
-
-        if allyOrbs ~= prevAOrbs or hordeOrbs ~= prevHOrbs then
-          prevAOrbs = allyOrbs
-          prevHOrbs = hordeOrbs
-
-          if allyOrbs == maxObjectives then
-            NS.Interface:UpdateBuff(
-              NS.InterfaceFrame.buff,
-              NS.ORB_BUFF_TIME,
-              NS.formatTeamName(NS.ALLIANCE_NAME, NS.PLAYER_FACTION)
-            )
-          end
-
-          if hordeOrbs == maxObjectives then
-            NS.Interface:UpdateBuff(
-              NS.InterfaceFrame.buff,
-              NS.ORB_BUFF_TIME,
-              NS.formatTeamName(NS.HORDE_NAME, NS.PLAYER_FACTION)
-            )
-          end
-
-          if allyOrbs ~= maxObjectives and hordeOrbs ~= maxObjectives then
-            NS.Interface:StopBuff(NS.InterfaceFrame.buff)
-          end
-        end
-      elseif mapID == 1366 or mapID == 1383 or mapID == 837 then
+      if mapID == 1366 or mapID == 1383 or mapID == 837 then
         -- Arathi Basin
-        allyBases, allyIncBases, allyFinalBases = 0, 0, 0
-        hordeBases, hordeIncBases, hordeFinalBases = 0, 0, 0
+        allyBases, allyIncBases = 0, 0
+        hordeBases, hordeIncBases = 0, 0
 
         local baseInfo = GetDoubleStateIconRowVisualizationInfo(1645)
 
@@ -468,13 +382,10 @@ do
             end
           end
         end
-
-        allyFinalBases = allyBases + allyIncBases
-        hordeFinalBases = hordeBases + hordeIncBases
       elseif mapID == 1576 then
         -- Deepwind Gorge
-        allyBases, allyIncBases, allyFinalBases = 0, 0, 0
-        hordeBases, hordeIncBases, hordeFinalBases = 0, 0, 0
+        allyBases, allyIncBases = 0, 0
+        hordeBases, hordeIncBases = 0, 0
 
         local baseInfo = GetDoubleStateIconRowVisualizationInfo(2339)
 
@@ -545,13 +456,10 @@ do
             end
           end
         end
-
-        allyFinalBases = allyBases + allyIncBases
-        hordeFinalBases = hordeBases + hordeIncBases
       elseif mapID == 275 then
         -- The Battle for Gilneas
-        allyBases, allyIncBases, allyFinalBases = 0, 0, 0
-        hordeBases, hordeIncBases, hordeFinalBases = 0, 0, 0
+        allyBases, allyIncBases = 0, 0
+        hordeBases, hordeIncBases = 0, 0
 
         local baseInfo = GetDoubleStateIconRowVisualizationInfo(1670)
 
@@ -622,13 +530,12 @@ do
             end
           end
         end
-
-        allyFinalBases = allyBases + allyIncBases
-        hordeFinalBases = hordeBases + hordeIncBases
       elseif mapID == 112 or mapID == 397 then
         -- Eye of the Storm
-        allyBases, allyIncBases, allyFinalBases = 0, 0, 0
-        hordeBases, hordeIncBases, hordeFinalBases = 0, 0, 0
+        allyBases, allyIncBases = 0, 0
+        hordeBases, hordeIncBases = 0, 0
+        allyFlags = 0
+        hordeFlags = 0
 
         local baseInfo = GetDoubleStateIconRowVisualizationInfo(1672)
 
@@ -652,6 +559,8 @@ do
               if allyTimers[base] == nil or (allyTimers[base] and allyTimers[base] - GetTime() <= 0) then
                 allyTimers[base] = NS.CONTESTED_TIME + GetTime()
               end
+            else
+              allyFlags = allyFlags + 1
             end
           elseif v.iconState == 2 then
             local str = v.state2Tooltip -- Alliance has captured the Mage Tower
@@ -686,6 +595,8 @@ do
               if hordeTimers[base] == nil or (hordeTimers[base] and hordeTimers[base] - GetTime() <= 0) then
                 hordeTimers[base] = NS.CONTESTED_TIME + GetTime()
               end
+            else
+              hordeFlags = hordeFlags + 1
             end
           elseif v.iconState == 2 then
             local str = v.state2Tooltip -- Horde has captured the Mage Tower
@@ -703,44 +614,15 @@ do
             end
           end
         end
-
-        self:GetFlagValue()
-
-        allyFinalBases = allyBases + allyIncBases
-        hordeFinalBases = hordeBases + hordeIncBases
-      elseif mapID == 423 then
-        -- Silvershard Mines
-        allyCarts, hordeCarts = 0, 0
-
-        local baseInfo = GetDoubleStateIconRowVisualizationInfo(1700)
-
-        if not baseInfo or not baseInfo.leftIcons or not baseInfo.rightIcons then
-          return
-        end
-
-        for _, v in pairs(baseInfo.leftIcons) do
-          if v.iconState == 1 then
-            allyCarts = allyCarts + 1
-          end
-        end
-        for _, v in pairs(baseInfo.rightIcons) do
-          if v.iconState == 1 then
-            hordeCarts = hordeCarts + 1
-          end
-        end
       end
     end
 
-    function Info:GetScoreByMapID(mapID)
+    function BasePrediction:GetScoreByMapID(mapID)
       -- mapID == Zone ID in-game
-      -- TOK = 417
       -- DWG = 1576
       -- EOTS = 112, 397
       -- AB = 1366, 1383, 837
       -- TBFG = 275
-      -- SSM = 423
-      -- WSG = 1339
-      -- TP = 206
       if mapID == 1366 or mapID == 1383 or mapID == 837 or mapID == 275 or mapID == 112 or mapID == 397 then
         -- Arathi Basin, The Battle for Gilneas, Eye of the Storm
         local scoreInfo = GetDoubleStatusBarWidgetVisualizationInfo(1671)
@@ -768,66 +650,16 @@ do
       end
     end
 
-    function Info:ObjectiveTracker(widgetID)
+    function BasePrediction:ObjectiveTracker(widgetID)
       -- widgetType == 14
-      -- 1683 = TOK
       -- 2339 = DWG
       -- 1672 = EOTS
       -- 1645 = AB
       -- 1670 = TBFG
-      -- 1700 = SSM
-      -- 1640 = WSG, TP
-      if widgetID == 1683 then
-        -- Templf of Kotmogu
-        allyOrbs, hordeOrbs = 0, 0
-
-        local baseInfo = GetDoubleStateIconRowVisualizationInfo(widgetID)
-
-        if not baseInfo or not baseInfo.leftIcons or not baseInfo.rightIcons then
-          return
-        end
-
-        -- temple base states are always state 1 which is technically contested in all other maps
-        for _, v in pairs(baseInfo.leftIcons) do
-          if v.iconState == 1 then
-            allyOrbs = allyOrbs + 1
-          end
-        end
-
-        for _, v in pairs(baseInfo.rightIcons) do
-          if v.iconState == 1 then
-            hordeOrbs = hordeOrbs + 1
-          end
-        end
-
-        if allyOrbs ~= prevAOrbs or hordeOrbs ~= prevHOrbs then
-          prevAOrbs = allyOrbs
-          prevHOrbs = hordeOrbs
-
-          if allyOrbs == maxObjectives then
-            NS.Interface:UpdateBuff(
-              NS.InterfaceFrame.buff,
-              NS.ORB_BUFF_TIME,
-              NS.formatTeamName(NS.ALLIANCE_NAME, NS.PLAYER_FACTION)
-            )
-          end
-
-          if hordeOrbs == maxObjectives then
-            NS.Interface:UpdateBuff(
-              NS.InterfaceFrame.buff,
-              NS.ORB_BUFF_TIME,
-              NS.formatTeamName(NS.HORDE_NAME, NS.PLAYER_FACTION)
-            )
-          end
-
-          if allyOrbs ~= maxObjectives and hordeOrbs ~= maxObjectives then
-            NS.Interface:StopBuff(NS.InterfaceFrame.buff)
-          end
-        end
-      elseif widgetID == 1645 or widgetID == 1670 or widgetID == 2339 then
+      if widgetID == 1645 or widgetID == 1670 or widgetID == 2339 then
         -- Arathi Basin, The Battle for Gilneas, Deepwind Gorge
-        allyBases, allyIncBases, allyFinalBases = 0, 0, 0
-        hordeBases, hordeIncBases, hordeFinalBases = 0, 0, 0
+        allyBases, allyIncBases = 0, 0
+        hordeBases, hordeIncBases = 0, 0
 
         local baseInfo = GetDoubleStateIconRowVisualizationInfo(widgetID)
 
@@ -898,13 +730,10 @@ do
             end
           end
         end
-
-        allyFinalBases = allyBases + allyIncBases
-        hordeFinalBases = hordeBases + hordeIncBases
       elseif widgetID == 1672 then
         -- Eye of the Storm
-        allyBases, allyIncBases, allyFinalBases = 0, 0, 0
-        hordeBases, hordeIncBases, hordeFinalBases = 0, 0, 0
+        allyBases, allyIncBases = 0, 0
+        hordeBases, hordeIncBases = 0, 0
 
         local baseInfo = GetDoubleStateIconRowVisualizationInfo(widgetID)
 
@@ -979,31 +808,6 @@ do
             end
           end
         end
-
-        self:GetFlagValue()
-
-        allyFinalBases = allyBases + allyIncBases
-        hordeFinalBases = hordeBases + hordeIncBases
-      elseif widgetID == 1700 then
-        -- Silvershard Mines
-        allyCarts, hordeCarts = 0, 0
-
-        local baseInfo = GetDoubleStateIconRowVisualizationInfo(widgetID)
-
-        if not baseInfo or not baseInfo.leftIcons or not baseInfo.rightIcons then
-          return
-        end
-
-        for _, v in pairs(baseInfo.leftIcons) do
-          if v.iconState == 1 then
-            allyCarts = allyCarts + 1
-          end
-        end
-        for _, v in pairs(baseInfo.rightIcons) do
-          if v.iconState == 1 then
-            hordeCarts = hordeCarts + 1
-          end
-        end
       end
 
       if widgetID == 1645 or widgetID == 1670 or widgetID == 2339 or widgetID == 1672 then
@@ -1019,15 +823,13 @@ do
           prevAIncBases = allyIncBases
           prevHIncBases = hordeIncBases
 
-          self:Predictor()
+          self:BasePredictor()
         end
       end
     end
 
-    function Info:ScoreTracker(widgetID)
+    function BasePrediction:ScoreTracker(widgetID)
       -- widgetType == 3
-      -- 1687 = SSM
-      -- 1689 = TOK
       -- 2074 = DWG
       -- 1671 = AB, TBFG, EOTS
       if widgetID == 1671 or widgetID == 2074 then
@@ -1067,9 +869,7 @@ do
               -- Scores can reduce in DWG
               if aIncrease > 60 or hIncrease > 60 or aIncrease < 0 or hIncrease < 0 then
                 -- > 60 increase means captured a flag/cart in EOTS/DWG
-                NS.Interface:StopBanner(NS.InterfaceFrame.banner)
-                NS.Interface:StopInfo(NS.InterfaceFrame.info)
-                NS.Interface:ClearAllText()
+                Interface:Clear()
 
                 prevAIncrease = -1
                 prevHIncrease = -1
@@ -1080,7 +880,7 @@ do
               prevHIncrease = hIncrease
               prevTick = timeBetweenEachTick
 
-              self:Predictor()
+              BasePrediction:BasePredictor()
             end
           end)
         else
@@ -1096,7 +896,7 @@ do
       end
     end
 
-    function Info:UPDATE_UI_WIDGET(widgetInfo)
+    function BasePrediction:UPDATE_UI_WIDGET(widgetInfo)
       if widgetInfo then
         local widgetID = widgetInfo.widgetID
         -- local widgetSetID = widgetInfo.widgetSetID
@@ -1105,38 +905,34 @@ do
         -- local typeInfo = UIWidgetManager:GetWidgetTypeInfo(widgetType)
         -- local visInfo = typeInfo.visInfoDataFunction(widgetID)
 
-        self:CaptureBarTracker(widgetID)
-        self:FlagTracker(widgetID)
-        self:ObjectiveTracker(widgetID)
-        self:ScoreTracker(widgetID)
+        BasePrediction:ScoreTracker(widgetID)
+        BasePrediction:ObjectiveTracker(widgetID)
+        BasePrediction:FlagTracker(widgetID)
       end
     end
 
-    function Info:StartInfoTracker(mapID, tickRate, mapResources, maxResources)
+    function BasePrediction:StartInfoTracker(mapID, tickRate, mapResources, maxResources)
       -- local
-      prevText, prevFutText = "", ""
       prevTime, prevAScore, prevHScore, prevAIncrease, prevHIncrease = 0, 0, 0, 0, 0
-      timeBetweenEachTick, prevTick, prevWinTime, prevFutWinTime, winTime = 0, 0, 0, 0, 0
+      timeBetweenEachTick, prevTick, winTime = 0, 0, 0
       minScore, maxScore, aScore, hScore, aIncrease, hIncrease = 0, 0, 0, 0, 0, 0
       prevABases, prevHBases, prevAIncBases, prevHIncBases = 0, 0, 0, 0
       -- global
       curMapID, curTickRate, curMapInfo = mapID, tickRate, mapResources
-      allyBases, allyIncBases, allyFinalBases = 0, 0, 0
-      hordeBases, hordeIncBases, hordeFinalBases = 0, 0, 0
-      allyCarts, hordeCarts = 0, 0
-      allyOrbs, hordeOrbs, allyFlags, hordeFlags = 0, 0, 0, 0
+      allyBases, allyIncBases = 0, 0
+      hordeBases, hordeIncBases = 0, 0
+      allyFlags, hordeFlags = 0, 0
       allyTimers, hordeTimers, winTable = {}, {}, {}
-      prevAOrbs, prevHOrbs = 0, 0
-      maxObjectives = maxResources
+      maxBases = maxResources
 
-      self:GetObjectivesByMapID(curMapID)
       self:GetScoreByMapID(curMapID)
+      self:GetObjectivesByMapID(curMapID)
 
-      InfoFrame:RegisterEvent("UPDATE_UI_WIDGET")
+      BaseFrame:RegisterEvent("UPDATE_UI_WIDGET")
     end
   end
 end
 
-function Info:StopInfoTracker()
-  InfoFrame:UnregisterEvent("UPDATE_UI_WIDGET")
+function BasePrediction:StopInfoTracker()
+  BaseFrame:UnregisterEvent("UPDATE_UI_WIDGET")
 end
