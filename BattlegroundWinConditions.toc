@@ -1,4 +1,4 @@
-## Interface: 100200
+## Interface: 100205
 ## Title: BattlegroundWinConditions
 ## Version: 9.3.16
 ## Author: Ajax

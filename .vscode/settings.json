@@ -66,7 +66,8 @@
     "format",
     "table",
     "C_UnitAuras",
-    "UnitAura"
+    "UnitAura",
+    "RESET"
   ],
   "stylua.targetReleaseVersion": "latest"
 }
