@@ -25,7 +25,6 @@ local instanceIdToMapId = {
     id = 417,
     maxOrbs = 4,
     tickRate = 5,
-    resourcesFromBases = {},
   },
 }
 

@@ -6,6 +6,7 @@
   - Choosing your font size
   - Banner Scaling
   - Banner colors for TIE, WIN, LOSE
+  - Font for TIE, WIN, LOSE
   - Enable or Disable by Map
   - Enable or Disable certain features on EOTS and Flag maps
 - NEW flag map features
@@ -19,6 +20,9 @@
 - Refactored the win algorithm to be TICK based instead of TIME based to more accurately detect TIE games
 - Performance improvements
 - Win Timer bug fixes during incoming bases
+- Complete refactor of the code setup and organization
+- Move objective type code to only run based on maps that need that code to increase performance
+- Adds AceConfig for new dialog support making it easier to add settings
 
 ## [v8.2.15](https://github.com/rbgdevx/battleground-win-conditions/releases/tag/v8.2.15) (2024-01-10)
 

@@ -13,8 +13,6 @@ local instanceIdToMapId = {
   -- Warsong Gulch
   [2106] = {
     id = 1339,
-    maxFlags = 1,
-    tickRate = 1,
   },
 }
 

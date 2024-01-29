@@ -36,12 +36,12 @@ do
   local allyFlags, hordeFlags = 0, 0
   local allyTimers, hordeTimers, winTable = {}, {}, {}
   local curMapID, curTickRate, curMapInfo = 0, 0, {}
-  local maxObjectives = 0
+  local maxBases = 0
 
   function BasePrediction:GetFlagValue(winName, maxScore, winScore, loseScore, winBases, loseBases)
     if NS.isEOTS(curMapID) and (allyBases > 0 or hordeBases > 0) then
       local flagsNeeded = loseBases > 0
-          and NS.calculateFlagsToCatchUp(maxScore, winScore, loseScore, winBases, loseBases, curMapInfo)
+          and NS.calculateFlagsToCatchUp(maxScore, winScore, loseScore, winBases, loseBases, curMapInfo, curTickRate)
         or 0
 
       if flagsNeeded == 0 then
@@ -97,21 +97,20 @@ do
 
     function BasePrediction:BasePredictor()
       if (aScore > 0 or hScore > 0) and (aScore < 1500 and hScore < 1500) then
-        local currentAWinTime = NS.getWinTime(maxScore, aScore, curMapInfo.baseResources[allyBases])
-        local currentHWinTime = NS.getWinTime(maxScore, hScore, curMapInfo.baseResources[hordeBases])
-        local currentWinTime = mmin(currentAWinTime, currentHWinTime)
+        local allyTicksToWin = NS.getWinTicks(maxScore, aScore, curTickRate, curMapInfo.baseResources[allyBases])
+        local allyTimeToWin = NS.getWinTime(allyTicksToWin, curTickRate)
+
+        local hordeTicksToWin = NS.getWinTicks(maxScore, hScore, curTickRate, curMapInfo.baseResources[hordeBases])
+        local hordeTimeToWin = NS.getWinTime(hordeTicksToWin, curTickRate)
+
+        local currentWinTicks = mmin(allyTicksToWin, hordeTicksToWin)
+        local currentWinTime = mmin(allyTimeToWin, hordeTimeToWin)
 
         if allyIncBases == 0 and hordeIncBases == 0 then
+          local winTicks = currentWinTicks
           winTime = currentWinTime
 
-          local aWins = currentAWinTime < currentHWinTime
-
-          local afs = aWins and maxScore or aScore + (winTime * curMapInfo.baseResources[allyBases])
-          local hfs = aWins and hScore + (winTime * curMapInfo.baseResources[hordeBases]) or maxScore
-          local finalAScore = (allyBases == 0 and allyIncBases == 0) and aScore or afs
-          local finalHScore = (hordeBases == 0 and hordeIncBases == 0) and hScore or hfs
-
-          if currentAWinTime == currentHWinTime or finalAScore == finalHScore then
+          if allyTicksToWin == hordeTicksToWin then
             local winText = "TIE"
 
             Banner:Start(winTime, winText)
@@ -124,6 +123,16 @@ do
             prevAIncrease, prevHIncrease = -1, -1
             return
           else
+            local aWins = allyTicksToWin < hordeTicksToWin
+
+            local allyIncrease = curTickRate * curMapInfo.baseResources[allyBases]
+            local afs = aWins and maxScore or aScore + (currentWinTicks * allyIncrease)
+            local finalAScore = (allyBases == 0 and allyIncBases == 0) and aScore or afs
+
+            local hordeIncrease = curTickRate * curMapInfo.baseResources[hordeBases]
+            local hfs = aWins and hScore + (currentWinTicks * hordeIncrease) or maxScore
+            local finalHScore = (hordeBases == 0 and hordeIncBases == 0) and hScore or hfs
+
             local winName = aWins and NS.ALLIANCE_NAME or NS.HORDE_NAME
             local loseName = aWins and NS.HORDE_NAME or NS.ALLIANCE_NAME
             local winText = winName == NS.PLAYER_FACTION and "WIN" or "LOSE"
@@ -137,21 +146,22 @@ do
             local loseScore = aWins and hScore or aScore
 
             winTable = {}
-            for bases = loseBases + 1, maxObjectives do
+            for needBases = loseBases + 1, maxBases do
               local table = NS.checkWinCondition(
-                bases,
-                maxObjectives,
+                needBases,
                 winBases,
                 loseBases,
-                winTime,
                 winScore,
                 loseScore,
-                curMapInfo.baseResources,
-                maxScore,
-                0,
-                currentWinTime,
                 winName,
-                loseName
+                loseName,
+                winTicks,
+                0,
+                maxBases,
+                maxScore,
+                currentWinTime,
+                curTickRate,
+                curMapInfo.baseResources
               )
 
               for a, b in pairs(table) do
@@ -184,33 +194,41 @@ do
             if aTimeIncrease > hTimeIncrease then
               local timeDifference = aTimeIncrease - hTimeIncrease
               local scoreDifference = hFutureScore + timeDifference * curMapInfo.baseResources[newHordeBases]
-              if scoreDifference < maxScore and aTimeIncrease < currentWinTime then
+              if scoreDifference < maxScore then
                 hFutureScore = scoreDifference
-                winTimeIncrease = aTimeIncrease
+
+                if aTimeIncrease < currentWinTime then
+                  winTimeIncrease = aTimeIncrease
+                end
               end
             elseif hTimeIncrease > aTimeIncrease then
               local timeDifference = hTimeIncrease - aTimeIncrease
               local scoreDifference = aFutureScore + timeDifference * curMapInfo.baseResources[newAllyBases]
-              if scoreDifference < maxScore and hTimeIncrease < currentWinTime then
+              if scoreDifference < maxScore then
                 aFutureScore = scoreDifference
-                winTimeIncrease = hTimeIncrease
+
+                if hTimeIncrease < currentWinTime then
+                  winTimeIncrease = hTimeIncrease
+                end
               end
             end
           end
 
-          local aFutureTicksToWin = NS.getWinTime(maxScore, aFutureScore, curMapInfo.baseResources[newAllyBases])
-          local hFutureTicksToWin = NS.getWinTime(maxScore, hFutureScore, curMapInfo.baseResources[newHordeBases])
-          local winTicks = mmin(aFutureTicksToWin, hFutureTicksToWin)
+          local allyFutureTicksToWin =
+            NS.getWinTicks(maxScore, aFutureScore, curTickRate, curMapInfo.baseResources[newAllyBases])
+          local allyFutureTimeToWin = NS.getWinTime(allyFutureTicksToWin, curTickRate)
 
-          local aWins = aFutureTicksToWin < hFutureTicksToWin
-          local afs = aWins and maxScore or aFutureScore + (winTicks * curMapInfo.baseResources[newAllyBases])
-          local hfs = aWins and hFutureScore + (winTicks * curMapInfo.baseResources[newHordeBases]) or maxScore
-          local finalAScore = (allyBases == 0 and allyIncBases == 0) and aScore or afs
-          local finalHScore = (hordeBases == 0 and hordeIncBases == 0) and hScore or hfs
+          local hordeFutureTicksToWin =
+            NS.getWinTicks(maxScore, hFutureScore, curTickRate, curMapInfo.baseResources[newHordeBases])
+          local hordeFutureTimeToWin = NS.getWinTime(hordeFutureTicksToWin, curTickRate)
 
-          winTime = winTicks + winTimeIncrease
+          local futureWinTicks = mmin(allyFutureTicksToWin, hordeFutureTicksToWin)
+          local futureWinTime = mmin(allyFutureTimeToWin, hordeFutureTimeToWin)
 
-          if aFutureTicksToWin == hFutureTicksToWin or finalAScore == finalHScore then
+          local winTicks = futureWinTicks
+          winTime = futureWinTime + winTimeIncrease
+
+          if allyFutureTicksToWin == hordeFutureTicksToWin then
             local winText = "TIE"
 
             Banner:Start(winTime, winText)
@@ -223,6 +241,16 @@ do
             prevAIncrease, prevHIncrease = -1, -1
             return
           else
+            local aWins = allyFutureTicksToWin < hordeFutureTicksToWin
+
+            local allyFutureIncrease = curTickRate * curMapInfo.baseResources[newAllyBases]
+            local afs = aWins and maxScore or aFutureScore + (winTicks * allyFutureIncrease)
+            local finalAScore = (allyBases == 0 and allyIncBases == 0) and aScore or afs
+
+            local hordeFutureIncrease = curTickRate * curMapInfo.baseResources[newHordeBases]
+            local hfs = aWins and hFutureScore + (winTicks * hordeFutureIncrease) or maxScore
+            local finalHScore = (hordeBases == 0 and hordeIncBases == 0) and hScore or hfs
+
             local currentLoseBases = aWins and hordeBases or allyBases
 
             local winBases = aWins and newAllyBases or newHordeBases
@@ -238,21 +266,22 @@ do
             Score:SetText(Score.text, finalAScore, finalHScore)
 
             winTable = {}
-            for bases = currentLoseBases + 1, maxObjectives do
+            for needBases = currentLoseBases + 1, maxBases do
               local table = NS.checkWinCondition(
-                bases,
-                maxObjectives,
+                needBases,
                 winBases,
                 loseBases,
-                winTime,
                 winScore,
                 loseScore,
-                curMapInfo.baseResources,
-                maxScore,
-                winTimeIncrease,
-                currentWinTime,
                 winName,
-                loseName
+                loseName,
+                winTicks,
+                winTimeIncrease,
+                maxBases,
+                maxScore,
+                currentWinTime,
+                curTickRate,
+                curMapInfo.baseResources
               )
 
               for a, b in pairs(table) do
@@ -894,7 +923,7 @@ do
       hordeBases, hordeIncBases = 0, 0
       allyFlags, hordeFlags = 0, 0
       allyTimers, hordeTimers, winTable = {}, {}, {}
-      maxObjectives = maxResources
+      maxBases = maxResources
 
       self:GetScoreByMapID(curMapID)
       self:GetObjectivesByMapID(curMapID)

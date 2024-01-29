@@ -101,7 +101,7 @@ NS.ALLIANCE_NAME = FACTION_ALLIANCE
 NS.HORDE_NAME = FACTION_HORDE
 NS.WIN_NOUN = "You"
 NS.LOSE_NOUN = "They"
-NS.ASSAULT_TIME = 5
+NS.ASSAULT_TIME = 6
 NS.CONTESTED_TIME = 60
 NS.ORB_BUFF_TIME = 45
 NS.STACK_TIME = 30
@@ -182,7 +182,7 @@ NS.DefaultDatabase = {
         showflaginfo = true,
       },
       silvershardmines = {
-        enabled = true,
+        enabled = false,
       },
       templeofkotmogu = {
         enabled = true,

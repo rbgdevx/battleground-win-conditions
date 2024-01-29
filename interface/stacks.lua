@@ -50,7 +50,7 @@ function Stacks:Stop(frame, animationGroup)
   stopAnimation(frame, animationGroup)
 end
 
-local buffformat1 = "First stack in %s\n%d stacks in %s"
+local buffformat1 = "First stack in %s\n%d stacks - %d stacks in %s"
 local buffformat2 = "Next stack in %s\n%d stack - %d stacks in %s"
 local alternateformat2 = "Next stack in %s\nHealing received -%d%%\nDamage taken +%d%%\n%d stack - %d stacks in %s"
 local buffformat3 = "Next stack in %s\n%d stacks - %d stacks in %s"
@@ -62,7 +62,7 @@ local alternateformat5 = "Reached maximum stacks\nHealing received -%d%%\nDamage
 
 local function textUpdate(frame, stacks, killtime, time)
   if stacks == 0 then
-    Stacks:SetText(frame.text, buffformat1, NS.formatTime(time), killStacks, NS.formatTime(killtime))
+    Stacks:SetText(frame.text, buffformat1, NS.formatTime(time), stacks, killStacks, NS.formatTime(killtime))
   elseif stacks == 1 then
     if
       (NS.db.global.maps.twinpeaks.showdebuffinfo and (NS.IS_TP or NS.IN_GAME == false))

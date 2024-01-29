@@ -125,7 +125,26 @@ NS.formatTeamName = function(team, faction)
   end
 end
 
-NS.calculateFlagsToCatchUp = function(maxScore, winScore, loseScore, winBases, loseBases, curMapInfo)
+NS.getFinalScore = function(maxScore, score, fallbackScore, bases, incBases, win, winTicks, tickRate, points)
+  local increase = tickRate * points
+  local initialScore = win and maxScore or score + (winTicks * increase)
+  local finalScore = (bases == 0 and incBases == 0) and fallbackScore or initialScore
+  return mmin(finalScore, maxScore)
+end
+
+NS.getWinTicks = function(maxScore, score, tickRate, points)
+  local increase = tickRate * points -- points per tick
+  local remaining = maxScore - score -- points needed to max score
+  local ticksToWin = increase == 0 and 10000 or mceil(remaining / increase)
+  return mmin(ticksToWin, 10000)
+end
+
+NS.getWinTime = function(ticksToWin, tickRate)
+  local timeToWin = ticksToWin == 10000 and ticksToWin or tickRate * ticksToWin -- convert ticks to seconds
+  return mmin(timeToWin, 10000)
+end
+
+NS.calculateFlagsToCatchUp = function(maxScore, winScore, loseScore, winBases, loseBases, curMapInfo, curTickRate)
   local flagValue = curMapInfo.flagResources[loseBases]
   local flagsNeeded
 
@@ -134,10 +153,12 @@ NS.calculateFlagsToCatchUp = function(maxScore, winScore, loseScore, winBases, l
       local potentialLoseTeamScore = loseScore + (flagValue * flags)
       local potentialWinTeamScore = winScore
 
-      local l = NS.getWinTime(maxScore, potentialLoseTeamScore, curMapInfo.baseResources[loseBases])
-      local w = NS.getWinTime(maxScore, potentialWinTeamScore, curMapInfo.baseResources[winBases])
+      local loseTicksToWin =
+        NS.getWinTicks(maxScore, potentialLoseTeamScore, curTickRate, curMapInfo.baseResources[loseBases])
+      local winTicksToWin =
+        NS.getWinTicks(maxScore, potentialWinTeamScore, curTickRate, curMapInfo.baseResources[winBases])
 
-      if l < w then
+      if loseTicksToWin < winTicksToWin then
         flagsNeeded = flags
         break
       end
@@ -159,67 +180,116 @@ NS.getWinMinBases = function(winBases, maxBases, needBases)
   end
 end
 
-NS.getWinTime = function(maxScore, score, points)
-  local remaining = maxScore - score
-  local ticksToWin = mceil(points == 0 and 10000 or remaining / points)
-  return mmin(ticksToWin, 10000)
-end
-
 NS.checkWinCondition = function(
-  bases,
-  maxBases,
-  currentWinningTeamBaseCount,
-  currentLosingTeamBaseCount,
-  currentFutureWinTime,
-  currentWinTeamScore,
-  currentLoseTeamScore,
-  resources,
-  maxScore,
-  winTimeIncrease,
-  currentWinTime,
+  needBases,
+  winBases,
+  loseBases,
+  winScore,
+  loseScore,
   winName,
-  loseName
+  loseName,
+  winTicks,
+  winTimeIncrease,
+  maxBases,
+  maxScore,
+  oldWinTime,
+  tickRate,
+  resources
 )
   local table = {}
 
-  local potentialLoseTeamBaseCount = bases
-  local potentialWinTeamBaseCount = ((bases + currentWinningTeamBaseCount) > maxBases) and maxBases - bases
-    or currentWinningTeamBaseCount
+  --[[
+  -- we're assuming here the incoming bases have capped over and now looking forward
+  -- to win conditions, not win conditions of active incoming and owned
+  --
+  -- we're also assuming the maximum amount of bases each team
+  -- could have at any given time for each potential winning base amount
+  -- to be sure they could win with X amount of bases
+  --]]
+  local potentialLoseTeamBaseCount = needBases
+  local potentialWinTeamBaseCount = ((needBases + winBases) > maxBases) and maxBases - needBases or winBases
 
-  local loseTeamGapScore = NS.CONTESTED_TIME * resources[currentLosingTeamBaseCount]
+  local loseTeamGapScore = NS.CONTESTED_TIME * resources[loseBases]
   local winTeamGapScore = NS.CONTESTED_TIME * resources[potentialWinTeamBaseCount]
-  local assaultScore = NS.ASSAULT_TIME * resources[currentWinningTeamBaseCount]
+  local assaultScore = NS.ASSAULT_TIME * resources[winBases]
 
-  local timeMax = currentFutureWinTime
+  --[[
+  -- we need to look ahead in time to compare
+  -- scores and win times at each point in time
+  -- with any new potential bases from the lose team
+  --]]
+  for ticks = 0, winTicks, tickRate do
+    local loseTeamScoreIncrease = ticks * (tickRate * resources[loseBases])
+    local winTeamScoreIncrease = ticks * (tickRate * resources[winBases])
 
-  for time = 0, timeMax do
-    local loseTeamScoreIncrease = time * resources[currentLosingTeamBaseCount]
-    local winTeamScoreIncrease = time * resources[currentWinningTeamBaseCount]
+    --[[
+    -- we need to add the current score
+    -- with the score for this point in time
+    -- plus whatever the gap score would be
+    -- during a base change
+    --]]
+    local loseTeamScoreNow = loseScore + loseTeamScoreIncrease
+    local winTeamScoreNow = winScore + winTeamScoreIncrease
 
-    local loseTeamScoreNow = currentLoseTeamScore + loseTeamScoreIncrease
-    local winTeamScoreNow = currentWinTeamScore + winTeamScoreIncrease
+    local loseGapScore = (oldWinTime < NS.CONTESTED_TIME) and loseTeamScoreNow or loseTeamScoreNow + loseTeamGapScore
+    local winGapScore = (oldWinTime < NS.CONTESTED_TIME) and winTeamScoreNow or winTeamScoreNow + winTeamGapScore
 
-    local loseGapScore = (currentWinTime < NS.CONTESTED_TIME) and loseTeamScoreNow
-      or loseTeamScoreNow + loseTeamGapScore
-    local winGapScore = (currentWinTime < NS.CONTESTED_TIME) and winTeamScoreNow or winTeamScoreNow + winTeamGapScore
+    local loseTicksToWin = NS.getWinTicks(maxScore, loseGapScore, tickRate, resources[potentialLoseTeamBaseCount])
+    local winTicksToWin = NS.getWinTicks(maxScore, winGapScore, tickRate, resources[potentialWinTeamBaseCount])
 
-    local l = NS.getWinTime(maxScore, loseGapScore, resources[potentialLoseTeamBaseCount])
-    local w = NS.getWinTime(maxScore, winGapScore, resources[potentialWinTeamBaseCount])
-
-    local scoreCheck = winTeamScoreNow
-
-    if l < w and scoreCheck < maxScore then
+    if loseTicksToWin < winTicksToWin and winTeamScoreNow < maxScore then
+      local time = ticks * tickRate
+      --[[
+      -- we need add the pending time of the current incoming
+      -- bases since they actually haven't capped over yet
+      --]]
       local ownTime = time + winTimeIncrease
+      --[[
+      -- we need to accomodate for the assault time
+      --]]
       local capTime = ownTime - NS.ASSAULT_TIME
-      local ownScore = scoreCheck
+      --[[
+      -- we need to subtract the gap score from the score
+      -- you need to get the base by because we were just looking
+      -- ahead to see had you got that base would you win
+      -- so this is that score you need prior to having a gap to be had
+      --]]
+      local ownScore = winTeamScoreNow
+      --[[
+      -- we need to subtract the score they'll be earning during cap time
+      -- as well, so thats 5 more seconds of score
+      --]]
       local capScore = ownScore - assaultScore
-      local minBases = NS.getWinMinBases(currentWinningTeamBaseCount, maxBases, potentialLoseTeamBaseCount)
+      --[[
+      -- We need to calculate the minimum bases the winning team
+      -- wins with and store it for later
+      --]]
+      local minBases = NS.getWinMinBases(winBases, maxBases, potentialLoseTeamBaseCount)
 
       table[potentialLoseTeamBaseCount] = {
+        -- the amount of bases you need to get to win
         bases = potentialLoseTeamBaseCount,
+        --[[
+        -- we add the gap score from the score to know when
+        -- you need to get the base by
+        --]]
         ownScore = ownScore,
+        --[[
+        -- we need add the pending time of the current incoming
+        -- bases since they actually haven't capped over yet
+        --]]
         ownTime = ownTime + GetTime(),
+        --[[
+        -- we need to accomodate for the assault time to get by this time
+        -- as well as the cap time
+        --]]
         capTime = capTime + GetTime(),
+        --[[
+        -- we need to subtract the gap score from the score
+        -- you need to get the base by because we were just looking
+        -- ahead to see had you got that base would you win
+        -- so this is that score you need prior to having a gap to be had
+        --]]
         capScore = capScore,
         minBases = minBases,
         maxBases = maxBases,

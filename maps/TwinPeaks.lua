@@ -13,8 +13,6 @@ local instanceIdToMapId = {
   -- Twin Peaks
   [726] = {
     id = 206,
-    maxFlags = 1,
-    tickRate = 1,
   },
 }
 

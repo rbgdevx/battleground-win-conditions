@@ -25,7 +25,8 @@ function BGWC:LOADING_SCREEN_DISABLED()
       Interface:Clear()
       NS.PLAYER_FACTION = GetPlayerFactionGroup()
       NS.IN_GAME = false
-      After(0, function()
+
+      After(0.5, function()
         if NS.db.global.general.test then
           if NS.db.global.general.banner then
             Interface:CreateTestBanner()
