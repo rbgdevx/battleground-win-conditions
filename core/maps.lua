@@ -83,7 +83,9 @@ do
 
       local instanceID = select(8, GetInstanceInfo())
       if zoneIds[instanceID] then
-        Maps:EnableZone(instanceID)
+        After(5, function()
+          Maps:EnableZone(instanceID)
+        end)
       end
     end
   end

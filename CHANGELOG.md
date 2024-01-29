@@ -1,6 +1,10 @@
 # Battleground Win Conditions
 
-## [v9.3.16](https://github.com/rbgdevx/battleground-win-conditions/releases/tag/v9.3.16) (2024-01-22)
+## [v9.3.17](https://github.com/rbgdevx/battleground-win-conditions/releases/tag/v9.3.17) (2024-01-28)
+
+- Fixing setting some vars once joining a game
+
+## [v9.3.16](https://github.com/rbgdevx/battleground-win-conditions/releases/tag/v9.3.16) (2024-01-28)
 
 - Complete overhaul of the settings options to include
   - Choosing your font size

@@ -117,7 +117,7 @@ NS.userClassHexColor = "|c" .. select(4, GetClassColor(NS.userClass))
 
 NS.ADDON_PREFIX = "BGWC_VERSION"
 NS.FoundNewVersion = false
-NS.VERSION = 9316
+NS.VERSION = 9317
 
 NS.DefaultDatabase = {
   global = {
