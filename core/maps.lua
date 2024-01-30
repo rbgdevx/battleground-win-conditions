@@ -85,9 +85,7 @@ do
 
     local inInstance = IsInInstance()
     if inInstance then
-      if NS.db.global.general.test then
-        Interface:Clear()
-      end
+      Interface:Clear()
 
       local instanceID = select(8, GetInstanceInfo())
       if zoneIds[instanceID] then

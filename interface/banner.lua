@@ -46,6 +46,7 @@ end
 
 local function stopAnimation(frame, animationGroup)
   animationGroup:Stop()
+  frame.frame:SetAlpha(0)
   frame.bg:SetAlpha(0)
   frame.text:SetAlpha(0)
   frame.text:SetFormattedText("")

@@ -1,6 +1,6 @@
 ## Interface: 100205
 ## Title: BattlegroundWinConditions
-## Version: 9.3.18
+## Version: 9.3.19
 ## Author: Ajax
 ## Notes: Provides real time win conditions for battlegrounds
 ## OptionalDeps: Ace3, LibStub, LibSharedMedia-3.0, AceGUI-3.0-SharedMediaWidgets

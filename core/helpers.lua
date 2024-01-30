@@ -146,26 +146,21 @@ end
 
 NS.calculateFlagsToCatchUp = function(maxScore, winScore, loseScore, winBases, loseBases, curMapInfo, curTickRate)
   local flagValue = curMapInfo.flagResources[loseBases]
-  local flagsNeeded
+  local flagsNeeded = 0
 
-  if winScore < loseScore then
-    for flags = 1, 20 do
-      local potentialLoseTeamScore = loseScore + (flagValue * flags)
-      local potentialWinTeamScore = winScore
+  for flags = 1, 20 do
+    local potentialLoseTeamScore = loseScore + (flagValue * flags)
+    local potentialWinTeamScore = winScore
 
-      local loseTicksToWin =
-        NS.getWinTicks(maxScore, potentialLoseTeamScore, curTickRate, curMapInfo.baseResources[loseBases])
-      local winTicksToWin =
-        NS.getWinTicks(maxScore, potentialWinTeamScore, curTickRate, curMapInfo.baseResources[winBases])
+    local loseTicksToWin =
+      NS.getWinTicks(maxScore, potentialLoseTeamScore, curTickRate, curMapInfo.baseResources[loseBases])
+    local winTicksToWin =
+      NS.getWinTicks(maxScore, potentialWinTeamScore, curTickRate, curMapInfo.baseResources[winBases])
 
-      if loseTicksToWin < winTicksToWin then
-        flagsNeeded = flags
-        break
-      end
+    if loseTicksToWin < winTicksToWin then
+      flagsNeeded = flags
+      break
     end
-  else
-    local scoreDifference = winScore - loseScore
-    flagsNeeded = mceil(scoreDifference / flagValue)
   end
 
   return mmin(mmax(1, flagsNeeded), 20)

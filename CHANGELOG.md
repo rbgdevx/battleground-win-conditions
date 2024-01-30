@@ -1,5 +1,12 @@
 # Battleground Win Conditions
 
+## [v9.3.19](https://github.com/rbgdevx/battleground-win-conditions/releases/tag/v9.3.19) (2024-01-29)
+
+- Fixing eots flags needed calculation when ahead in points and bases
+- adding updated descriptions for individual map enabling toggles
+- always clearing interface upon joining new games
+- updating banner scale minimum
+
 ## [v9.3.18](https://github.com/rbgdevx/battleground-win-conditions/releases/tag/v9.3.18) (2024-01-29)
 
 - Adding a new setting to turn off the GG Banner and only show the win text
