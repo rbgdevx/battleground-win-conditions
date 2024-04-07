@@ -11,7 +11,6 @@ NS.Stacks = Stacks
 local StacksFrame = CreateFrame("Frame", AddonName .. "StacksFrame", UIParent)
 
 local killStacks = 6
-local maxStacks = 15
 local localStacks = 0
 local healingDecrease = 5
 local damageIncrease = 10
@@ -57,8 +56,6 @@ local buffformat3 = "Next stack in %s\n%d stacks - %d stacks in %s"
 local alternateformat3 = "Next stack in %s\nHealing received -%d%%\nDamage taken +%d%%\n%d stacks - %d stacks in %s"
 local buffformat4 = "Next stack in %s\n%d stacks"
 local alternateformat4 = "Next stack in %s\nHealing received -%d%%\nDamage taken +%d%%\n%d stacks"
-local buffformat5 = "Reached maximum stacks\n%d stacks"
-local alternateformat5 = "Reached maximum stacks\nHealing received -%d%%\nDamage taken +%d%%\n%d stacks"
 
 local function textUpdate(frame, stacks, killtime, time)
   if stacks == 0 then
@@ -99,15 +96,6 @@ local function textUpdate(frame, stacks, killtime, time)
     else
       Stacks:SetText(frame.text, buffformat3, NS.formatTime(time), stacks, killStacks, NS.formatTime(killtime))
     end
-  elseif stacks == maxStacks then
-    if
-      (NS.db.global.maps.twinpeaks.showdebuffinfo and (NS.IS_TP or NS.IN_GAME == false))
-      or (NS.db.global.maps.warsonggulch.showdebuffinfo and (NS.IS_WG or NS.IN_GAME == false))
-    then
-      Stacks:SetText(frame.text, alternateformat5, stacks * healingDecrease, stacks * damageIncrease, stacks)
-    else
-      Stacks:SetText(frame.text, buffformat5, stacks)
-    end
   else
     if
       (NS.db.global.maps.twinpeaks.showdebuffinfo and (NS.IS_TP or NS.IN_GAME == false))
@@ -133,25 +121,7 @@ local function animationUpdate(frame, stacks, animationGroup)
   if t >= frame.exp then
     localStacks = localStacks + 1
 
-    if localStacks == maxStacks then
-      animationGroup:Stop()
-      if
-        (NS.db.global.maps.twinpeaks.showdebuffinfo and (NS.IS_TP or NS.IN_GAME == false))
-        or (NS.db.global.maps.warsonggulch.showdebuffinfo and (NS.IS_WG or NS.IN_GAME == false))
-      then
-        Stacks:SetText(
-          frame.text,
-          alternateformat5,
-          localStacks * healingDecrease,
-          localStacks * damageIncrease,
-          localStacks
-        )
-      else
-        Stacks:SetText(frame.text, buffformat5, localStacks)
-      end
-    else
-      Stacks:Start(NS.STACK_TIME, localStacks)
-    end
+    Stacks:Start(NS.STACK_TIME, localStacks)
   else
     local time = frame.exp - t
     frame.remaining = time
@@ -163,19 +133,7 @@ local function animationUpdate(frame, stacks, animationGroup)
       frame.killremaining = killtime
     end
 
-    if stacks == maxStacks then
-      animationGroup:Stop()
-      if
-        (NS.db.global.maps.twinpeaks.showdebuffinfo and (NS.IS_TP or NS.IN_GAME == false))
-        or (NS.db.global.maps.warsonggulch.showdebuffinfo and (NS.IS_WG or NS.IN_GAME == false))
-      then
-        Stacks:SetText(frame.text, alternateformat5, stacks * healingDecrease, stacks * damageIncrease, stacks)
-      else
-        Stacks:SetText(frame.text, buffformat5, stacks)
-      end
-    else
-      textUpdate(frame, stacks, killtime, time)
-    end
+    textUpdate(frame, stacks, killtime, time)
   end
 end
 

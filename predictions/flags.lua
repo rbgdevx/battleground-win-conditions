@@ -334,7 +334,6 @@ do
       local pickedName = string.match(message, "picked up by (.+)") -- ally picked horde flag
       if pickedName then
         allyFlagCarrier = pickedName
-
         if hordeFlagCarrier and stacksCounting == false then
           stacksCounting = true
           Stacks:Start(NS.STACK_TIME, 0)
@@ -343,7 +342,6 @@ do
       local flagReturned = string.find(message, "returned to its base by") -- horde flag returned by horde
       if flagReturned then
         allyFlagCarrier = nil
-
         if hordeFlagCarrier == nil then
           stacksCounting = false
           Stacks:Stop(Stacks.text, Stacks.timerAnimationGroup)
@@ -379,17 +377,33 @@ do
       end
     end
 
+    --[[
+    -- while this tracks updates to who has the flag
+    -- it doesnt provide a safe way to detect dropped stacks
+    --
+    -- since we can know if both teams have no flag
+    -- but not know if the flags were returned post drop
+    -- i.e. someone can re-pick either flag before it gets returned, retaining stacks
+    --]]
     function FlagPrediction:ARENA_OPPONENT_UPDATE(unitToken, updateReason)
+      -- Only run when flags are dropped
       if updateReason == "cleared" then
+        -- ignore pet frames
         if sfind(unitToken, "pet") == nil then
-          After(15, function()
-            if GetNumArenaOpponents() == 0 then
-              allyFlagCarrier = nil
-              hordeFlagCarrier = nil
-              stacksCounting = false
-              Stacks:Stop(Stacks.text, Stacks.timerAnimationGroup)
+          -- ensure there are no flag carriers on both sides
+          if GetNumArenaOpponents() == 0 then
+            -- make sure we dont spam updates when the game is over
+            if aScore < 3 and hScore < 3 then
+              -- this doesn't mean flags have been returned
+              -- which means the stacks might not have been reset yet
+              -- so we can't rely on resetting here
+
+              -- allyFlagCarrier = nil
+              -- hordeFlagCarrier = nil
+              -- stacksCounting = false
+              -- Stacks:Stop(Stacks.text, Stacks.timerAnimationGroup)
             end
-          end)
+          end
         end
       end
     end

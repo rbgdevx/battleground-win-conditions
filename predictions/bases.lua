@@ -96,7 +96,7 @@ do
     local prevABases, prevHBases, prevAIncBases, prevHIncBases = 0, 0, 0, 0
 
     function BasePrediction:BasePredictor()
-      if (aScore > 0 or hScore > 0) and (aScore < 1500 and hScore < 1500) then
+      if aScore < 1500 and hScore < 1500 then
         local allyTicksToWin = NS.getWinTicks(maxScore, aScore, curTickRate, curMapInfo.baseResources[allyBases])
         local allyTimeToWin = NS.getWinTime(allyTicksToWin, curTickRate)
 
