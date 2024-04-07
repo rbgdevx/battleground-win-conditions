@@ -1,5 +1,12 @@
 # Battleground Win Conditions
 
+## [v9.3.20](https://github.com/rbgdevx/battleground-win-conditions/releases/tag/v9.3.20) (2024-04-07)
+
+- Fixing slash commands
+- Removing flag cap maximum stacks since there is no more limit from what i found in recent testing
+- Removing the need for points on the board to see if you win or not in base maps, so now you can know immediately upon first cap
+- Fixing incorrect stack resetting based on arena frame updates since it's not reliable and has the ability to mess with stack counts
+
 ## [v9.3.19](https://github.com/rbgdevx/battleground-win-conditions/releases/tag/v9.3.19) (2024-01-29)
 
 - Fixing eots flags needed calculation when ahead in points and bases

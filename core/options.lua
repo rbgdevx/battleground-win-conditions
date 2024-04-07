@@ -719,7 +719,7 @@ NS.AceConfig = {
   },
 }
 
-function BGWC:SlashCommands(message)
+function Options:SlashCommands(message)
   if message == "toggle lock" then
     if NS.db.global.general.lock == false then
       NS.db.global.general.lock = true
@@ -749,7 +749,10 @@ function Options:Setup()
 
   SLASH_BGWC1 = AddonName
   SLASH_BGWC2 = "/bgwc"
-  SlashCmdList.BGWC = BGWC:SlashCommands()
+
+  function SlashCmdList.BGWC(message)
+    self:SlashCommands(message)
+  end
 end
 
 function BGWC:ADDON_LOADED(addon)
