@@ -6,6 +6,7 @@
   - Removes the arena opponent api checks as they're unreliable and fire at times not just when someone picks
   - Fixes resetting the stack timer if the flag drops and someone else picks
   - Better ensures you're only tracking flag carriers and resetting only when needed
+  - Falls back to timer based stacks when dead since UNIT_AURA doesn't track enemies while dead
 - Adjusts the time to win on base maps when capping the first base or just a single base in general, time is now banner win time
 - Enables the debuff info on flag map info incase people haven't seen that option yet
 
