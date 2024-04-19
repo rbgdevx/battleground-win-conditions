@@ -2,6 +2,7 @@ local AddonName, NS = ...
 
 local CreateFrame = CreateFrame
 local GetTime = GetTime
+local UnitIsDeadOrGhost = UnitIsDeadOrGhost
 
 local LSM = LibStub("LibSharedMedia-3.0")
 
@@ -119,9 +120,14 @@ local function animationUpdate(frame, stacks, animationGroup)
   local t = GetTime()
 
   if t >= frame.exp then
-    localStacks = localStacks + 1
-
-    Stacks:Start(NS.STACK_TIME, localStacks)
+    -- enemy auras dont update while dead so we fallback to timers
+    if NS.IN_GAME and UnitIsDeadOrGhost("player") == false then
+      animationGroup:Stop()
+      -- frame.text:Hide()
+    else
+      localStacks = localStacks + 1
+      Stacks:Start(NS.STACK_TIME, localStacks)
+    end
   else
     local time = frame.exp - t
     frame.remaining = time
