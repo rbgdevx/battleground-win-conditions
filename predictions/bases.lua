@@ -140,6 +140,8 @@ do
             Banner:Start(winTime, winText)
             Score:SetText(Score.text, finalAScore, finalHScore)
 
+            -- local currentWinbases = aWins and allyBases or hordeBases
+
             local winBases = aWins and allyBases or hordeBases
             local loseBases = aWins and hordeBases or allyBases
             local winScore = aWins and aScore or hScore
@@ -159,7 +161,7 @@ do
                 0,
                 maxBases,
                 maxScore,
-                currentWinTime,
+                winTime,
                 curTickRate,
                 curMapInfo.baseResources
               )
@@ -251,6 +253,7 @@ do
             local hfs = aWins and hFutureScore + (winTicks * hordeFutureIncrease) or maxScore
             local finalHScore = (hordeBases == 0 and hordeIncBases == 0) and hScore or hfs
 
+            -- local currentWinBases = aWins and allyBases or hordeBases
             local currentLoseBases = aWins and hordeBases or allyBases
 
             local winBases = aWins and newAllyBases or newHordeBases
@@ -279,7 +282,7 @@ do
                 winTimeIncrease,
                 maxBases,
                 maxScore,
-                currentWinTime,
+                winTime,
                 curTickRate,
                 curMapInfo.baseResources
               )

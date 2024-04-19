@@ -49,6 +49,7 @@ function Bases:Stop(frame, animationGroup)
 end
 
 local function winMessage(text, winCondition)
+  local winTime = winCondition.winTime - GetTime()
   local ownTime = winCondition.ownTime - GetTime()
   local winName = winCondition.winName
   local winMinBases = winCondition.minBases
@@ -61,7 +62,7 @@ local function winMessage(text, winCondition)
     message = sformat("%s win with %d right now\n", NS.formatTeamName(winName, NS.PLAYER_FACTION), winMinBases)
 
     if winMinBases == 1 then
-      message = message .. sformat("Hold %d for %s to win\n", winMinBases, NS.formatTime(ownTime))
+      message = message .. sformat("Hold %d for %s to win\n", winMinBases, NS.formatTime(winTime))
     else
       message = message
         .. sformat("Hold %d for %s to win with %d\n", winMinBases, NS.formatTime(ownTime), maxWinMinBases)
@@ -107,7 +108,7 @@ local function animationUpdate(frame, winTable, animationGroup)
 
   if t >= frame.exp then
     animationGroup:Stop()
-  -- frame.text:Hide()
+    -- frame.text:Hide()
   else
     local time = frame.exp - t
     frame.remaining = time

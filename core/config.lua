@@ -193,11 +193,11 @@ NS.DefaultDatabase = {
       },
       twinpeaks = {
         enabled = true,
-        showdebuffinfo = false,
+        showdebuffinfo = true,
       },
       warsonggulch = {
         enabled = true,
-        showdebuffinfo = false,
+        showdebuffinfo = true,
       },
     },
     position = {

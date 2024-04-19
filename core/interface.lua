@@ -89,6 +89,7 @@ function Interface:CreateTestInfo()
     [4] = {
       bases = 4,
       ownScore = 1299,
+      winTime = 800 + GetTime(),
       ownTime = 800 + GetTime(),
       capTime = 800 - NS.ASSAULT_TIME + GetTime(),
       capScore = 1299 - NS.ASSAULT_TIME * 2,
@@ -100,6 +101,7 @@ function Interface:CreateTestInfo()
     [5] = {
       bases = 5,
       ownScore = 1499,
+      winTime = 400 + GetTime(),
       ownTime = 400 + GetTime(),
       capTime = 400 - NS.ASSAULT_TIME + GetTime(),
       capScore = 1499 - NS.ASSAULT_TIME * 2,

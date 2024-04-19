@@ -270,6 +270,13 @@ NS.checkWinCondition = function(
         --]]
         ownScore = ownScore,
         --[[
+        -- we need to subtract the gap score from the score
+        -- you need to get the base by because we were just looking
+        -- ahead to see had you got that base would you win
+        -- so this is that score you need prior to having a gap to be had
+        --]]
+        capScore = capScore,
+        --[[
         -- we need add the pending time of the current incoming
         -- bases since they actually haven't capped over yet
         --]]
@@ -280,12 +287,10 @@ NS.checkWinCondition = function(
         --]]
         capTime = capTime + GetTime(),
         --[[
-        -- we need to subtract the gap score from the score
-        -- you need to get the base by because we were just looking
-        -- ahead to see had you got that base would you win
-        -- so this is that score you need prior to having a gap to be had
+        -- we need to accomodate for the assault time to get by this time
+        -- as well as the cap time
         --]]
-        capScore = capScore,
+        winTime = mmin(mmax(0, oldWinTime), 1500) + GetTime(),
         minBases = minBases,
         maxBases = maxBases,
         winName = winName,
