@@ -154,7 +154,7 @@ local function animationUpdate(frame, stacks, animationGroup)
     -- enemy auras dont update while dead so we fallback to timers
     if NS.IN_GAME and UnitIsDeadOrGhost("player") == false then
       animationGroup:Stop()
-    -- frame.text:Hide()
+      -- frame.text:Hide()
     else
       localStacks = localStacks + 1
       Stacks:Start(NS.STACK_TIME, localStacks)

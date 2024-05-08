@@ -67,7 +67,7 @@ local function animationUpdate(frame, text, animationGroup)
   if t >= frame.exp then
     animationGroup:Stop()
     Orbs:SetText(frame.text, orbsformat2, text)
-  -- frame.text:Hide()
+    -- frame.text:Hide()
   else
     local time = frame.exp - t
     frame.remaining = time

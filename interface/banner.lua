@@ -61,7 +61,7 @@ local function animationUpdate(frame, text, animationGroup)
   local t = GetTime()
   if t >= frame.exp then
     animationGroup:Stop()
-  -- frame.text:Hide()
+    -- frame.text:Hide()
   else
     local time = frame.exp - t
     frame.remaining = time
