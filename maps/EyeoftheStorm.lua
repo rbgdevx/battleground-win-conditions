@@ -4,7 +4,7 @@ local next = next
 
 local BasePrediction = NS.BasePrediction
 local Maps = NS.Maps
-local Flag = NS.Flag
+local Flags = NS.Flags
 local Bases = NS.Bases
 
 local EOTS = Maps:NewMod()
@@ -57,7 +57,7 @@ local instanceIdToMapId = {
 function EOTS:EnterZone(id)
   if NS.db.global.maps.eyeofthestorm.enabled then
     NS.IS_EOTS = true
-    Flag:SetAnchor(Bases.frame, 0, 0)
+    Flags:SetAnchor(Bases.frame, 0, -5)
     BasePrediction:StartInfoTracker(instanceIdToMapId[id].id, instanceIdToMapId[id].tickRate, {
       baseResources = instanceIdToMapId[id].resourcesFromBases,
       flagResources = instanceIdToMapId[id].resourcesFromFlags,

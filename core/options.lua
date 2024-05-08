@@ -14,8 +14,9 @@ local Interface = NS.Interface
 local Prediction = NS.Prediction
 local Banner = NS.Banner
 local Bases = NS.Bases
-local Buff = NS.Buff
-local Flag = NS.Flag
+local Info = NS.Info
+local Orbs = NS.Orbs
+local Flags = NS.Flags
 local Score = NS.Score
 local Stacks = NS.Stacks
 local Maps = NS.Maps
@@ -35,7 +36,7 @@ NS.AceConfig = {
       args = {
         lock = {
           name = "Lock the position",
-          desc = "Turning this feature on hides the anchor bar",
+          desc = "Turning this feature on hides the anchor bar.",
           type = "toggle",
           width = "double",
           order = 1,
@@ -63,8 +64,6 @@ NS.AceConfig = {
             if val then
               NS.db.global.general.info = false
 
-              Score:SetAnchor(Anchor.frame, 0, 0)
-
               if NS.IN_GAME == false then
                 Interface:Clear()
                 Interface:CreateTestBanner()
@@ -72,27 +71,21 @@ NS.AceConfig = {
                 Interface:ShowBanner()
                 Interface:HideInfo()
               end
-            else
-              Score:SetAnchor(Banner.frame, 0, -5)
 
-              if NS.db.global.general.info then
-                if NS.IN_GAME == false then
-                  Interface:Clear()
-                  Interface:CreateTestInfo()
-                else
-                  Interface:HideBanner()
-                  Interface:ShowInfo()
-                end
+              Info:SetAnchor(Anchor.frame, 0, 0)
+              Score:SetAnchor(Info.frame, 0, 0)
+            else
+              if NS.IN_GAME == false then
+                Interface:Clear()
+                Interface:CreateTestBanner()
+                Interface:CreateTestInfo()
               else
-                if NS.IN_GAME == false then
-                  Interface:Clear()
-                  Interface:CreateTestBanner()
-                  Interface:CreateTestInfo()
-                else
-                  Interface:ShowBanner()
-                  Interface:ShowInfo()
-                end
+                Interface:ShowBanner()
+                Interface:ShowInfo()
               end
+
+              Info:SetAnchor(Banner.frame, 0, 0)
+              Score:SetAnchor(Info.frame, 0, -5)
             end
           end,
           get = function(_)
@@ -111,8 +104,6 @@ NS.AceConfig = {
             if val then
               NS.db.global.general.banner = false
 
-              Score:SetAnchor(Anchor.frame, 0, 0)
-
               if NS.IN_GAME == false then
                 Interface:Clear()
                 Interface:CreateTestInfo()
@@ -120,27 +111,25 @@ NS.AceConfig = {
                 Interface:HideBanner()
                 Interface:ShowInfo()
               end
-            else
-              Score:SetAnchor(Banner.frame, 0, -5)
 
-              if NS.db.global.general.banner then
-                if NS.IN_GAME == false then
-                  Interface:Clear()
-                  Interface:CreateTestBanner()
-                else
-                  Interface:ShowBanner()
-                  Interface:HideInfo()
-                end
+              Info:SetAnchor(Anchor.frame, 0, 0)
+              Score:SetAnchor(Info.frame, 0, 0)
+            else
+              if NS.IN_GAME == false then
+                Interface:Clear()
+                Interface:CreateTestBanner()
+                Interface:CreateTestInfo()
               else
-                if NS.IN_GAME == false then
-                  Interface:Clear()
-                  Interface:CreateTestBanner()
-                  Interface:CreateTestInfo()
-                else
-                  Interface:ShowBanner()
-                  Interface:ShowInfo()
-                end
+                Interface:ShowBanner()
+                Interface:ShowInfo()
               end
+
+              Info:SetAnchor(Banner.frame, 0, 0)
+              Score:SetAnchor(Info.frame, 0, -5)
+            end
+
+            if NS.IN_GAME == false then
+              NS.UpdateContainerSize(Info.frame, Banner)
             end
           end,
           get = function(_)
@@ -346,8 +335,8 @@ NS.AceConfig = {
               set = function(_, val)
                 NS.db.global.general.infogroup.infofont = val
                 Bases:SetFont(Bases.text)
-                Buff:SetFont(Buff.text)
-                Flag:SetFont(Flag.text)
+                Orbs:SetFont(Orbs.text)
+                Flags:SetFont(Flags.text)
                 Score:SetFont(Score.text)
                 Stacks:SetFont(Stacks.text)
               end,
@@ -366,14 +355,91 @@ NS.AceConfig = {
               order = 2,
               set = function(_, val)
                 NS.db.global.general.infogroup.infofontsize = val
-                Bases:SetFont(Bases.text)
-                Buff:SetFont(Buff.text)
-                Flag:SetFont(Flag.text)
                 Score:SetFont(Score.text)
+                Bases:SetFont(Bases.text)
+                Flags:SetFont(Flags.text)
+                Orbs:SetFont(Orbs.text)
                 Stacks:SetFont(Stacks.text)
               end,
               get = function(_)
                 return NS.db.global.general.infogroup.infofontsize
+              end,
+            },
+            infotextcolor = {
+              name = "Text Color",
+              type = "color",
+              width = "normal",
+              hasAlpha = true,
+              order = 3,
+              set = function(_, val1, val2, val3, val4)
+                NS.db.global.general.infogroup.infotextcolor.r = val1
+                NS.db.global.general.infogroup.infotextcolor.g = val2
+                NS.db.global.general.infogroup.infotextcolor.b = val3
+                NS.db.global.general.infogroup.infotextcolor.a = val4
+                Score:SetTextColor(Score.text, NS.db.global.general.infogroup.infotextcolor)
+                Bases:SetTextColor(Bases.text, NS.db.global.general.infogroup.infotextcolor)
+                Flags:SetTextColor(Flags.text, NS.db.global.general.infogroup.infotextcolor)
+                Orbs:SetTextColor(Orbs.text, NS.db.global.general.infogroup.infotextcolor)
+                Stacks:SetTextColor(Stacks.text, NS.db.global.general.infogroup.infotextcolor)
+              end,
+              get = function(_)
+                return NS.db.global.general.infogroup.infotextcolor.r,
+                  NS.db.global.general.infogroup.infotextcolor.g,
+                  NS.db.global.general.infogroup.infotextcolor.b,
+                  NS.db.global.general.infogroup.infotextcolor.a
+              end,
+            },
+            infobg = {
+              name = "Enable Background",
+              desc = "Adds a background color to the info text to make it more readable.",
+              type = "toggle",
+              width = "normal",
+              order = 4,
+              disabled = false,
+              set = function(_, val)
+                NS.db.global.general.infogroup.infobg = val
+
+                if val then
+                  Info.bg:SetAlpha(1)
+                  NS.UpdateContainerSize(Info.frame, Banner)
+
+                  if NS.IN_GAME and NS.IS_TEMPLE then
+                    Orbs:SetAnchor(Info.frame, 0, -5, "TOPLEFT", "TOPLEFT")
+                  end
+                else
+                  Info.bg:SetAlpha(0)
+                  Banner.frame:SetWidth(175)
+
+                  if NS.IN_GAME and NS.IS_TEMPLE then
+                    Orbs:SetAnchor(Info.frame, 0, 0, "TOPLEFT", "TOPLEFT")
+                  end
+                end
+              end,
+              get = function(_)
+                return NS.db.global.general.infogroup.infobg
+              end,
+            },
+            infobgcolor = {
+              name = "Background Color",
+              type = "color",
+              width = "normal",
+              hasAlpha = true,
+              order = 5,
+              disabled = function(info)
+                return info[3] and not NS.db.global.general.infogroup.infobg
+              end,
+              set = function(_, val1, val2, val3, val4)
+                NS.db.global.general.infogroup.infobgcolor.r = val1
+                NS.db.global.general.infogroup.infobgcolor.g = val2
+                NS.db.global.general.infogroup.infobgcolor.b = val3
+                NS.db.global.general.infogroup.infobgcolor.a = val4
+                Info:SetBackgroundColor(Info.bg, NS.db.global.general.infogroup.infobgcolor)
+              end,
+              get = function(_)
+                return NS.db.global.general.infogroup.infobgcolor.r,
+                  NS.db.global.general.infogroup.infobgcolor.g,
+                  NS.db.global.general.infogroup.infobgcolor.b,
+                  NS.db.global.general.infogroup.infobgcolor.a
               end,
             },
           },
@@ -494,6 +560,7 @@ NS.AceConfig = {
               disabled = false,
               set = function(_, val)
                 NS.db.global.maps.eyeofthestorm.enabled = val
+
                 if val then
                   Maps:ToggleZone()
                 else
@@ -512,9 +579,29 @@ NS.AceConfig = {
               order = 2,
               set = function(_, val)
                 NS.db.global.maps.eyeofthestorm.showflaginfo = val
-                if val == false then
-                  Flag.text:SetFormattedText("")
-                  Flag.text:Hide()
+
+                if val then
+                  Flags.frame:SetAlpha(1)
+                  Orbs:SetAnchor(Flags.frame, 0, -10)
+
+                  if NS.db.global.maps.templeofkotmogu.showbuffinfo == false then
+                    Stacks:SetAnchor(Flags.frame, 0, -10)
+                  else
+                    Stacks:SetAnchor(Orbs.frame, 0, -10)
+                  end
+                else
+                  Flags.frame:SetAlpha(0)
+                  Orbs:SetAnchor(Bases.frame, 0, -10)
+
+                  if NS.db.global.maps.templeofkotmogu.showbuffinfo == false then
+                    Stacks:SetAnchor(Bases.frame, 0, -10)
+                  else
+                    Stacks:SetAnchor(Orbs.frame, 0, -10)
+                  end
+                end
+
+                if NS.db.global.general.banner == false and NS.db.global.general.infogroup.infobg then
+                  NS.UpdateContainerSize(Info.frame, Banner)
                 end
               end,
             },
@@ -541,9 +628,10 @@ NS.AceConfig = {
               type = "toggle",
               width = "normal",
               order = 1,
-              disabled = false,
+              disabled = true,
               set = function(_, val)
                 NS.db.global.maps.silvershardmines.enabled = val
+
                 if val then
                   Maps:ToggleZone()
                 else
@@ -580,6 +668,7 @@ NS.AceConfig = {
               disabled = false,
               set = function(_, val)
                 NS.db.global.maps.templeofkotmogu.enabled = val
+
                 if val then
                   Maps:ToggleZone()
                 else
@@ -587,6 +676,33 @@ NS.AceConfig = {
                     Prediction:StopInfoTracker()
                     Interface:Clear()
                   end
+                end
+              end,
+            },
+            showbuffinfo = {
+              name = "Show 4x Orb Buff",
+              desc = "Shows when the 4x point increase buff starts when carrying 4 orbs.",
+              type = "toggle",
+              width = "normal",
+              order = 2,
+              set = function(_, val)
+                NS.db.global.maps.templeofkotmogu.showbuffinfo = val
+
+                if val then
+                  Stacks:SetAnchor(Orbs.frame, 0, -10)
+                  Orbs.frame:SetAlpha(1)
+                else
+                  Orbs.frame:SetAlpha(0)
+
+                  if NS.db.global.maps.eyeofthestorm.showflaginfo == false then
+                    Stacks:SetAnchor(Bases.frame, 0, -10)
+                  else
+                    Stacks:SetAnchor(Flags.frame, 0, -10)
+                  end
+                end
+
+                if NS.db.global.general.banner == false and NS.db.global.general.infogroup.infobg then
+                  NS.UpdateContainerSize(Info.frame, Banner)
                 end
               end,
             },
@@ -616,6 +732,7 @@ NS.AceConfig = {
               disabled = false,
               set = function(_, val)
                 NS.db.global.maps.thebattleforgilneas.enabled = val
+
                 if val then
                   Maps:ToggleZone()
                 else
@@ -652,6 +769,7 @@ NS.AceConfig = {
               disabled = false,
               set = function(_, val)
                 NS.db.global.maps.twinpeaks.enabled = val
+
                 if val then
                   Maps:ToggleZone()
                 else
@@ -663,7 +781,7 @@ NS.AceConfig = {
               end,
             },
             showdebuffinfo = {
-              name = "Show Debuff Info for Flag Carriers",
+              name = "Show Debuff Info",
               desc = "Shows the damage taken increase and healing received decrease % amounts for Flag Carriers.",
               type = "toggle",
               width = "normal",
@@ -695,6 +813,7 @@ NS.AceConfig = {
               disabled = false,
               set = function(_, val)
                 NS.db.global.maps.warsonggulch.enabled = val
+
                 if val then
                   Maps:ToggleZone()
                 else
@@ -706,7 +825,7 @@ NS.AceConfig = {
               end,
             },
             showdebuffinfo = {
-              name = "Show Debuff Info for Flag Carriers",
+              name = "Show Debuff Info",
               desc = "Shows the damage taken increase and healing received decrease % amounts for Flag Carriers.",
               type = "toggle",
               width = "normal",

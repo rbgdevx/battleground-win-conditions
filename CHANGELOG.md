@@ -1,5 +1,17 @@
 # Battleground Win Conditions
 
+## [v9.4.21](https://github.com/rbgdevx/battleground-win-conditions/releases/tag/v9.4.21) (2024-05-08)
+
+- Added a new setting to be able to add a background to the info text
+- Added a new setting to be able to change the info text color
+- Added a new setting to be able to turn off Temple orb buff text
+- Added a new setting to be able to turn off flag map info on EOTS
+- Updated setting descriptions
+- Fixed various bugs with turning off and on settings and combinations of settings to hide/show properly
+- Fixing 10.2.7 bugs for incorrect setting of text justification
+- Updated some file names to better match their usage
+- Update toc
+
 ## [v9.3.21](https://github.com/rbgdevx/battleground-win-conditions/releases/tag/v9.3.21) (2024-04-18)
 
 - Fixes incorrect stack syncing on flag maps

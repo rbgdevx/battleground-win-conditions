@@ -1,76 +1,82 @@
 local _, NS = ...
 
+local ipairs = ipairs
+
 local Anchor = NS.Anchor
 local Banner = NS.Banner
+local Info = NS.Info
 local Score = NS.Score
 local Bases = NS.Bases
-local Flag = NS.Flag
-local Buff = NS.Buff
+local Flags = NS.Flags
+local Orbs = NS.Orbs
 local Stacks = NS.Stacks
 
 local Interface = {}
 NS.Interface = Interface
 
 function Interface:ShowBanner()
-  Banner.frame:SetAlpha(1)
-  Banner.bg:SetAlpha(1)
-  Banner.text:SetAlpha(1)
+  if NS.IN_GAME then
+    if Banner.text and Banner.text:GetText() ~= nil then
+      Banner.frame:SetAlpha(1)
+    end
+  else
+    Banner.frame:SetAlpha(1)
+  end
 end
 
 function Interface:HideBanner()
   Banner.frame:SetAlpha(0)
-  Banner.bg:SetAlpha(0)
-  Banner.text:SetAlpha(0)
 end
 
 function Interface:ShowInfo()
-  Bases.frame:SetAlpha(1)
-  Bases.text:SetAlpha(1)
-  Buff.frame:SetAlpha(1)
-  Buff.text:SetAlpha(1)
-  Score.frame:SetAlpha(1)
-  Score.text:SetAlpha(1)
-  Flag.frame:SetAlpha(1)
-  Flag.text:SetAlpha(1)
-  Stacks.frame:SetAlpha(1)
-  Stacks.text:SetAlpha(1)
+  if NS.IN_GAME then
+    local children = { Info.frame:GetChildren() }
+    local anyChildVisible = false
+
+    for _, child in ipairs(children) do
+      if child and child:IsShown() and child:GetAlpha() > 0 then
+        anyChildVisible = true
+        break
+      end
+    end
+
+    if anyChildVisible then
+      Info.frame:SetAlpha(1)
+    end
+  else
+    Info.frame:SetAlpha(1)
+  end
 end
 
 function Interface:HideInfo()
-  Bases.frame:SetAlpha(0)
-  Bases.text:SetAlpha(0)
-  Buff.frame:SetAlpha(0)
-  Buff.text:SetAlpha(0)
-  Score.frame:SetAlpha(0)
-  Score.text:SetAlpha(0)
-  Flag.frame:SetAlpha(0)
-  Flag.text:SetAlpha(0)
-  Stacks.frame:SetAlpha(0)
-  Stacks.text:SetAlpha(0)
+  Info.frame:SetAlpha(0)
 end
 
 function Interface:Clear()
+  Info.frame:SetSize(1, 1)
   Banner:Stop(Banner, Banner.timerAnimationGroup)
-  Bases:Stop(Bases.text, Bases.timerAnimationGroup)
-  Buff:Stop(Buff.text, Buff.timerAnimationGroup)
-  Stacks:Stop(Stacks.text, Stacks.timerAnimationGroup)
-  Score.text:SetFormattedText("")
-  Score.text:SetAlpha(0)
-  Flag.text:SetFormattedText("")
-  Flag.text:SetAlpha(0)
+  Bases:Stop(Bases, Bases.timerAnimationGroup)
+  Orbs:Stop(Orbs, Orbs.timerAnimationGroup)
+  Stacks:Stop(Stacks, Stacks.timerAnimationGroup)
+  Score:Stop(Score)
+  Flags:Stop(Flags)
 end
 
 function Interface:Refresh()
+  Anchor:SetAnchor()
   Banner:SetTextColor(Banner.text, NS.db.global.general.bannergroup.tietextcolor)
   Banner:SetBackgroundColor(Banner.bg, NS.db.global.general.bannergroup.tiebgcolor)
   Banner:SetScale(Banner.frame)
   Banner:SetFont(Banner.text)
   Bases:SetFont(Bases.text)
-  Buff:SetFont(Buff.text)
-  Flag:SetFont(Flag.text)
+  Orbs:SetFont(Orbs.text)
+  Flags:SetFont(Flags.text)
   Score:SetFont(Score.text)
   Stacks:SetFont(Stacks.text)
-  Anchor:SetAnchor()
+
+  if NS.db.global.general.banner == false and NS.db.global.general.infogroup.infobg then
+    NS.UpdateContainerSize(Info.frame, Banner)
+  end
 end
 
 function Interface:CreateTestBanner()
@@ -78,11 +84,8 @@ function Interface:CreateTestBanner()
 end
 
 function Interface:CreateTestInfo()
-  if NS.db.global.general.info then
-    Score:SetAnchor(Anchor.frame, 0, 0)
-  else
-    Score:SetAnchor(Banner.frame, 0, -5)
-  end
+  Info:SetAnchor(Banner.frame, 0, 0)
+  Info:Start()
 
   Score:SetText(Score.text, 1500, 1500)
   Bases:Start(1500, {
@@ -112,14 +115,30 @@ function Interface:CreateTestInfo()
     },
   })
 
-  Flag:SetAnchor(Bases.frame, 0, -10)
-  Flag:SetText(Flag.text, NS.PLAYER_FACTION, NS.PLAYER_FACTION, 20)
+  Flags:SetAnchor(Bases.frame, 0, -5)
+  Flags:SetText(Flags.text, NS.PLAYER_FACTION, NS.PLAYER_FACTION, 20)
 
-  Buff:SetAnchor(Flag.frame, 0, -10)
-  Buff:Start(NS.ORB_BUFF_TIME, NS.formatTeamName(NS.PLAYER_FACTION, NS.PLAYER_FACTION))
+  if NS.db.global.maps.eyeofthestorm.showflaginfo == false then
+    Orbs:SetAnchor(Bases.frame, 0, -10)
+  else
+    Orbs:SetAnchor(Flags.frame, 0, -10)
+  end
+  Orbs:Start(NS.ORB_BUFF_TIME, NS.formatTeamName(NS.PLAYER_FACTION, NS.PLAYER_FACTION))
 
-  Stacks:SetAnchor(Buff.frame, 0, -10)
+  if NS.db.global.maps.templeofkotmogu.showbuffinfo == false then
+    if NS.db.global.maps.eyeofthestorm.showflaginfo == false then
+      Stacks:SetAnchor(Bases.frame, 0, -10)
+    else
+      Stacks:SetAnchor(Flags.frame, 0, -10)
+    end
+  else
+    Stacks:SetAnchor(Orbs.frame, 0, -10)
+  end
   Stacks:Start(NS.STACK_TIME, 0)
+
+  if NS.db.global.general.banner == false and NS.db.global.general.infogroup.infobg then
+    NS.UpdateContainerSize(Info.frame, Banner)
+  end
 end
 
 function Interface:Create()
@@ -128,18 +147,33 @@ function Interface:Create()
     Banner:Create(Anchor.frame)
   end
   if Banner.frame then
-    Score:Create(Banner.frame)
+    if NS.db.global.general.info == false then
+      Info:Create(Banner.frame)
+    else
+      Info:Create(Anchor.frame)
+    end
+  end
+  if Info.frame then
+    Score:Create(Info.frame)
   end
   if Score.frame then
     Bases:Create(Score.frame)
   end
   if Bases.frame then
-    Flag:Create(Bases.frame)
+    Flags:Create(Bases.frame)
   end
-  if Flag.frame then
-    Buff:Create(Flag.frame)
+  if Flags.frame then
+    if NS.db.global.maps.eyeofthestorm.showflaginfo == false then
+      Orbs:Create(Bases.frame)
+    else
+      Orbs:Create(Flags.frame)
+    end
   end
-  if Buff.frame then
-    Stacks:Create(Buff.frame)
+  if Orbs.frame then
+    if NS.db.global.maps.templeofkotmogu.showbuffinfo == false then
+      Stacks:Create(Flags.frame)
+    else
+      Stacks:Create(Orbs.frame)
+    end
   end
 end

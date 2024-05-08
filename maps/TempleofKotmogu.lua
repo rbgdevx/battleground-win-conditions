@@ -2,9 +2,10 @@ local _, NS = ...
 
 local next = next
 
-local OrbPrediction = NS.OrbPrediction
 local Anchor = NS.Anchor
-local Buff = NS.Buff
+local OrbPrediction = NS.OrbPrediction
+local Info = NS.Info
+local Orbs = NS.Orbs
 local Maps = NS.Maps
 
 local TOK = Maps:NewMod()
@@ -31,7 +32,14 @@ local instanceIdToMapId = {
 function TOK:EnterZone(id)
   if NS.db.global.maps.templeofkotmogu.enabled then
     NS.IS_TEMPLE = true
-    Buff:SetAnchor(Anchor.frame, 0, 0)
+    Info:SetAnchor(Anchor.frame, 0, 0)
+
+    if NS.db.global.general.infogroup.infobg then
+      Orbs:SetAnchor(Info.frame, 0, -5, "TOPLEFT", "TOPLEFT")
+    else
+      Orbs:SetAnchor(Info.frame, 0, 0, "TOPLEFT", "TOPLEFT")
+    end
+
     OrbPrediction:StartInfoTracker(instanceIdToMapId[id].id, instanceIdToMapId[id].maxOrbs)
   end
 end

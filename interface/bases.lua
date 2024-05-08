@@ -1,18 +1,23 @@
 local AddonName, NS = ...
 
 local CreateFrame = CreateFrame
+local LibStub = LibStub
 local GetTime = GetTime
 
 local mmin = math.min
 local mmax = math.max
 local sformat = string.format
 
+local Info = NS.Info
+local Banner = NS.Banner
+
 local LSM = LibStub("LibSharedMedia-3.0")
 
 local Bases = {}
 NS.Bases = Bases
 
-local BasesFrame = CreateFrame("Frame", AddonName .. "BasesFrame", UIParent)
+local BasesFrame = CreateFrame("Frame", AddonName .. "BasesFrame", Info.frame)
+Bases.frame = BasesFrame
 
 function Bases:SetAnchor(anchor, x, y)
   self.frame:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", x, y)
@@ -21,6 +26,10 @@ end
 function Bases:SetText(frame, format, ...)
   frame:SetFormattedText(format, ...)
   NS.UpdateSize(BasesFrame, frame)
+end
+
+function Bases:SetTextColor(frame, color)
+  frame:SetTextColor(color.r, color.g, color.b, color.a)
 end
 
 function Bases:SetFont(frame)
@@ -40,8 +49,8 @@ end
 
 local function stopAnimation(frame, animationGroup)
   animationGroup:Stop()
-  frame:SetAlpha(0)
-  frame:SetFormattedText("")
+  frame.frame:SetAlpha(0)
+  frame.text:SetFormattedText("")
 end
 
 function Bases:Stop(frame, animationGroup)
@@ -221,7 +230,7 @@ local function animationUpdate(frame, winTable, animationGroup)
 end
 
 function Bases:Start(duration, winTable)
-  self:Stop(self.text, self.timerAnimationGroup)
+  self:Stop(self, self.timerAnimationGroup)
 
   self.remaining = mmin(mmax(0, duration), 1500)
   local time = self.remaining
@@ -242,10 +251,12 @@ function Bases:Start(duration, winTable)
 
     if NS.db.global.general.banner == false then
       self.frame:SetAlpha(1)
-      self.text:SetAlpha(1)
+
+      if NS.db.global.general.infogroup.infobg then
+        NS.UpdateContainerSize(Info.frame, Banner)
+      end
     else
       self.frame:SetAlpha(0)
-      self.text:SetAlpha(0)
     end
 
     self.timerAnimationGroup:SetScript("OnLoop", function(updatedGroup)
@@ -259,19 +270,19 @@ function Bases:Start(duration, winTable)
 end
 
 function Bases:Create(anchor)
-  if not Bases.frame then
+  if not Bases.text then
     local Text = BasesFrame:CreateFontString(nil, "ARTWORK")
-    self:SetFont(Text)
     Text:SetAllPoints()
-    Text:SetTextColor(1, 1, 1, 1)
+    self:SetFont(Text)
+    self:SetTextColor(Text, NS.db.global.general.infogroup.infotextcolor)
     Text:SetShadowOffset(0, 0)
     Text:SetShadowColor(0, 0, 0, 1)
     Text:SetJustifyH("LEFT")
     Text:SetJustifyV("TOP")
 
-    BasesFrame:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, 0)
+    BasesFrame:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, -5)
+    BasesFrame:SetAlpha(0)
 
-    Bases.frame = BasesFrame
     Bases.text = Text
     Bases.timerAnimationGroup = NS.CreateTimerAnimation(BasesFrame)
   end

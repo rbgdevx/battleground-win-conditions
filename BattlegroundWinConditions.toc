@@ -1,6 +1,6 @@
-## Interface: 100206
+## Interface: 100207
 ## Title: BattlegroundWinConditions
-## Version: 9.3.21
+## Version: 9.4.21
 ## Author: Ajax
 ## Notes: Provides real time win conditions for battlegrounds
 ## OptionalDeps: Ace3, LibStub, LibSharedMedia-3.0, AceGUI-3.0-SharedMediaWidgets
@@ -23,10 +23,11 @@ core/helpers.lua
 core/version.lua
 interface/anchor.lua
 interface/banner.lua
+interface/info.lua
 interface/score.lua
 interface/bases.lua
-interface/flag.lua
-interface/buff.lua
+interface/flags.lua
+interface/orbs.lua
 interface/stacks.lua
 core/interface.lua
 core/maps.lua

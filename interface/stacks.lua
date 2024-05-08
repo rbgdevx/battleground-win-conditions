@@ -1,28 +1,40 @@
 local AddonName, NS = ...
 
 local CreateFrame = CreateFrame
+local LibStub = LibStub
 local GetTime = GetTime
 local UnitIsDeadOrGhost = UnitIsDeadOrGhost
 
 local LSM = LibStub("LibSharedMedia-3.0")
 
+local Info = NS.Info
+local Banner = NS.Banner
+
 local Stacks = {}
 NS.Stacks = Stacks
 
-local StacksFrame = CreateFrame("Frame", AddonName .. "StacksFrame", UIParent)
+local StacksFrame = CreateFrame("Frame", AddonName .. "StacksFrame", Info.frame)
+Stacks.frame = StacksFrame
 
 local killStacks = 6
 local localStacks = 0
 local healingDecrease = 5
 local damageIncrease = 10
+local showDebuffs = true
 
-function Stacks:SetAnchor(anchor, x, y)
-  self.frame:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", x, y)
+function Stacks:SetAnchor(anchor, x, y, pA, pB)
+  local pointA = pA or "TOPLEFT"
+  local pointB = pB or "BOTTOMLEFT"
+  self.frame:SetPoint(pointA, anchor, pointB, x, y)
 end
 
 function Stacks:SetText(frame, format, ...)
   frame:SetFormattedText(format, ...)
   NS.UpdateSize(StacksFrame, frame)
+end
+
+function Stacks:SetTextColor(frame, color)
+  frame:SetTextColor(color.r, color.g, color.b, color.a)
 end
 
 function Stacks:SetFont(frame)
@@ -42,8 +54,12 @@ end
 
 local function stopAnimation(frame, animationGroup)
   animationGroup:Stop()
-  frame:SetAlpha(0)
-  frame:SetFormattedText("")
+  frame.frame:SetAlpha(0)
+  frame.text:SetFormattedText("")
+
+  if NS.IN_GAME then
+    Info.frame:SetSize(1, 1)
+  end
 end
 
 function Stacks:Stop(frame, animationGroup)
@@ -114,6 +130,21 @@ local function textUpdate(frame, stacks, killtime, time)
       Stacks:SetText(frame.text, buffformat4, NS.formatTime(time), stacks)
     end
   end
+
+  if stacks >= 1 and NS.db.global.general.banner == false and NS.db.global.general.infogroup.infobg then
+    if NS.IN_GAME == false then
+      NS.UpdateContainerSize(Info.frame, Banner)
+    else
+      if NS.IS_TP and showDebuffs ~= NS.db.global.maps.twinpeaks.showdebuffinfo then
+        showDebuffs = NS.db.global.maps.twinpeaks.showdebuffinfo
+        NS.UpdateContainerSize(Info.frame, Banner)
+      end
+      if NS.IS_WG and showDebuffs ~= NS.db.global.maps.warsonggulch.showdebuffinfo then
+        showDebuffs = NS.db.global.maps.warsonggulch.showdebuffinfo
+        NS.UpdateContainerSize(Info.frame, Banner)
+      end
+    end
+  end
 end
 
 local function animationUpdate(frame, stacks, animationGroup)
@@ -144,7 +175,7 @@ local function animationUpdate(frame, stacks, animationGroup)
 end
 
 function Stacks:Start(duration, stacks)
-  self:Stop(self.text, self.timerAnimationGroup)
+  self:Stop(self, self.timerAnimationGroup)
 
   localStacks = stacks
 
@@ -167,10 +198,12 @@ function Stacks:Start(duration, stacks)
 
   if NS.db.global.general.banner == false then
     self.frame:SetAlpha(1)
-    self.text:SetAlpha(1)
+
+    if NS.db.global.general.infogroup.infobg then
+      NS.UpdateContainerSize(Info.frame, Banner)
+    end
   else
     self.frame:SetAlpha(0)
-    self.text:SetAlpha(0)
   end
 
   self.timerAnimationGroup:SetScript("OnLoop", function(updatedGroup)
@@ -183,19 +216,19 @@ function Stacks:Start(duration, stacks)
 end
 
 function Stacks:Create(anchor)
-  if not Stacks.frame then
+  if not Stacks.text then
     local Text = StacksFrame:CreateFontString(nil, "ARTWORK")
-    self:SetFont(Text)
     Text:SetAllPoints()
-    Text:SetTextColor(1, 1, 1, 1)
+    self:SetFont(Text)
+    self:SetTextColor(Text, NS.db.global.general.infogroup.infotextcolor)
     Text:SetShadowOffset(0, 0)
     Text:SetShadowColor(0, 0, 0, 1)
     Text:SetJustifyH("LEFT")
     Text:SetJustifyV("TOP")
 
     StacksFrame:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, 0)
+    StacksFrame:SetAlpha(0)
 
-    Stacks.frame = StacksFrame
     Stacks.text = Text
     Stacks.timerAnimationGroup = NS.CreateTimerAnimation(StacksFrame)
   end

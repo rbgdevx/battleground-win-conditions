@@ -24,8 +24,8 @@ local Stacks = NS.Stacks
 local FlagPrediction = {}
 NS.FlagPrediction = FlagPrediction
 
-local FlagFrame = CreateFrame("Frame", "FlagFrame")
-FlagFrame:SetScript("OnEvent", function(_, event, ...)
+local FlagsFrame = CreateFrame("Frame", "FlagsFrame")
+FlagsFrame:SetScript("OnEvent", function(_, event, ...)
   if FlagPrediction[event] then
     FlagPrediction[event](FlagPrediction, ...)
   end
@@ -165,7 +165,7 @@ do
       -- 			if aura and (aura.spellId == 46392 or aura.spellId == 46393) then -- Focused Assault, Brutal Assault
       -- 				stacksCounting = false
       -- 				currentStacks = 0
-      -- 				Stacks:Stop(Stacks.text, Stacks.timerAnimationGroup)
+      -- 				Stacks:Stop(Stacks, Stacks.timerAnimationGroup)
       -- 				break
       -- 			end
       -- 		end
@@ -295,7 +295,7 @@ do
             end
           end
           if flagCarrier ~= nil then
-            FlagFrame:RegisterEvent("UNIT_AURA")
+            FlagsFrame:RegisterEvent("UNIT_AURA")
           end
         end
       end
@@ -337,7 +337,7 @@ do
         hordeFlagCarrier = pickedName
         if allyFlagCarrier and stacksCounting == false then
           flagCarrier = "arena2"
-          FlagFrame:RegisterEvent("UNIT_AURA")
+          FlagsFrame:RegisterEvent("UNIT_AURA")
           stacksCounting = true
           Stacks:Start(NS.STACK_TIME, 0)
         end
@@ -350,32 +350,32 @@ do
       if flagReturned then
         hordeFlagCarrier = nil
         if allyFlagCarrier == nil and stacksCounting then
-          FlagFrame:UnregisterEvent("UNIT_AURA")
+          FlagsFrame:UnregisterEvent("UNIT_AURA")
           flagCarrier = nil
           stacksCounting = false
-          Stacks:Stop(Stacks.text, Stacks.timerAnimationGroup)
+          Stacks:Stop(Stacks, Stacks.timerAnimationGroup)
         end
       end
       local flagCaptured = sfind(message, "captured the") -- alliance captured horde flag
       if flagCaptured then
-        FlagFrame:UnregisterEvent("UNIT_AURA")
+        FlagsFrame:UnregisterEvent("UNIT_AURA")
         flagCarrier = nil
         allyFlagCarrier = nil
         hordeFlagCarrier = nil
         stacksCounting = false
         currentStacks = 0
-        Stacks:Stop(Stacks.text, Stacks.timerAnimationGroup)
+        Stacks:Stop(Stacks, Stacks.timerAnimationGroup)
         self:GetRemainingTime(6, NS.ALLIANCE_NAME)
       end
       local wins = sfind(message, "wins") -- ally wins
       if wins then
-        FlagFrame:UnregisterEvent("UNIT_AURA")
+        FlagsFrame:UnregisterEvent("UNIT_AURA")
         flagCarrier = nil
         allyFlagCarrier = nil
         hordeFlagCarrier = nil
         stacksCounting = false
         currentStacks = 0
-        Stacks:Stop(Stacks.text, Stacks.timerAnimationGroup)
+        Stacks:Stop(Stacks, Stacks.timerAnimationGroup)
       end
     end
 
@@ -385,7 +385,7 @@ do
         allyFlagCarrier = pickedName
         if hordeFlagCarrier and stacksCounting == false then
           flagCarrier = "arena2"
-          FlagFrame:RegisterEvent("UNIT_AURA")
+          FlagsFrame:RegisterEvent("UNIT_AURA")
           stacksCounting = true
           Stacks:Start(NS.STACK_TIME, 0)
         end
@@ -398,45 +398,45 @@ do
       if flagReturned then
         allyFlagCarrier = nil
         if hordeFlagCarrier == nil and stacksCounting then
-          FlagFrame:UnregisterEvent("UNIT_AURA")
+          FlagsFrame:UnregisterEvent("UNIT_AURA")
           flagCarrier = nil
           stacksCounting = false
-          Stacks:Stop(Stacks.text, Stacks.timerAnimationGroup)
+          Stacks:Stop(Stacks, Stacks.timerAnimationGroup)
         end
       end
       local flagCaptured = sfind(message, "captured the") -- horde captured alliance flag
       if flagCaptured then
-        FlagFrame:UnregisterEvent("UNIT_AURA")
+        FlagsFrame:UnregisterEvent("UNIT_AURA")
         flagCarrier = nil
         allyFlagCarrier = nil
         hordeFlagCarrier = nil
         stacksCounting = false
         currentStacks = 0
-        Stacks:Stop(Stacks.text, Stacks.timerAnimationGroup)
+        Stacks:Stop(Stacks, Stacks.timerAnimationGroup)
         self:GetRemainingTime(6, NS.HORDE_NAME)
       end
       local wins = sfind(message, "wins") -- horde wins
       if wins then
-        FlagFrame:UnregisterEvent("UNIT_AURA")
+        FlagsFrame:UnregisterEvent("UNIT_AURA")
         flagCarrier = nil
         allyFlagCarrier = nil
         hordeFlagCarrier = nil
         stacksCounting = false
         currentStacks = 0
-        Stacks:Stop(Stacks.text, Stacks.timerAnimationGroup)
+        Stacks:Stop(Stacks, Stacks.timerAnimationGroup)
       end
     end
 
     function FlagPrediction:CHAT_MSG_BG_SYSTEM_NEUTRAL(message)
       local flagsReturned = string.find(message, "placed at their bases") -- all flags returned
       if flagsReturned then
-        FlagFrame:UnregisterEvent("UNIT_AURA")
+        FlagsFrame:UnregisterEvent("UNIT_AURA")
         flagCarrier = nil
         allyFlagCarrier = nil
         hordeFlagCarrier = nil
         stacksCounting = false
         currentStacks = 0
-        Stacks:Stop(Stacks.text, Stacks.timerAnimationGroup)
+        Stacks:Stop(Stacks, Stacks.timerAnimationGroup)
       end
     end
 
@@ -495,21 +495,21 @@ do
       self:GetTimeByMapID(curMapID)
       self:GetStacksByMapID(curMapID)
 
-      FlagFrame:RegisterEvent("UPDATE_UI_WIDGET")
-      -- FlagFrame:RegisterEvent("ARENA_OPPONENT_UPDATE")
-      FlagFrame:RegisterEvent("CHAT_MSG_BG_SYSTEM_ALLIANCE")
-      FlagFrame:RegisterEvent("CHAT_MSG_BG_SYSTEM_HORDE")
-      FlagFrame:RegisterEvent("CHAT_MSG_BG_SYSTEM_NEUTRAL")
+      FlagsFrame:RegisterEvent("UPDATE_UI_WIDGET")
+      -- FlagsFrame:RegisterEvent("ARENA_OPPONENT_UPDATE")
+      FlagsFrame:RegisterEvent("CHAT_MSG_BG_SYSTEM_ALLIANCE")
+      FlagsFrame:RegisterEvent("CHAT_MSG_BG_SYSTEM_HORDE")
+      FlagsFrame:RegisterEvent("CHAT_MSG_BG_SYSTEM_NEUTRAL")
     end
   end
 end
 
 function FlagPrediction:StopInfoTracker()
   NS.db.global.lastFlagCapBy = ""
-  FlagFrame:UnregisterEvent("UNIT_AURA")
-  FlagFrame:UnregisterEvent("UPDATE_UI_WIDGET")
-  -- FlagFrame:UnregisterEvent("ARENA_OPPONENT_UPDATE")
-  FlagFrame:UnregisterEvent("CHAT_MSG_BG_SYSTEM_ALLIANCE")
-  FlagFrame:UnregisterEvent("CHAT_MSG_BG_SYSTEM_HORDE")
-  FlagFrame:UnregisterEvent("CHAT_MSG_BG_SYSTEM_NEUTRAL")
+  FlagsFrame:UnregisterEvent("UNIT_AURA")
+  FlagsFrame:UnregisterEvent("UPDATE_UI_WIDGET")
+  -- FlagsFrame:UnregisterEvent("ARENA_OPPONENT_UPDATE")
+  FlagsFrame:UnregisterEvent("CHAT_MSG_BG_SYSTEM_ALLIANCE")
+  FlagsFrame:UnregisterEvent("CHAT_MSG_BG_SYSTEM_HORDE")
+  FlagsFrame:UnregisterEvent("CHAT_MSG_BG_SYSTEM_NEUTRAL")
 end

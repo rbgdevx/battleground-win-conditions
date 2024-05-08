@@ -7,6 +7,7 @@ local Anchor = {}
 NS.Anchor = Anchor
 
 local AnchorFrame = CreateFrame("Frame", AddonName .. "AnchorFrame", UIParent)
+Anchor.frame = AnchorFrame
 
 function Anchor:SetAnchor()
   AnchorFrame:SetPoint(
@@ -96,7 +97,7 @@ function Anchor:AddControls()
 end
 
 function Anchor:Create()
-  if not Anchor.frame then
+  if not Anchor.header then
     local bg = AnchorFrame:CreateTexture()
     bg:SetAllPoints(AnchorFrame)
     bg:SetColorTexture(0, 1, 0, 0.2)
@@ -105,7 +106,7 @@ function Anchor:Create()
     header:SetFont("Fonts\\FRIZQT__.TTF", 12, "THINOUTLINE")
     header:SetAllPoints(AnchorFrame)
     header:SetFormattedText("anchor")
-    header:SetJustifyH("MIDDLE")
+    header:SetJustifyH("CENTER")
     header:SetJustifyV("MIDDLE")
     header:SetPoint("CENTER", bg, "CENTER", 0, 0)
 
@@ -116,6 +117,6 @@ function Anchor:Create()
 
     self:AddControls()
 
-    Anchor.frame = AnchorFrame
+    Anchor.header = header
   end
 end
