@@ -4,7 +4,7 @@ local pairs = pairs
 
 local GetDoubleStateIconRowVisualizationInfo = C_UIWidgetManager.GetDoubleStateIconRowVisualizationInfo
 
-local Buff = NS.Buff
+local Orbs = NS.Orbs
 
 local OrbPrediction = {}
 NS.OrbPrediction = OrbPrediction
@@ -82,15 +82,15 @@ do
           prevHOrbs = hordeOrbs
 
           if allyOrbs == maxObjectives then
-            Buff:Start(NS.ORB_BUFF_TIME, NS.formatTeamName(NS.ALLIANCE_NAME, NS.PLAYER_FACTION))
+            Orbs:Start(NS.ORB_BUFF_TIME, NS.formatTeamName(NS.ALLIANCE_NAME, NS.PLAYER_FACTION))
           end
 
           if hordeOrbs == maxObjectives then
-            Buff:Start(NS.ORB_BUFF_TIME, NS.formatTeamName(NS.HORDE_NAME, NS.PLAYER_FACTION))
+            Orbs:Start(NS.ORB_BUFF_TIME, NS.formatTeamName(NS.HORDE_NAME, NS.PLAYER_FACTION))
           end
 
           if allyOrbs ~= maxObjectives and hordeOrbs ~= maxObjectives then
-            Buff:Stop(Buff.text, Buff.timerAnimationGroup)
+            Orbs:Stop(Orbs, Orbs.timerAnimationGroup)
           end
         end
       end

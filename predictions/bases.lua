@@ -17,7 +17,7 @@ local GetDoubleStateIconRowVisualizationInfo = C_UIWidgetManager.GetDoubleStateI
 local Banner = NS.Banner
 local Score = NS.Score
 local Bases = NS.Bases
-local Flag = NS.Flag
+local Flags = NS.Flags
 local Interface = NS.Interface
 
 local BasePrediction = {}
@@ -45,10 +45,9 @@ do
         or 0
 
       if flagsNeeded == 0 then
-        Flag.text:SetFormattedText("")
-        Flag.text:SetAlpha(0)
+        Flags:Stop(Flags)
       else
-        Flag:SetText(Flag.text, NS.PLAYER_FACTION, winName, flagsNeeded)
+        Flags:SetText(Flags.text, NS.PLAYER_FACTION, winName, flagsNeeded)
       end
     end
   end
@@ -114,11 +113,9 @@ do
             local winText = "TIE"
 
             Banner:Start(winTime, winText)
-            Bases:Stop(Bases.text, Bases.timerAnimationGroup)
-            Score.text:SetFormattedText("")
-            Score.text:SetAlpha(0)
-            Flag.text:SetFormattedText("")
-            Flag.text:SetAlpha(0)
+            Bases:Stop(Bases, Bases.timerAnimationGroup)
+            Score:Stop(Score)
+            Flags:Stop(Flags)
 
             prevAIncrease, prevHIncrease = -1, -1
             return
@@ -234,11 +231,9 @@ do
             local winText = "TIE"
 
             Banner:Start(winTime, winText)
-            Bases:Stop(Bases.text, Bases.timerAnimationGroup)
-            Score.text:SetFormattedText("")
-            Score.text:SetAlpha(0)
-            Flag.text:SetFormattedText("")
-            Flag.text:SetAlpha(0)
+            Bases:Stop(Bases, Bases.timerAnimationGroup)
+            Score:Stop(Score)
+            Flags:Stop(Flags)
 
             prevAIncrease, prevHIncrease = -1, -1
             return

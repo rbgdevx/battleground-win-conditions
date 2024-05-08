@@ -30,6 +30,8 @@ local CreateFrame = CreateFrame
 ---@class InfoTable : table
 ---@field infofont string
 ---@field infofontsize number
+---@field infobg boolean
+---@field infobgcolor ColorArray
 
 ---@class GeneralTable : table
 ---@field version number
@@ -117,7 +119,7 @@ NS.userClassHexColor = "|c" .. select(4, GetClassColor(NS.userClass))
 
 NS.ADDON_PREFIX = "BGWC_VERSION"
 NS.FoundNewVersion = false
-NS.VERSION = 9321
+NS.VERSION = 9421
 
 NS.DefaultDatabase = {
   global = {
@@ -169,6 +171,19 @@ NS.DefaultDatabase = {
       infogroup = {
         infofont = "Friz Quadrata TT",
         infofontsize = 12,
+        infotextcolor = {
+          r = 255 / 255,
+          g = 255 / 255,
+          b = 255 / 255,
+          a = 1,
+        },
+        infobg = false,
+        infobgcolor = {
+          r = 0 / 255,
+          g = 0 / 255,
+          b = 0 / 255,
+          a = 0.5,
+        },
       },
     },
     maps = {
@@ -187,6 +202,7 @@ NS.DefaultDatabase = {
       },
       templeofkotmogu = {
         enabled = true,
+        showbuffinfo = true,
       },
       thebattleforgilneas = {
         enabled = true,

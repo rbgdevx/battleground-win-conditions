@@ -13,6 +13,7 @@ local Banner = {}
 NS.Banner = Banner
 
 local BannerFrame = CreateFrame("Frame", AddonName .. "BannerFrame", UIParent)
+Banner.frame = BannerFrame
 
 function Banner:SetAnchor(anchor, x, y)
   self.frame:SetPoint("TOP", anchor, "BOTTOM", x, y)
@@ -47,8 +48,6 @@ end
 local function stopAnimation(frame, animationGroup)
   animationGroup:Stop()
   frame.frame:SetAlpha(0)
-  frame.bg:SetAlpha(0)
-  frame.text:SetAlpha(0)
   frame.text:SetFormattedText("")
 end
 
@@ -74,21 +73,21 @@ end
 function Banner:Start(duration, text)
   self:Stop(self, self.timerAnimationGroup)
 
-  local winBGColor
-  local winTextColor
+  local BGColor
+  local TextColor
   if text == "TIE" then
-    winBGColor = NS.db.global.general.bannergroup.tiebgcolor
-    winTextColor = NS.db.global.general.bannergroup.tietextcolor
+    BGColor = NS.db.global.general.bannergroup.tiebgcolor
+    TextColor = NS.db.global.general.bannergroup.tietextcolor
   elseif text == "WIN" then
-    winBGColor = NS.db.global.general.bannergroup.winbgcolor
-    winTextColor = NS.db.global.general.bannergroup.wintextcolor
+    BGColor = NS.db.global.general.bannergroup.winbgcolor
+    TextColor = NS.db.global.general.bannergroup.wintextcolor
   else
-    winBGColor = NS.db.global.general.bannergroup.losebgcolor
-    winTextColor = NS.db.global.general.bannergroup.losetextcolor
+    BGColor = NS.db.global.general.bannergroup.losebgcolor
+    TextColor = NS.db.global.general.bannergroup.losetextcolor
   end
 
-  self:SetBackgroundColor(self.bg, winBGColor)
-  self:SetTextColor(self.text, winTextColor)
+  self:SetBackgroundColor(self.bg, BGColor)
+  self:SetTextColor(self.text, TextColor)
   self:SetFont(self.text)
   self:SetScale(BannerFrame)
 
@@ -101,12 +100,8 @@ function Banner:Start(duration, text)
 
   if NS.db.global.general.info == false then
     self.frame:SetAlpha(1)
-    self.bg:SetAlpha(1)
-    self.text:SetAlpha(1)
   else
     self.frame:SetAlpha(0)
-    self.bg:SetAlpha(0)
-    self.text:SetAlpha(0)
   end
 
   self.timerAnimationGroup:SetScript("OnLoop", function(updatedGroup)
@@ -119,7 +114,7 @@ function Banner:Start(duration, text)
 end
 
 function Banner:Create(anchor)
-  if not Banner.frame then
+  if not Banner.text then
     local BG = BannerFrame:CreateTexture(nil, "BACKGROUND")
     BG:SetAllPoints()
     self:SetBackgroundColor(BG, NS.db.global.general.bannergroup.tiebgcolor)
@@ -129,7 +124,7 @@ function Banner:Create(anchor)
     self:SetFont(Text)
     Text:SetShadowOffset(1, -1)
     Text:SetShadowColor(0, 0, 0, 0.9)
-    Text:SetJustifyH("MIDDLE")
+    Text:SetJustifyH("CENTER")
     Text:SetJustifyV("MIDDLE")
     Text:SetPoint("CENTER", BG, "CENTER", 0, 0)
 
@@ -138,7 +133,6 @@ function Banner:Create(anchor)
     BannerFrame:SetHeight(25)
     self:SetScale(BannerFrame)
 
-    Banner.frame = BannerFrame
     Banner.bg = BG
     Banner.text = Text
     Banner.timerAnimationGroup = NS.CreateTimerAnimation(BannerFrame)

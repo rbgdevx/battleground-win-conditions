@@ -8,6 +8,7 @@ local print = print
 local format = format
 local type = type
 local next = next
+local select = select
 
 local sformat = string.format
 local mfloor = math.floor
@@ -354,6 +355,26 @@ end
 NS.UpdateSize = function(frame, text)
   frame:SetWidth(text:GetStringWidth())
   frame:SetHeight(text:GetStringHeight())
+end
+
+-- Function to update the size of the container based on visible children
+NS.UpdateContainerSize = function(frame, banner)
+  local maxWidth, maxHeight = 175, 25
+  for i = 1, frame:GetNumChildren() do
+    local child = select(i, frame:GetChildren())
+    if child and child:IsShown() and child:GetAlpha() > 0 then -- Check if the child is visible and not fully transparent
+      local childRight = child:GetRight() or 0
+      local childBottom = child:GetBottom() or 0
+      -- local childTop = child:GetTop() or 0
+      -- local childLeft = child:GetLeft() or 0
+
+      -- Adjust the container size based on child extents
+      maxWidth = mmax(maxWidth, childRight - frame:GetLeft())
+      maxHeight = mmax(maxHeight, frame:GetTop() - childBottom)
+    end
+  end
+  frame:SetSize(maxWidth, maxHeight)
+  banner.frame:SetWidth(maxWidth)
 end
 
 -- Copies table values from src to dst if they don't exist in dst
