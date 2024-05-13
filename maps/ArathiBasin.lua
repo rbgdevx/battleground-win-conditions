@@ -3,6 +3,8 @@ local _, NS = ...
 local next = next
 
 local BasePrediction = NS.BasePrediction
+local Banner = NS.Banner
+local Info = NS.Info
 local Maps = NS.Maps
 
 local AB = Maps:NewMod()
@@ -54,6 +56,8 @@ local instanceIdToMapId = {
 
 function AB:EnterZone(id)
   if NS.db.global.maps.arathibasin.enabled then
+    Info:SetAnchor(Banner.frame, 0, 0)
+
     BasePrediction:StartInfoTracker(instanceIdToMapId[id].id, instanceIdToMapId[id].tickRate, {
       baseResources = instanceIdToMapId[id].resourcesFromBases,
     }, instanceIdToMapId[id].maxBases)

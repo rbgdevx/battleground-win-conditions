@@ -1,5 +1,9 @@
 # Battleground Win Conditions
 
+## [v9.4.22](https://github.com/rbgdevx/battleground-win-conditions/releases/tag/v9.4.22) (2024-05-12)
+
+- Fixing text anchor from not being set correctly after Temple of Kotmogu
+
 ## [v9.4.21](https://github.com/rbgdevx/battleground-win-conditions/releases/tag/v9.4.21) (2024-05-08)
 
 - Added a new setting to be able to add a background to the info text

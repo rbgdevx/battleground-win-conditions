@@ -6,7 +6,6 @@ local LibStub = LibStub
 local LSM = LibStub("LibSharedMedia-3.0")
 
 local Info = NS.Info
-local Banner = NS.Banner
 
 local Score = {}
 NS.Score = Score

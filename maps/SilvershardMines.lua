@@ -3,6 +3,8 @@ local _, NS = ...
 local next = next
 
 local CartPrediction = NS.CartPrediction
+local Banner = NS.Banner
+local Info = NS.Info
 local Maps = NS.Maps
 
 local SSM = Maps:NewMod()
@@ -36,6 +38,8 @@ local instanceIdToMapId = {
 function SSM:EnterZone(id)
   if NS.db.global.maps.silvershardmines.enabled then
     NS.IS_SSM = true
+    Info:SetAnchor(Banner.frame, 0, 0)
+
     CartPrediction:StartInfoTracker(instanceIdToMapId[id].id)
   end
 end
