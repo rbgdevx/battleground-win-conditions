@@ -3,6 +3,7 @@ local _, NS = ...
 local next = next
 
 local FlagPrediction = NS.FlagPrediction
+local Banner = NS.Banner
 local Info = NS.Info
 local Stacks = NS.Stacks
 local Maps = NS.Maps
@@ -19,11 +20,14 @@ local instanceIdToMapId = {
 function TP:EnterZone(id)
   if NS.db.global.maps.twinpeaks.enabled then
     NS.IS_TP = true
+    Info:SetAnchor(Banner.frame, 0, 0)
+
     if NS.db.global.general.info == false then
       Stacks:SetAnchor(Info.frame, 0, -5, "TOPLEFT", "TOPLEFT")
     else
       Stacks:SetAnchor(Info.frame, 0, 0, "TOPLEFT", "TOPLEFT")
     end
+
     FlagPrediction:StartInfoTracker(instanceIdToMapId[id].id)
   end
 end

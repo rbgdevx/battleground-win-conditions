@@ -10,9 +10,6 @@ local After = C_Timer.After
 local BGWC = NS.BGWC
 local BGWCFrame = NS.BGWC.frame
 
-local Anchor = NS.Anchor
-local Info = NS.Info
-local Score = NS.Score
 local Interface = NS.Interface
 local Version = NS.Version
 
