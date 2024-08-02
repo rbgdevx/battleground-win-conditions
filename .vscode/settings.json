@@ -67,7 +67,8 @@
     "table",
     "C_UnitAuras",
     "UnitAura",
-    "RESET"
+    "RESET",
+    "AceGUIWidgetLSMlists"
   ],
   "stylua.targetReleaseVersion": "latest"
 }

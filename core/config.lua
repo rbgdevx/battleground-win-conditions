@@ -105,8 +105,15 @@ NS.WIN_NOUN = "You"
 NS.LOSE_NOUN = "They"
 NS.ASSAULT_TIME = 6
 NS.CONTESTED_TIME = 60
+NS.ACTIVE_BASE_COUNT = 0
+NS.INCOMING_BASE_COUNT = 0
+NS.WIN_INC_BASE_COUNT = 0
 NS.ORB_BUFF_TIME = 45
 NS.STACK_TIME = 30
+NS.CURRENT_STACKS = 0
+NS.BASE_TIMER_EXPIRED = false
+NS.STACKS_COUNTING = false
+NS.HAS_FLAG_CARRIER = false
 NS.IN_GAME = false
 NS.IS_TEMPLE = false
 NS.IS_EOTS = false
@@ -119,7 +126,7 @@ NS.userClassHexColor = "|c" .. select(4, GetClassColor(NS.userClass))
 
 NS.ADDON_PREFIX = "BGWC_VERSION"
 NS.FoundNewVersion = false
-NS.VERSION = 9422
+NS.VERSION = 9510
 
 NS.DefaultDatabase = {
   global = {

@@ -3,6 +3,7 @@ local _, NS = ...
 local select = select
 local IsInInstance = IsInInstance
 local GetInstanceInfo = GetInstanceInfo
+local GetNumGroupMembers = GetNumGroupMembers
 
 local After = C_Timer.After
 
@@ -85,7 +86,12 @@ do
       local instanceID = select(8, GetInstanceInfo())
       if zoneIds[instanceID] then
         After(5, function()
-          Maps:EnableZone(instanceID)
+          local maxPlayers = select(5, GetInstanceInfo())
+          local groupSize = GetNumGroupMembers()
+
+          if maxPlayers == 0 or groupSize == 0 or maxPlayers >= 10 or groupSize > 8 then
+            Maps:EnableZone(instanceID)
+          end
         end)
       end
     end

@@ -151,13 +151,21 @@ local function animationUpdate(frame, stacks, animationGroup)
   local t = GetTime()
 
   if t >= frame.exp then
-    -- enemy auras dont update while dead so we fallback to timers
-    if NS.IN_GAME and UnitIsDeadOrGhost("player") == false then
+    -- fallback to timers:
+    -- if we aren't in a game
+    -- enemy auras dont update while dead
+    -- auras dont get tracked if nobody is carrying the flag but stacks are still counting
+    if
+      NS.IN_GAME == false
+      or (NS.IN_GAME and UnitIsDeadOrGhost("player"))
+      or (NS.IN_GAME and NS.STACKS_COUNTING and NS.HAS_FLAG_CARRIER == false)
+    then
+      localStacks = localStacks + 1
+      NS.CURRENT_STACKS = localStacks
+      Stacks:Start(NS.STACK_TIME, localStacks)
+    else
       animationGroup:Stop()
       -- frame.text:Hide()
-    else
-      localStacks = localStacks + 1
-      Stacks:Start(NS.STACK_TIME, localStacks)
     end
   else
     local time = frame.exp - t

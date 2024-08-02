@@ -1,6 +1,7 @@
 local _, NS = ...
 
 local ipairs = ipairs
+local mceil = math.ceil
 
 local Anchor = NS.Anchor
 local Banner = NS.Banner
@@ -80,38 +81,65 @@ function Interface:Refresh()
 end
 
 function Interface:CreateTestBanner()
-  Banner:Start(1500, "TIE")
+  Banner:Start(434, "TIE")
 end
 
 function Interface:CreateTestInfo()
   Info:SetAnchor(Banner.frame, 0, 0)
   Info:Start()
 
-  Score:SetText(Score.text, 1500, 1500)
-  Bases:Start(1500, {
+  Score:SetText(Score.text, 1500, 1125)
+  Bases:Start(434, {
+    [3] = {
+      bases = 3,
+      ownScore = 1081,
+      winTime = 434 + GetTime(),
+      winTicks = mceil(434 / 2),
+      ownTime = 224 + GetTime(),
+      ownTicks = mceil(224 / 2),
+      capTime = 218 + GetTime(),
+      capTicks = mceil(218 / 2),
+      capScore = 1069,
+      minBases = 3,
+      maxBases = 5,
+      winName = NS.PLAYER_FACTION,
+      loseName = NS.PLAYER_FACTION == NS.ALLIANCE_NAME and NS.HORDE_NAME or NS.ALLIANCE_NAME,
+      loseBases = 2,
+      tickRate = 2,
+    },
     [4] = {
       bases = 4,
-      ownScore = 1299,
-      winTime = 800 + GetTime(),
-      ownTime = 800 + GetTime(),
-      capTime = 800 - NS.ASSAULT_TIME + GetTime(),
-      capScore = 1299 - NS.ASSAULT_TIME * 2,
+      ownScore = 1377,
+      winTime = 434 + GetTime(),
+      winTicks = mceil(434 / 2),
+      ownTime = 372 + GetTime(),
+      ownTicks = mceil(372 / 2),
+      capTime = 366 + GetTime(),
+      capTicks = mceil(366 / 2),
+      capScore = 1365,
       minBases = 2,
       maxBases = 5,
       winName = NS.PLAYER_FACTION,
       loseName = NS.PLAYER_FACTION == NS.ALLIANCE_NAME and NS.HORDE_NAME or NS.ALLIANCE_NAME,
+      loseBases = 2,
+      tickRate = 2,
     },
     [5] = {
       bases = 5,
-      ownScore = 1499,
-      winTime = 400 + GetTime(),
-      ownTime = 400 + GetTime(),
-      capTime = 400 - NS.ASSAULT_TIME + GetTime(),
-      capScore = 1499 - NS.ASSAULT_TIME * 2,
+      ownScore = 1497,
+      winTime = 434 + GetTime(),
+      winTicks = mceil(434 / 2),
+      ownTime = 432 + GetTime(),
+      ownTicks = mceil(432 / 2),
+      capTime = 426 + GetTime(),
+      capTicks = mceil(426 / 2),
+      capScore = 1485,
       minBases = 1,
       maxBases = 5,
       winName = NS.PLAYER_FACTION,
       loseName = NS.PLAYER_FACTION == NS.ALLIANCE_NAME and NS.HORDE_NAME or NS.ALLIANCE_NAME,
+      loseBases = 2,
+      tickRate = 2,
     },
   })
 
