@@ -56,16 +56,23 @@ function Banner:Stop(frame, animationGroup)
 end
 
 local bannerformat = "GG YOU %s IN %s"
-
+local bannerformatWin = "GG YOU %s"
 local function animationUpdate(frame, text, animationGroup)
   local t = GetTime()
+
   if t >= frame.exp then
+    Banner:SetText(frame.text, bannerformatWin, text)
     animationGroup:Stop()
     -- frame.text:Hide()
   else
     local time = frame.exp - t
     frame.remaining = time
-    Banner:SetText(frame.text, bannerformat, text, NS.formatTime(time))
+
+    if time <= 0 then
+      Banner:SetText(frame.text, bannerformatWin, text)
+    else
+      Banner:SetText(frame.text, bannerformat, text, NS.formatTime(time))
+    end
     -- frame.text:Show()
   end
 end

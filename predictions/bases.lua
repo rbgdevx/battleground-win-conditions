@@ -6,9 +6,9 @@ local GetTime = GetTime
 
 local sfind = string.find
 local smatch = string.match
-local mmin = math.min
-local mceil = math.ceil
 local mfloor = math.floor
+local mceil = math.ceil
+local mmin = math.min
 
 local After = C_Timer.After
 local GetDoubleStatusBarWidgetVisualizationInfo = C_UIWidgetManager.GetDoubleStatusBarWidgetVisualizationInfo
@@ -37,6 +37,11 @@ do
   local allyTimers, hordeTimers, winTable = {}, {}, {}
   local curMapID, curTickRate, curMapInfo = 0, 0, {}
   local maxBases = 0
+
+  NS.ACTIVE_BASE_COUNT = 0
+  NS.INCOMING_BASE_COUNT = 0
+  NS.WIN_INC_BASE_COUNT = 0
+  NS.BASE_TIMER_EXPIRED = false
 
   function BasePrediction:GetFlagValue(winName, maxScore, winScore, loseScore, winBases, loseBases)
     if NS.isEOTS(curMapID) and (allyBases > 0 or hordeBases > 0) then
@@ -94,8 +99,13 @@ do
     local minScore, maxScore, aScore, hScore, aIncrease, hIncrease = 0, 0, 0, 0, 0, 0
     local prevABases, prevHBases, prevAIncBases, prevHIncBases = 0, 0, 0, 0
 
-    function BasePrediction:BasePredictor()
+    function BasePrediction:BasePredictor(refresh)
       if aScore < 1500 and hScore < 1500 then
+        if refresh then
+          self:GetScoreByMapID(curMapID)
+          self:GetObjectivesByMapID(curMapID)
+        end
+
         local allyTicksToWin = NS.getWinTicks(maxScore, aScore, curTickRate, curMapInfo.baseResources[allyBases])
         local allyTimeToWin = NS.getWinTime(allyTicksToWin, curTickRate)
 
@@ -155,16 +165,23 @@ do
                 winName,
                 loseName,
                 winTicks,
+                winTime,
                 0,
                 maxBases,
                 maxScore,
                 winTime,
+                winTicks,
                 curTickRate,
                 curMapInfo.baseResources
               )
 
               for a, b in pairs(table) do
                 winTable[a] = b
+              end
+
+              local firstKey = next(winTable)
+              if firstKey and winTable[firstKey] then
+                break
               end
             end
 
@@ -173,10 +190,22 @@ do
             end
           end
         else
-          local aBaseIncrease, aTimeIncrease, aScoreIncrease =
-            NS.getIncomingBaseInfo(allyTimers, allyBases, allyIncBases, curMapInfo.baseResources, currentWinTime)
-          local hBaseIncrease, hTimeIncrease, hScoreIncrease =
-            NS.getIncomingBaseInfo(hordeTimers, hordeBases, hordeIncBases, curMapInfo.baseResources, currentWinTime)
+          local aBaseIncrease, aScoreIncrease, aTickIncrease = NS.getIncomingBaseInfo(
+            allyTimers,
+            allyBases,
+            allyIncBases,
+            curMapInfo.baseResources,
+            curTickRate,
+            currentWinTicks
+          )
+          local hBaseIncrease, hScoreIncrease, hTickIncrease = NS.getIncomingBaseInfo(
+            hordeTimers,
+            hordeBases,
+            hordeIncBases,
+            curMapInfo.baseResources,
+            curTickRate,
+            currentWinTicks
+          )
 
           local newAllyScore = aScore + aScoreIncrease
           local newHordeScore = hScore + hScoreIncrease
@@ -189,25 +218,27 @@ do
 
           local winTimeIncrease = 0
 
-          if aTimeIncrease ~= 0 or hTimeIncrease ~= 0 then
-            if aTimeIncrease > hTimeIncrease then
-              local timeDifference = aTimeIncrease - hTimeIncrease
-              local scoreDifference = hFutureScore + timeDifference * curMapInfo.baseResources[newHordeBases]
+          if aTickIncrease ~= 0 or hTickIncrease ~= 0 then
+            if aTickIncrease > hTickIncrease then
+              local tickDifference = aTickIncrease - hTickIncrease
+              local scoreDifference = hFutureScore
+                + tickDifference * (curTickRate * curMapInfo.baseResources[newHordeBases])
               if scoreDifference < maxScore then
                 hFutureScore = scoreDifference
 
-                if aTimeIncrease < currentWinTime then
-                  winTimeIncrease = aTimeIncrease
+                if aTickIncrease < currentWinTicks then
+                  winTimeIncrease = aTickIncrease * curTickRate
                 end
               end
-            elseif hTimeIncrease > aTimeIncrease then
-              local timeDifference = hTimeIncrease - aTimeIncrease
-              local scoreDifference = aFutureScore + timeDifference * curMapInfo.baseResources[newAllyBases]
+            elseif hTickIncrease > aTickIncrease then
+              local tickDifference = hTickIncrease - aTickIncrease
+              local scoreDifference = aFutureScore
+                + tickDifference * (curTickRate * curMapInfo.baseResources[newAllyBases])
               if scoreDifference < maxScore then
                 aFutureScore = scoreDifference
 
-                if hTimeIncrease < currentWinTime then
-                  winTimeIncrease = hTimeIncrease
+                if hTickIncrease < currentWinTicks then
+                  winTimeIncrease = hTickIncrease * curTickRate
                 end
               end
             end
@@ -263,8 +294,13 @@ do
             Banner:Start(winTime, winText)
             Score:SetText(Score.text, finalAScore, finalHScore)
 
+            local trueLoseBases = currentLoseBases == 0 and loseBases or currentLoseBases
+            -- local trueLoseBases = currentLoseBases + 1 == winBases and loseBases or currentLoseBases
+
+            NS.WIN_INC_BASE_COUNT = aWins and aBaseIncrease or hBaseIncrease
+
             winTable = {}
-            for needBases = currentLoseBases + 1, maxBases do
+            for needBases = trueLoseBases + 1, maxBases do
               local table = NS.checkWinCondition(
                 needBases,
                 winBases,
@@ -274,16 +310,23 @@ do
                 winName,
                 loseName,
                 winTicks,
+                winTime,
                 winTimeIncrease,
                 maxBases,
                 maxScore,
-                winTime,
+                currentWinTime,
+                currentWinTicks,
                 curTickRate,
                 curMapInfo.baseResources
               )
 
               for a, b in pairs(table) do
                 winTable[a] = b
+              end
+
+              local firstKey = next(winTable)
+              if firstKey and winTable[firstKey] then
+                break
               end
             end
 
@@ -295,7 +338,7 @@ do
 
         local firstKey = next(winTable)
         if firstKey and winTable[firstKey] then
-          Bases:Start(winTime, winTable)
+          Bases:Start(winTime, winTable, BasePrediction)
         end
       end
     end
@@ -380,6 +423,11 @@ do
             end
           end
         end
+
+        local totalAllyBases = allyBases + allyIncBases
+        local totalHordeBases = hordeBases + hordeIncBases
+        NS.ACTIVE_BASE_COUNT = totalAllyBases + totalHordeBases
+        NS.INCOMING_BASE_COUNT = allyIncBases + hordeIncBases
       elseif mapID == 1576 then
         -- Deepwind Gorge
         allyBases, allyIncBases = 0, 0
@@ -454,6 +502,11 @@ do
             end
           end
         end
+
+        local totalAllyBases = allyBases + allyIncBases
+        local totalHordeBases = hordeBases + hordeIncBases
+        NS.ACTIVE_BASE_COUNT = totalAllyBases + totalHordeBases
+        NS.INCOMING_BASE_COUNT = allyIncBases + hordeIncBases
       elseif mapID == 275 then
         -- The Battle for Gilneas
         allyBases, allyIncBases = 0, 0
@@ -528,6 +581,11 @@ do
             end
           end
         end
+
+        local totalAllyBases = allyBases + allyIncBases
+        local totalHordeBases = hordeBases + hordeIncBases
+        NS.ACTIVE_BASE_COUNT = totalAllyBases + totalHordeBases
+        NS.INCOMING_BASE_COUNT = allyIncBases + hordeIncBases
       elseif mapID == 112 or mapID == 397 then
         -- Eye of the Storm
         allyBases, allyIncBases = 0, 0
@@ -612,6 +670,11 @@ do
             end
           end
         end
+
+        local totalAllyBases = allyBases + allyIncBases
+        local totalHordeBases = hordeBases + hordeIncBases
+        NS.ACTIVE_BASE_COUNT = totalAllyBases + totalHordeBases
+        NS.INCOMING_BASE_COUNT = allyIncBases + hordeIncBases
       end
     end
 
@@ -728,6 +791,11 @@ do
             end
           end
         end
+
+        local totalAllyBases = allyBases + allyIncBases
+        local totalHordeBases = hordeBases + hordeIncBases
+        NS.ACTIVE_BASE_COUNT = totalAllyBases + totalHordeBases
+        NS.INCOMING_BASE_COUNT = allyIncBases + hordeIncBases
       elseif widgetID == 1672 then
         -- Eye of the Storm
         allyBases, allyIncBases = 0, 0
@@ -806,6 +874,11 @@ do
             end
           end
         end
+
+        local totalAllyBases = allyBases + allyIncBases
+        local totalHordeBases = hordeBases + hordeIncBases
+        NS.ACTIVE_BASE_COUNT = totalAllyBases + totalHordeBases
+        NS.INCOMING_BASE_COUNT = allyIncBases + hordeIncBases
       end
 
       if widgetID == 1645 or widgetID == 1670 or widgetID == 2339 or widgetID == 1672 then
@@ -857,10 +930,10 @@ do
           hScore = scoreInfo.rightBarValue -- Horde Bar
           aIncrease = aScore - prevAScore
           hIncrease = hScore - prevHScore
-          -- Round to the closest time
-          timeBetweenEachTick = elapsed % 1 >= 0.5 and mceil(elapsed) or mfloor(elapsed)
           prevAScore = aScore
           prevHScore = hScore
+          -- Round to the closest time
+          timeBetweenEachTick = elapsed % 1 >= 0.5 and mceil(elapsed) or mfloor(elapsed)
 
           After(0.5, function()
             if aIncrease ~= prevAIncrease or hIncrease ~= prevHIncrease or timeBetweenEachTick ~= prevTick then
@@ -922,6 +995,11 @@ do
       allyFlags, hordeFlags = 0, 0
       allyTimers, hordeTimers, winTable = {}, {}, {}
       maxBases = maxResources
+
+      NS.ACTIVE_BASE_COUNT = 0
+      NS.INCOMING_BASE_COUNT = 0
+      NS.WIN_INC_BASE_COUNT = 0
+      NS.BASE_TIMER_EXPIRED = false
 
       self:GetScoreByMapID(curMapID)
       self:GetObjectivesByMapID(curMapID)

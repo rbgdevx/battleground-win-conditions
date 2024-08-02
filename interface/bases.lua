@@ -6,6 +6,7 @@ local GetTime = GetTime
 
 local mmin = math.min
 local mmax = math.max
+-- local mceil = math.ceil
 local sformat = string.format
 
 local Info = NS.Info
@@ -59,16 +60,35 @@ end
 
 local function winMessage(text, winCondition)
   local winTime = winCondition.winTime - GetTime()
+  -- local winTicks = mceil(winTime / winCondition.tickRate)
   local ownTime = winCondition.ownTime - GetTime()
+  -- local ownTicks = mceil(ownTime / winCondition.tickRate)
   local winName = winCondition.winName
+  local loseName = winCondition.loseName
   local winMinBases = winCondition.minBases
+  local maxBases = winCondition.maxBases
   local maxWinMinBases = winMinBases - 1 <= 0 and 1 or winMinBases - 1
+  local capBases = winCondition.bases
+  local loseBases = winCondition.loseBases
   local message = ""
 
-  if ownTime <= 0 then
+  if winMinBases == 1 and ownTime <= 0 then
     message = sformat("%s win\n", NS.formatTeamName(winName, NS.PLAYER_FACTION))
   else
-    message = sformat("%s win with %d right now\n", NS.formatTeamName(winName, NS.PLAYER_FACTION), winMinBases)
+    if NS.WIN_INC_BASE_COUNT > 0 and NS.ACTIVE_BASE_COUNT == maxBases and capBases == winMinBases + 1 then
+      message = sformat("%s win with %d after cap\n", NS.formatTeamName(winName, NS.PLAYER_FACTION), winMinBases)
+    else
+      message = sformat("%s win with %d right now\n", NS.formatTeamName(winName, NS.PLAYER_FACTION), winMinBases)
+    end
+
+    if
+      (NS.WIN_INC_BASE_COUNT > 0 and capBases == winMinBases + 1)
+      or (NS.ACTIVE_BASE_COUNT < maxBases and capBases < maxBases and winMinBases == 1)
+      or (NS.INCOMING_BASE_COUNT > 0 and NS.ACTIVE_BASE_COUNT == maxBases and loseBases == 0)
+    then
+      message = message
+        .. sformat("%s can still win with %d\n", NS.formatTeamName(loseName, NS.PLAYER_FACTION), capBases)
+    end
 
     if winMinBases == 1 then
       message = message .. sformat("Hold %d for %s to win\n", winMinBases, NS.formatTime(winTime))
@@ -82,38 +102,39 @@ local function winMessage(text, winCondition)
 end
 
 local function loseMessage(text, winCondition)
+  local ownTime = winCondition.ownTime - GetTime()
   local capTime = winCondition.capTime - GetTime()
+  -- local capTicks = mceil(capTime / winCondition.tickRate)
   local capBases = winCondition.bases
+  local maxBases = winCondition.maxBases
   local capScore = winCondition.capScore
   local winName = winCondition.winName
   local loseName = winCondition.loseName
   local message = ""
 
-  message = message
-    .. sformat(
-      "%s need %d by %s\n",
-      NS.formatTeamName(loseName, NS.PLAYER_FACTION),
-      capBases,
-      NS.formatScore(winName, capScore)
-    )
-
-  if capTime <= 0 then
-    message = message .. sformat("Not enough cap time\n")
+  if capBases == maxBases and ownTime <= 0 then
+    message = sformat("%s lose\n", NS.formatTeamName(loseName, NS.PLAYER_FACTION))
   else
-    message = message .. sformat("Cap within %s\n", NS.formatTime(capTime))
+    message = message
+      .. sformat(
+        "%s need %d by %s\n",
+        NS.formatTeamName(loseName, NS.PLAYER_FACTION),
+        capBases,
+        NS.formatScore(winName, capScore)
+      )
+
+    if capTime <= 0 then
+      message = message .. sformat("Not enough cap time\n")
+    else
+      message = message .. sformat("Cap within %s\n", NS.formatTime(capTime))
+    end
   end
 
   Bases:SetText(text, "%s", message)
 end
 
-local function animationUpdate(frame, winTable, animationGroup)
+local function animationUpdate(frame, winTable, animationGroup, callbackFn)
   local t = GetTime()
-  local winCondition
-
-  local firstKey = next(winTable)
-  if firstKey and winTable[firstKey] then
-    winCondition = winTable[firstKey]
-  end
 
   if t >= frame.exp then
     animationGroup:Stop()
@@ -121,100 +142,91 @@ local function animationUpdate(frame, winTable, animationGroup)
   else
     local time = frame.exp - t
     frame.remaining = time
-    if firstKey and winCondition then
-      local ownTime = winCondition.ownTime - t
 
-      -- 2
-      if ownTime > 0 then
-        if winCondition.winName == NS.PLAYER_FACTION then
-          winMessage(frame.text, winCondition)
-        else
-          loseMessage(frame.text, winCondition)
-        end
-      elseif winCondition.bases == winCondition.maxBases then
+    local winCondition
+    local ownTime
+
+    local firstKey = next(winTable)
+    if firstKey and winTable[firstKey] then
+      winCondition = winTable[firstKey]
+      ownTime = winCondition.ownTime - t
+      -- local ownTicks = mceil(ownTime / winCondition.tickRate)
+
+      -- 5
+      if ownTime > 0 or winCondition.bases == winCondition.maxBases then
         if winCondition.winName == NS.PLAYER_FACTION then
           winMessage(frame.text, winCondition)
         else
           loseMessage(frame.text, winCondition)
         end
       else
-        local secondKey = winCondition.bases + 1
-        if secondKey and winTable[secondKey] then
-          winCondition = winTable[secondKey]
-          ownTime = winCondition.ownTime - t
+        if NS.IN_GAME then
+          if NS.BASE_TIMER_EXPIRED == false then
+            NS.BASE_TIMER_EXPIRED = true
 
-          -- 3
-          if ownTime > 0 then
-            if winCondition.winName == NS.PLAYER_FACTION then
-              winMessage(frame.text, winCondition)
-            else
-              loseMessage(frame.text, winCondition)
+            if callbackFn then
+              callbackFn:BasePredictor(true)
             end
-          elseif winCondition.bases == winCondition.maxBases then
-            if winCondition.winName == NS.PLAYER_FACTION then
-              winMessage(frame.text, winCondition)
-            else
-              loseMessage(frame.text, winCondition)
-            end
-          else
-            local thirdKey = winCondition.bases + 1
-            if thirdKey and winTable[thirdKey] then
-              winCondition = winTable[thirdKey]
-              ownTime = winCondition.ownTime - t
+          end
+        else
+          local secondKey = winCondition.bases + 1
+          if secondKey and winTable[secondKey] then
+            winCondition = winTable[secondKey]
+            ownTime = winCondition.ownTime - t
+            -- ownTicks = mceil(ownTime / winCondition.tickRate)
 
-              -- 4
-              if ownTime > 0 then
-                if winCondition.winName == NS.PLAYER_FACTION then
-                  winMessage(frame.text, winCondition)
-                else
-                  loseMessage(frame.text, winCondition)
-                end
-              elseif winCondition.bases == winCondition.maxBases then
-                if winCondition.winName == NS.PLAYER_FACTION then
-                  winMessage(frame.text, winCondition)
-                else
-                  loseMessage(frame.text, winCondition)
-                end
+            -- 4
+            if ownTime > 0 or winCondition.bases == winCondition.maxBases then
+              if winCondition.winName == NS.PLAYER_FACTION then
+                winMessage(frame.text, winCondition)
               else
-                local fourthKey = winCondition.bases + 1
-                if fourthKey and winTable[fourthKey] then
-                  winCondition = winTable[fourthKey]
-                  ownTime = winCondition.ownTime - t
+                loseMessage(frame.text, winCondition)
+              end
+            else
+              local thirdKey = winCondition.bases + 1
+              if thirdKey and winTable[thirdKey] then
+                winCondition = winTable[thirdKey]
+                ownTime = winCondition.ownTime - t
+                -- ownTicks = mceil(ownTime / winCondition.tickRate)
 
-                  -- 5
-                  if ownTime > 0 then
-                    if winCondition.winName == NS.PLAYER_FACTION then
-                      winMessage(frame.text, winCondition)
-                    else
-                      loseMessage(frame.text, winCondition)
-                    end
-                  elseif winCondition.bases == winCondition.maxBases then
-                    if winCondition.winName == NS.PLAYER_FACTION then
-                      winMessage(frame.text, winCondition)
-                    else
-                      loseMessage(frame.text, winCondition)
-                    end
+                -- 3
+                if ownTime > 0 or winCondition.bases == winCondition.maxBases then
+                  if winCondition.winName == NS.PLAYER_FACTION then
+                    winMessage(frame.text, winCondition)
                   else
-                    local fifthKey = winCondition.bases + 1
-                    if fifthKey and winTable[fifthKey] then
-                      winCondition = winTable[fifthKey]
-                      ownTime = winCondition.ownTime - t
+                    loseMessage(frame.text, winCondition)
+                  end
+                else
+                  local fourthKey = winCondition.bases + 1
+                  if fourthKey and winTable[fourthKey] then
+                    winCondition = winTable[fourthKey]
+                    ownTime = winCondition.ownTime - t
+                    -- ownTicks = mceil(ownTime / winCondition.tickRate)
 
-                      -- 6
-                      if ownTime > 0 then
-                        if winCondition.winName == NS.PLAYER_FACTION then
-                          winMessage(frame.text, winCondition)
-                        else
-                          loseMessage(frame.text, winCondition)
-                        end
-                      elseif winCondition.bases == winCondition.maxBases then
-                        if winCondition.winName == NS.PLAYER_FACTION then
-                          winMessage(frame.text, winCondition)
-                        else
-                          loseMessage(frame.text, winCondition)
-                        end
+                    -- 2
+                    if ownTime > 0 or winCondition.bases == winCondition.maxBases then
+                      if winCondition.winName == NS.PLAYER_FACTION then
+                        winMessage(frame.text, winCondition)
                       else
-                        -- print("NO OPTIONS LEFT")
+                        loseMessage(frame.text, winCondition)
+                      end
+                    else
+                      local fifthKey = winCondition.bases + 1
+                      if fifthKey and winTable[fifthKey] then
+                        winCondition = winTable[fifthKey]
+                        ownTime = winCondition.ownTime - t
+                        -- ownTicks = mceil(ownTime / winCondition.tickRate)
+
+                        -- 1
+                        if ownTime > 0 or winCondition.bases == winCondition.maxBases then
+                          if winCondition.winName == NS.PLAYER_FACTION then
+                            winMessage(frame.text, winCondition)
+                          else
+                            loseMessage(frame.text, winCondition)
+                          end
+                        else
+                          -- print("NO OPTIONS LEFT")
+                        end
                       end
                     end
                   end
@@ -225,11 +237,12 @@ local function animationUpdate(frame, winTable, animationGroup)
         end
       end
     end
+
     -- frame.text:Show()
   end
 end
 
-function Bases:Start(duration, winTable)
+function Bases:Start(duration, winTable, callbackFn)
   self:Stop(self, self.timerAnimationGroup)
 
   self.remaining = mmin(mmax(0, duration), 1500)
@@ -259,9 +272,11 @@ function Bases:Start(duration, winTable)
       self.frame:SetAlpha(0)
     end
 
+    NS.BASE_TIMER_EXPIRED = false
+
     self.timerAnimationGroup:SetScript("OnLoop", function(updatedGroup)
       if updatedGroup then
-        animationUpdate(Bases, winTable, updatedGroup)
+        animationUpdate(Bases, winTable, updatedGroup, callbackFn)
       end
     end)
 

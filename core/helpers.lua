@@ -185,10 +185,12 @@ NS.checkWinCondition = function(
   winName,
   loseName,
   winTicks,
+  winTime,
   winTimeIncrease,
   maxBases,
   maxScore,
   oldWinTime,
+  oldWinTicks,
   tickRate,
   resources
 )
@@ -205,9 +207,9 @@ NS.checkWinCondition = function(
   local potentialLoseTeamBaseCount = needBases
   local potentialWinTeamBaseCount = ((needBases + winBases) > maxBases) and maxBases - needBases or winBases
 
-  local loseTeamGapScore = NS.CONTESTED_TIME * resources[loseBases]
-  local winTeamGapScore = NS.CONTESTED_TIME * resources[potentialWinTeamBaseCount]
-  local assaultScore = NS.ASSAULT_TIME * resources[winBases]
+  local loseTeamGapScore = mceil(NS.CONTESTED_TIME / tickRate) * (tickRate * resources[loseBases])
+  local winTeamGapScore = mceil(NS.CONTESTED_TIME / tickRate) * (tickRate * resources[potentialWinTeamBaseCount])
+  local assaultScore = mceil(NS.ASSAULT_TIME / tickRate) * (tickRate * resources[winBases])
 
   --[[
   -- we need to look ahead in time to compare
@@ -227,8 +229,10 @@ NS.checkWinCondition = function(
     local loseTeamScoreNow = loseScore + loseTeamScoreIncrease
     local winTeamScoreNow = winScore + winTeamScoreIncrease
 
-    local loseGapScore = (oldWinTime < NS.CONTESTED_TIME) and loseTeamScoreNow or loseTeamScoreNow + loseTeamGapScore
-    local winGapScore = (oldWinTime < NS.CONTESTED_TIME) and winTeamScoreNow or winTeamScoreNow + winTeamGapScore
+    local loseGapScore = (oldWinTicks < mceil(NS.CONTESTED_TIME / tickRate)) and loseTeamScoreNow
+      or loseTeamScoreNow + loseTeamGapScore
+    local winGapScore = (oldWinTicks < mceil(NS.CONTESTED_TIME / tickRate)) and winTeamScoreNow
+      or winTeamScoreNow + winTeamGapScore
 
     local loseTicksToWin = NS.getWinTicks(maxScore, loseGapScore, tickRate, resources[potentialLoseTeamBaseCount])
     local winTicksToWin = NS.getWinTicks(maxScore, winGapScore, tickRate, resources[potentialWinTeamBaseCount])
@@ -240,10 +244,12 @@ NS.checkWinCondition = function(
       -- bases since they actually haven't capped over yet
       --]]
       local ownTime = time + winTimeIncrease
+      local ownTicks = mceil(ownTime / tickRate)
       --[[
       -- we need to accomodate for the assault time
       --]]
       local capTime = ownTime - NS.ASSAULT_TIME
+      local capTicks = mceil(capTime / tickRate)
       --[[
       -- we need to subtract the gap score from the score
       -- you need to get the base by because we were just looking
@@ -263,8 +269,12 @@ NS.checkWinCondition = function(
       local minBases = NS.getWinMinBases(winBases, maxBases, potentialLoseTeamBaseCount)
 
       table[potentialLoseTeamBaseCount] = {
+        --[[
         -- the amount of bases you need to get to win
+        --]]
         bases = potentialLoseTeamBaseCount,
+        minBases = minBases,
+        maxBases = maxBases,
         --[[
         -- we add the gap score from the score to know when
         -- you need to get the base by
@@ -282,20 +292,26 @@ NS.checkWinCondition = function(
         -- bases since they actually haven't capped over yet
         --]]
         ownTime = ownTime + GetTime(),
+        ownTicks = ownTicks,
         --[[
         -- we need to accomodate for the assault time to get by this time
         -- as well as the cap time
         --]]
         capTime = capTime + GetTime(),
+        capTicks = capTicks,
         --[[
         -- we need to accomodate for the assault time to get by this time
         -- as well as the cap time
         --]]
         winTime = mmin(mmax(0, oldWinTime), 1500) + GetTime(),
-        minBases = minBases,
-        maxBases = maxBases,
+        winTicks = mmin(mmax(0, oldWinTicks), mceil(1500 / tickRate)),
+        --[[
+        -- who wins and loses
+        --]]
         winName = winName,
         loseName = loseName,
+        loseBases = loseBases,
+        tickRate = tickRate,
       }
     end
   end
@@ -303,11 +319,12 @@ NS.checkWinCondition = function(
   return table
 end
 
-NS.getIncomingBaseInfo = function(timers, ownedBases, incomingBases, resources, winTime)
+NS.getIncomingBaseInfo = function(timers, ownedBases, incomingBases, resources, tickRate, winTicks)
   local baseIncrease = 0
-  local timeIncrease = 0
   local scoreIncrease = 0
+  local tickIncrease = 0
   local previousTime = 0
+  local previousTicks = 0
   if timers and incomingBases > 0 then
     local timersSorted = {}
     for key, value in pairs(timers) do
@@ -323,19 +340,49 @@ NS.getIncomingBaseInfo = function(timers, ownedBases, incomingBases, resources, 
     for index, key in ipairs(timersSorted) do
       if key then
         local timeLeft = timers[key] - GetTime()
-        if timeLeft and timeLeft > 0 and timeLeft < winTime then
-          local newBases = ownedBases + index - 1
-          local newTime = timeLeft - previousTime
-          local newPoints = newTime * resources[newBases]
-          baseIncrease = index
-          timeIncrease = timeIncrease + newTime
-          scoreIncrease = scoreIncrease + newPoints
-          previousTime = timeLeft
+        if timeLeft and timeLeft > 0 then
+          local ticksLeft = mceil(timeLeft / tickRate)
+          if ticksLeft < winTicks then
+            --[[
+            -- we need to subtract 1 from each incoming base + current bases
+            -- in order to calculate what we'll gain while each incoming
+            -- base is contested and not earning points
+            --]]
+            local newBases = ownedBases + index - 1
+            --[[
+            -- we need to caclulate the time difference between
+            -- one incoming base and the next to know
+            -- how much time we have earning points with each
+            -- base until the next one caps over
+            --]]
+            -- local newTime = timeLeft - previousTime
+            local newTicks = ticksLeft - previousTicks
+            --[[
+            -- we need to get the point values for prior base count to
+            -- each incoming base
+            -- this will render 1 then 1.5 since we have 1 owned, and 2 incoming
+            -- 1 point is for 1 base (2-1) and 1.5 is for 2 bases (3-1)
+            --]]
+            local newPoints = newTicks * (tickRate * resources[newBases])
+            --[[
+            -- this is a way to store up our total time
+            -- spent cappping over incoming bases
+            --]]
+            baseIncrease = index
+            scoreIncrease = scoreIncrease + newPoints
+            tickIncrease = tickIncrease + newTicks
+            --[[
+            -- setting previous values last so our initial
+            -- values are 0 when used the first time
+            --]]
+            previousTime = timeLeft
+            previousTicks = mceil(previousTime / tickRate)
+          end
         end
       end
     end
   end
-  return baseIncrease, timeIncrease, scoreIncrease
+  return baseIncrease, scoreIncrease, tickIncrease
 end
 
 NS.write = function(...)
