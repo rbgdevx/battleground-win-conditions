@@ -1,6 +1,6 @@
 # Battleground Win Conditions
 
-## [v9.5.0](https://github.com/rbgdevx/battleground-win-conditions/releases/tag/v9.5.0) (2024-08-01)
+## [v9.5.10](https://github.com/rbgdevx/battleground-win-conditions/releases/tag/v9.5.10) (2024-08-01)
 
 - Lib updates
 - TOC updates
