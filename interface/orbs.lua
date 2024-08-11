@@ -45,7 +45,7 @@ function Orbs:SetFont(frame)
   frame:SetFont(
     LSM:Fetch("font", NS.db.global.general.infogroup.infofont),
     NS.db.global.general.infogroup.infofontsize,
-    "THINOUTLINE"
+    "OUTLINE"
   )
   if self.orbTextFrame then
     NS.UpdateSize(self.orbTextFrame, self.orbText)
@@ -149,7 +149,7 @@ local function animationUpdate(frame, text, animationGroup)
   if t >= frame.exp then
     animationGroup:Stop()
     Orbs:SetText(frame.buffText, orbsformat2, text)
-  -- frame.buffText:Hide()
+    -- frame.buffText:Hide()
   else
     local time = frame.exp - t
     frame.remaining = time

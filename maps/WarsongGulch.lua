@@ -10,7 +10,7 @@ local Maps = NS.Maps
 
 local WG = Maps:NewMod()
 
-local instanceIDtoMapID = {
+local instanceIdToMapId = {
   -- Warsong Gulch
   [2106] = {
     id = 1339,
@@ -20,7 +20,7 @@ local instanceIDtoMapID = {
 
 local function checkInfo(id, isBlitz)
   local convertedInfo = {}
-  NS.CopyTable(instanceIDtoMapID[id], convertedInfo)
+  NS.CopyTable(instanceIdToMapId[id], convertedInfo)
   convertedInfo.stackTime = isBlitz and 15 or 30
   return convertedInfo
 end
@@ -48,6 +48,6 @@ function WG:ExitZone()
   end
 end
 
-for id in next, instanceIDtoMapID do
+for id in next, instanceIdToMapId do
   WG:RegisterZone(id)
 end

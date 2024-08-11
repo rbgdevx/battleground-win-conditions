@@ -41,7 +41,7 @@ function Stacks:SetFont(frame)
   frame:SetFont(
     LSM:Fetch("font", NS.db.global.general.infogroup.infofont),
     NS.db.global.general.infogroup.infofontsize,
-    "THINOUTLINE"
+    "OUTLINE"
   )
   NS.UpdateSize(StacksFrame, frame)
 end

@@ -10,7 +10,7 @@ local Maps = NS.Maps
 
 local TOK = Maps:NewMod()
 
-local instanceIDtoMapID = {
+local instanceIdToMapId = {
   -- TempleofKotmogu
   -- Points for the positions:
   -- - outside main area/gates
@@ -42,12 +42,12 @@ local instanceIDtoMapID = {
 
 local function checkInfo(id, isBlitz)
   local convertedInfo = {}
-  NS.CopyTable(instanceIDtoMapID[id], convertedInfo)
+  NS.CopyTable(instanceIdToMapId[id], convertedInfo)
   convertedInfo.orbResources = {
     ["starting"] = 0,
-    ["outside"] = (isBlitz and 2 or 2) / 5, -- need to verify blitz
-    ["inside"] = (isBlitz and 6 or 4) / 5, -- verified
-    ["arena"] = (isBlitz and 8 or 6) / 5, -- verified
+    ["outside"] = (isBlitz and 2 or 2) / 5,
+    ["inside"] = (isBlitz and 6 or 4) / 5,
+    ["arena"] = (isBlitz and 8 or 6) / 5,
   }
   return convertedInfo
 end
@@ -75,6 +75,6 @@ function TOK:ExitZone()
   end
 end
 
-for id in next, instanceIDtoMapID do
+for id in next, instanceIdToMapId do
   TOK:RegisterZone(id)
 end

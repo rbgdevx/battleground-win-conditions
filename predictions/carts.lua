@@ -17,7 +17,13 @@ end)
 
 do
   local allyCarts, hordeCarts = 0, 0
-  local curMapID = 0
+  local curMap = {
+    id = 0,
+    maxCarts = 0,
+    tickRate = 0,
+    cartResources = {},
+    cartTimers = {},
+  }
 
   function CartPrediction:CaptureBarTracker(widgetID)
     -- widgetType == 1
@@ -113,13 +119,13 @@ do
       end
     end
 
-    function CartPrediction:StartInfoTracker(mapID)
+    function CartPrediction:StartInfoTracker(mapInfo)
       -- local
       -- global
-      curMapID = mapID
+      curMap = mapInfo
       allyCarts, hordeCarts = 0, 0
 
-      self:GetObjectivesByMapID(curMapID)
+      self:GetObjectivesByMapID(curMap.id)
 
       CartFrame:RegisterEvent("UPDATE_UI_WIDGET")
     end

@@ -9,7 +9,7 @@ local Maps = NS.Maps
 
 local TBFG = Maps:NewMod()
 
-local instanceIDtoMapID = {
+local instanceIdToMapId = {
   -- Gilneas
   [761] = {
     id = 275,
@@ -28,7 +28,7 @@ local instanceIDtoMapID = {
 
 local function checkInfo(id, isBlitz)
   local convertedInfo = {}
-  NS.CopyTable(instanceIDtoMapID[id], convertedInfo)
+  NS.CopyTable(instanceIdToMapId[id], convertedInfo)
   convertedInfo.assaultTime = isBlitz and 4 or 6
   convertedInfo.contestedTime = isBlitz and 30 or 60
   convertedInfo.baseResources = {
@@ -54,6 +54,6 @@ function TBFG:ExitZone()
   end
 end
 
-for id in next, instanceIDtoMapID do
+for id in next, instanceIdToMapId do
   TBFG:RegisterZone(id)
 end

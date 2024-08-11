@@ -10,7 +10,7 @@ local Maps = NS.Maps
 
 local TP = Maps:NewMod()
 
-local instanceIDtoMapID = {
+local instanceIdToMapId = {
   -- Twin Peaks
   [726] = {
     id = 206,
@@ -20,7 +20,7 @@ local instanceIDtoMapID = {
 
 local function checkInfo(id, isBlitz)
   local convertedInfo = {}
-  NS.CopyTable(instanceIDtoMapID[id], convertedInfo)
+  NS.CopyTable(instanceIdToMapId[id], convertedInfo)
   convertedInfo.stackTime = isBlitz and 15 or 30
   return convertedInfo
 end
@@ -48,6 +48,6 @@ function TP:ExitZone()
   end
 end
 
-for id in next, instanceIDtoMapID do
+for id in next, instanceIdToMapId do
   TP:RegisterZone(id)
 end

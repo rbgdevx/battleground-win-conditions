@@ -35,6 +35,12 @@ local instanceIdToMapId = {
   },
 }
 
+local function checkInfo(id, isBlitz)
+  local convertedInfo = {}
+  NS.CopyTable(instanceIdToMapId[id], convertedInfo)
+  return convertedInfo
+end
+
 function SSM:EnterZone(id, isBlitz)
   if NS.db.global.maps.silvershardmines.enabled then
     NS.IS_SSM = true
@@ -42,7 +48,7 @@ function SSM:EnterZone(id, isBlitz)
     if not isBlitz or isBlitz == false then
       Info:SetAnchor(Banner.frame, 0, 0)
 
-      CartPrediction:StartInfoTracker(instanceIdToMapId[id].id)
+      CartPrediction:StartInfoTracker(checkInfo(id, isBlitz))
     end
   end
 end

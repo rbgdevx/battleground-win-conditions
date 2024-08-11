@@ -160,18 +160,18 @@ do
 
         -- stacks are only ever added not updated
         -- if updateInfo.updatedAuraInstanceIDs then
-        -- 	for _, auraInstanceID in ipairs(updateInfo.updatedAuraInstanceIDs) do
-        -- 		local aura = GetAuraDataByAuraInstanceID(unitTarget, auraInstanceID)
-        -- 		handleAura(aura, flagDebuffSpellIds, false)
-        -- 	end
+        --   for _, auraInstanceID in ipairs(updateInfo.updatedAuraInstanceIDs) do
+        --     local aura = GetAuraDataByAuraInstanceID(unitTarget, auraInstanceID)
+        --     handleAura(aura, flagDebuffSpellIds, false)
+        --   end
         -- end
 
         -- we're tracking stacks being removed elsewhere
         -- if updateInfo.removedAuraInstanceIDs then
-        -- 	for _, auraInstanceID in ipairs(updateInfo.removedAuraInstanceIDs) do
-        -- 		local aura = GetAuraDataByAuraInstanceID(unitTarget, auraInstanceID)
-        -- 		handleAura(aura, flagDebuffSpellIds, true)
-        -- 	end
+        --   for _, auraInstanceID in ipairs(updateInfo.removedAuraInstanceIDs) do
+        --     local aura = GetAuraDataByAuraInstanceID(unitTarget, auraInstanceID)
+        --     handleAura(aura, flagDebuffSpellIds, true)
+        --   end
         -- end
       end
     end
@@ -405,7 +405,7 @@ do
       Banner:Stop(Banner, Banner.timerAnimationGroup)
     end
 
-    function FlagPrediction:CHAT_MSG_BG_SYSTEM_ALLIANCE(message, _, _, _, _)
+    function FlagPrediction:CHAT_MSG_BG_SYSTEM_ALLIANCE(message)
       local pickedName = smatch(message, "picked up by (.+)%!") -- horde picked ally flag
       if pickedName then
         handleFlagPickup("horde", allyFlagCarrier, pickedName)
@@ -432,7 +432,7 @@ do
       end
     end
 
-    function FlagPrediction:CHAT_MSG_BG_SYSTEM_HORDE(message, _, _, _, _)
+    function FlagPrediction:CHAT_MSG_BG_SYSTEM_HORDE(message)
       local pickedName = smatch(message, "picked up by (.+)%!") -- ally picked horde flag
       if pickedName then
         handleFlagPickup("ally", hordeFlagCarrier, pickedName)

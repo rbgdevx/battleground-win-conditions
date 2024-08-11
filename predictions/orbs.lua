@@ -106,9 +106,9 @@ do
 
       -- added doesnt show up since its added by the time we start tracking
       -- if updateInfo.addedAuras then
-      -- 	for orb, spellId in pairs(orbTypes) do
-      -- 		updateOrbStacks(unitTarget, orb, spellId, "add", updateInfo.addedAuras, false)
-      -- 	end
+      --   for orb, spellId in pairs(orbTypes) do
+      --     updateOrbStacks(unitTarget, orb, spellId, "add", updateInfo.addedAuras, false)
+      --   end
       -- end
 
       if updateInfo.updatedAuraInstanceIDs then
@@ -119,9 +119,9 @@ do
 
       -- we're tracking orbs being removed elsewhere
       -- if updateInfo.removedAuraInstanceIDs then
-      -- 	for orb, spellId in pairs(orbTypes) do
-      -- 		updateOrbStacks(unitTarget, orb, spellId, "remove", updateInfo.removedAuraInstanceIDs, true)
-      -- 	end
+      --   for orb, spellId in pairs(orbTypes) do
+      --     updateOrbStacks(unitTarget, orb, spellId, "remove", updateInfo.removedAuraInstanceIDs, true)
+      --   end
       -- end
     end
 
@@ -327,7 +327,7 @@ do
       end
     end
 
-    function OrbPrediction:CHAT_MSG_RAID_BOSS_EMOTE(message, _, _, _, _)
+    function OrbPrediction:CHAT_MSG_RAID_BOSS_EMOTE(message)
       -- local droppedName = playerName2 -- name without realm
       local droppedOrb = smatch(message, "The (|c%x%x%x%x%x%x%x%x%a+|r) orb") -- orb with color
       if droppedOrb then
