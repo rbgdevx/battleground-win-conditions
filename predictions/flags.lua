@@ -157,6 +157,7 @@ do
             handleAura(aura, flagDebuffSpellIds, false)
           end
         end
+
         -- stacks are only ever added not updated
         -- if updateInfo.updatedAuraInstanceIDs then
         -- 	for _, auraInstanceID in ipairs(updateInfo.updatedAuraInstanceIDs) do
@@ -164,6 +165,7 @@ do
         -- 		handleAura(aura, flagDebuffSpellIds, false)
         -- 	end
         -- end
+
         -- we're tracking stacks being removed elsewhere
         -- if updateInfo.removedAuraInstanceIDs then
         -- 	for _, auraInstanceID in ipairs(updateInfo.removedAuraInstanceIDs) do
