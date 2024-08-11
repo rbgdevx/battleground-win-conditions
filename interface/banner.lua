@@ -117,7 +117,7 @@ function Banner:Start(duration, text)
 
   self.timerAnimationGroup:SetScript("OnLoop", function(updatedGroup)
     if updatedGroup then
-      animationUpdate(Banner, text, updatedGroup)
+      animationUpdate(self, text, updatedGroup)
     end
   end)
 

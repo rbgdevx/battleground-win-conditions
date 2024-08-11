@@ -216,7 +216,7 @@ function Stacks:Start(duration, stacks)
 
   self.timerAnimationGroup:SetScript("OnLoop", function(updatedGroup)
     if updatedGroup then
-      animationUpdate(Stacks, duration, stacks, updatedGroup)
+      animationUpdate(self, duration, stacks, updatedGroup)
     end
   end)
 

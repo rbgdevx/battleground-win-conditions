@@ -276,7 +276,7 @@ function Bases:Start(duration, winTable, callbackFn)
 
     self.timerAnimationGroup:SetScript("OnLoop", function(updatedGroup)
       if updatedGroup then
-        animationUpdate(Bases, winTable, updatedGroup, callbackFn)
+        animationUpdate(self, winTable, updatedGroup, callbackFn)
       end
     end)
 
