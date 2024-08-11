@@ -367,7 +367,7 @@ do
       FlagPrediction:GetRemainingTime(6, teamName)
     end
 
-    local function handleFlagReturn(carrier, hasCarrier)
+    local function handleFlagReturn(carrier, enemyFlagCarrier)
       if carrier == "ally" then
         allyFlagCarrier = nil
         allyHasFlag = false
@@ -375,12 +375,12 @@ do
         hordeFlagCarrier = nil
         hordeHasFlag = false
       end
-      if hasCarrier == nil and stacksCounting then
+      if enemyFlagCarrier == nil and stacksCounting then
         resetFlagState()
       end
     end
 
-    local function handleFlagPickup(carrier, hasCarrier, unitID)
+    local function handleFlagPickup(carrier, enemyFlagCarrier, unitID)
       if carrier == "ally" then
         allyFlagCarrier = unitID
         allyHasFlag = true
@@ -389,7 +389,7 @@ do
         hordeHasFlag = true
       end
       NS.HAS_FLAG_CARRIER = true
-      if hasCarrier and stacksCounting == false then
+      if enemyFlagCarrier and stacksCounting == false then
         flagCarrier = "arena2"
         FlagsFrame:RegisterEvent("UNIT_AURA")
         stacksCounting = true
