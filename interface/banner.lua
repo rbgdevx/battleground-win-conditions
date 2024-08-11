@@ -103,7 +103,11 @@ function Banner:Start(duration, text)
   self.start = GetTime()
   self.exp = self.start + time
 
-  self:SetText(self.text, bannerformat, text, NS.formatTime(time))
+  if time <= 0 then
+    self:SetText(self.text, bannerformatWin, text)
+  else
+    self:SetText(self.text, bannerformat, text, NS.formatTime(time))
+  end
 
   if NS.db.global.general.info == false then
     self.frame:SetAlpha(1)

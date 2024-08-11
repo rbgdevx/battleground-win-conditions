@@ -10,9 +10,9 @@
 - Simplifying win/lose text on banner upon timer expiring
 - Adding various win condition text info to help the user know in tricky situations what the loser wins with or not
 - Adding simplified lose text upon timer expiring
-- Refactor win condition table to only grab first win condition for performance reasons since bases can change all the time we dont need to process and store all future conditions if they never get used for the most part
+- Refactor win condition table to only grab first win condition for performance reasons since bases can change all the time we don't need to process and store all future conditions if they never get used for the most part
 - Triggering win condition prediction upon first win condition timer expiring based on new refactor
-- Fixing flag map stack issues resseting after droping then someone else picking up while stacks are counting
+- Fixing flag map stack issues resetting after dropping then someone else picking up while stacks are counting
 - Moving all flag stack logic to pvp channel messages instead of arena updates apis for consistency and reliability
 
 ## [v9.4.22](https://github.com/rbgdevx/battleground-win-conditions/releases/tag/v9.4.22) (2024-05-12)

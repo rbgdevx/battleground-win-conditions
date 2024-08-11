@@ -15,7 +15,9 @@ local instanceIdToMapId = {
     id = 1576,
     maxBases = 5,
     tickRate = 2,
-    resourcesFromBases = {
+    assaultTime = 6,
+    contestedTime = 60,
+    baseResources = {
       [0] = 0,
       [1] = 1,
       [2] = 1.5,
@@ -26,13 +28,13 @@ local instanceIdToMapId = {
   },
 }
 
-function DWG:EnterZone(id)
+function DWG:EnterZone(id, isBlitz)
   if NS.db.global.maps.deepwindgorge.enabled then
-    Info:SetAnchor(Banner.frame, 0, 0)
+    if not isBlitz or isBlitz == false then
+      Info:SetAnchor(Banner.frame, 0, 0)
 
-    BasePrediction:StartInfoTracker(instanceIdToMapId[id].id, instanceIdToMapId[id].tickRate, {
-      baseResources = instanceIdToMapId[id].resourcesFromBases,
-    }, instanceIdToMapId[id].maxBases)
+      BasePrediction:StartInfoTracker(instanceIdToMapId[id])
+    end
   end
 end
 

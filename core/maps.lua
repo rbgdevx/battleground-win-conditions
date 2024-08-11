@@ -3,7 +3,6 @@ local _, NS = ...
 local select = select
 local IsInInstance = IsInInstance
 local GetInstanceInfo = GetInstanceInfo
-local GetNumGroupMembers = GetNumGroupMembers
 
 local After = C_Timer.After
 
@@ -16,33 +15,6 @@ local Version = NS.Version
 
 local Maps = {}
 NS.Maps = Maps
-
-function BGWC:LOADING_SCREEN_DISABLED()
-  BGWCFrame:UnregisterEvent("LOADING_SCREEN_DISABLED")
-
-  After(0, function()
-    local inInstance = IsInInstance()
-    if not inInstance or inInstance == false then
-      Interface:Clear()
-
-      NS.PLAYER_FACTION = GetPlayerFactionGroup()
-      NS.IN_GAME = false
-
-      if NS.db.global.general.test then
-        if NS.db.global.general.banner then
-          Interface:CreateTestBanner()
-        else
-          if NS.db.global.general.info then
-            Interface:CreateTestInfo()
-          else
-            Interface:CreateTestBanner()
-            Interface:CreateTestInfo()
-          end
-        end
-      end
-    end
-  end)
-end
 
 do
   local prevZone = 0
@@ -64,16 +36,56 @@ do
     end
   end
 
-  function Maps:EnableZone(instanceID)
+  function Maps:EnableZone(instanceID, isBlitz)
     BGWCFrame:RegisterEvent("PLAYER_LEAVING_WORLD")
 
     NS.IN_GAME = true
-    NS.PLAYER_FACTION = GetPlayerFactionGroup()
+    NS.IS_BLITZ = isBlitz
     prevZone = instanceID
 
     Version:SendVersion()
 
-    zoneIds[instanceID]:EnterZone(instanceID)
+    zoneIds[instanceID]:EnterZone(instanceID, isBlitz)
+  end
+
+  function BGWC:LOADING_SCREEN_DISABLED()
+    BGWCFrame:UnregisterEvent("LOADING_SCREEN_DISABLED")
+
+    After(0, function()
+      NS.PLAYER_FACTION = GetPlayerFactionGroup()
+
+      local inInstance = IsInInstance()
+      if inInstance then
+        local instanceID = select(8, GetInstanceInfo())
+        if zoneIds[instanceID] then
+          local maxPlayers = select(5, GetInstanceInfo())
+
+          if maxPlayers >= NS.DEFAULT_GROUP_SIZE then
+            Maps:EnableZone(instanceID, false)
+          else
+            Maps:EnableZone(instanceID, true)
+          end
+        end
+      else
+        Interface:Clear()
+
+        NS.IN_GAME = false
+        NS.IS_BLITZ = false
+
+        if NS.db.global.general.test then
+          if NS.db.global.general.banner then
+            Interface:CreateTestBanner()
+          else
+            if NS.db.global.general.info then
+              Interface:CreateTestInfo()
+            else
+              Interface:CreateTestBanner()
+              Interface:CreateTestInfo()
+            end
+          end
+        end
+      end
+    end)
   end
 
   function Maps:ToggleZone()
@@ -82,18 +94,6 @@ do
     local inInstance = IsInInstance()
     if inInstance then
       Interface:Clear()
-
-      local instanceID = select(8, GetInstanceInfo())
-      if zoneIds[instanceID] then
-        After(5, function()
-          local maxPlayers = select(5, GetInstanceInfo())
-          local groupSize = GetNumGroupMembers()
-
-          if maxPlayers == 0 or groupSize == 0 or maxPlayers >= 10 or groupSize > 8 then
-            Maps:EnableZone(instanceID)
-          end
-        end)
-      end
     end
   end
 end

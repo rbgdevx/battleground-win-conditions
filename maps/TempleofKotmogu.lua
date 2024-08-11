@@ -10,28 +10,52 @@ local Maps = NS.Maps
 
 local TOK = Maps:NewMod()
 
-local instanceIdToMapId = {
+local instanceIDtoMapID = {
   -- TempleofKotmogu
   -- Points for the positions:
   -- - outside main area/gates
   -- - outer ring/platform
   -- - inner area/inside arena
   -- Updates every 5 second
-  -- 0 start, 3 out / 5, 4 ring / 5, 5 inner / 5
-  -- kill = 10 pts
+  -- norml: 0 start, 3/5 out, 4/5 ring, 6/5 inner
+  -- blitz: 0 start, 5/5 out, 6/5 ring, 8/5 inner
+  -- x however many orbs you have
+  -- kill = 10
   -- x4 for 45s = 4x pts
   -- only tooltip1 has info
   -- tooltip1: "TEAM has taken the ORB"
+  -- 6*4=24
+  -- 24*4=96
   [998] = {
     id = 417,
     maxOrbs = 4,
     tickRate = 5,
+    buffTime = 45,
+    orbResources = {
+      ["starting"] = 0,
+      ["outside"] = 2 / 5,
+      ["inside"] = 4 / 5,
+      ["arena"] = 6 / 5,
+    },
   },
 }
 
-function TOK:EnterZone(id)
+local function checkInfo(id, isBlitz)
+  local convertedInfo = {}
+  NS.CopyTable(instanceIDtoMapID[id], convertedInfo)
+  convertedInfo.orbResources = {
+    ["starting"] = 0,
+    ["outside"] = (isBlitz and 2 or 2) / 5, -- need to verify blitz
+    ["inside"] = (isBlitz and 6 or 4) / 5, -- verified
+    ["arena"] = (isBlitz and 8 or 6) / 5, -- verified
+  }
+  return convertedInfo
+end
+
+function TOK:EnterZone(id, isBlitz)
   if NS.db.global.maps.templeofkotmogu.enabled then
     NS.IS_TEMPLE = true
+
     Info:SetAnchor(Anchor.frame, 0, 0)
 
     if NS.db.global.general.infogroup.infobg then
@@ -40,7 +64,7 @@ function TOK:EnterZone(id)
       Orbs:SetAnchor(Info.frame, 0, 0, "TOPLEFT", "TOPLEFT")
     end
 
-    OrbPrediction:StartInfoTracker(instanceIdToMapId[id].id, instanceIdToMapId[id].maxOrbs)
+    OrbPrediction:StartInfoTracker(checkInfo(id, isBlitz))
   end
 end
 
@@ -51,6 +75,6 @@ function TOK:ExitZone()
   end
 end
 
-for id in next, instanceIdToMapId do
+for id in next, instanceIDtoMapID do
   TOK:RegisterZone(id)
 end

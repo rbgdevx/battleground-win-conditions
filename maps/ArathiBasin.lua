@@ -9,13 +9,19 @@ local Maps = NS.Maps
 
 local AB = Maps:NewMod()
 
+-- NS.SWAP_TIME = 15
+-- NS.CONTROL_TIME = 45
+-- NS.RESET_TIME = 5
+
 local instanceIdToMapId = {
   -- ArathiBasin
   [2107] = {
     id = 1366,
     maxBases = 5,
     tickRate = 2,
-    resourcesFromBases = {
+    assaultTime = 6,
+    contestedTime = 60,
+    baseResources = {
       [0] = 0,
       [1] = 1,
       [2] = 1.5,
@@ -29,7 +35,9 @@ local instanceIdToMapId = {
     id = 1383,
     maxBases = 5,
     tickRate = 2,
-    resourcesFromBases = {
+    assaultTime = 6,
+    contestedTime = 60,
+    baseResources = {
       [0] = 0,
       [1] = 1,
       [2] = 1.5,
@@ -43,7 +51,9 @@ local instanceIdToMapId = {
     id = 837,
     maxBases = 5,
     tickRate = 2,
-    resourcesFromBases = {
+    assaultTime = 6,
+    contestedTime = 60,
+    baseResources = {
       [0] = 0,
       [1] = 1,
       [2] = 1.5,
@@ -54,13 +64,13 @@ local instanceIdToMapId = {
   },
 }
 
-function AB:EnterZone(id)
+function AB:EnterZone(id, isBlitz)
   if NS.db.global.maps.arathibasin.enabled then
-    Info:SetAnchor(Banner.frame, 0, 0)
+    if not isBlitz or isBlitz == false then
+      Info:SetAnchor(Banner.frame, 0, 0)
 
-    BasePrediction:StartInfoTracker(instanceIdToMapId[id].id, instanceIdToMapId[id].tickRate, {
-      baseResources = instanceIdToMapId[id].resourcesFromBases,
-    }, instanceIdToMapId[id].maxBases)
+      BasePrediction:StartInfoTracker(instanceIdToMapId[id])
+    end
   end
 end
 

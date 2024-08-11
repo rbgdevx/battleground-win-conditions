@@ -97,20 +97,18 @@ BGWCFrame:SetScript("OnEvent", function(_, event, ...)
 end)
 NS.BGWC.frame = BGWCFrame
 
-NS.MAX_PLAYERS = 0
 NS.PLAYER_FACTION = GetPlayerFactionGroup()
 NS.ALLIANCE_NAME = FACTION_ALLIANCE
 NS.HORDE_NAME = FACTION_HORDE
 NS.WIN_NOUN = "You"
 NS.LOSE_NOUN = "They"
-NS.ASSAULT_TIME = 6
-NS.CONTESTED_TIME = 60
 NS.ACTIVE_BASE_COUNT = 0
 NS.INCOMING_BASE_COUNT = 0
 NS.WIN_INC_BASE_COUNT = 0
-NS.ORB_BUFF_TIME = 45
-NS.STACK_TIME = 30
 NS.CURRENT_STACKS = 0
+NS.DEFAULT_ORB_BUFF_TIME = 45
+NS.DEFAULT_STACK_TIME = 30 -- blitz = 15
+NS.DEFAULT_GROUP_SIZE = 10
 NS.BASE_TIMER_EXPIRED = false
 NS.STACKS_COUNTING = false
 NS.HAS_FLAG_CARRIER = false
@@ -120,6 +118,7 @@ NS.IS_EOTS = false
 NS.IS_SSM = false
 NS.IS_TP = false
 NS.IS_WG = false
+NS.IS_BLITZ = false
 
 NS.userClass = select(2, UnitClass("player"))
 NS.userClassHexColor = "|c" .. select(4, GetClassColor(NS.userClass))
@@ -177,7 +176,7 @@ NS.DefaultDatabase = {
       },
       infogroup = {
         infofont = "Friz Quadrata TT",
-        infofontsize = 12,
+        infofontsize = 14,
         infotextcolor = {
           r = 255 / 255,
           g = 255 / 255,
@@ -209,6 +208,7 @@ NS.DefaultDatabase = {
       },
       templeofkotmogu = {
         enabled = true,
+        showorbinfo = true,
         showbuffinfo = true,
       },
       thebattleforgilneas = {
@@ -233,3 +233,33 @@ NS.DefaultDatabase = {
     version = NS.VERSION,
   },
 }
+
+--[[
+-- Warsong Gulch
+-- Instance ID: 2106
+-- Zone ID: 1339
+-- Arathi Basin
+-- Instance ID: 2107
+-- Zone ID: 1366
+-- Eye of the Storm
+-- Instance ID: 566
+-- Zone ID: 112
+-- The Battle for Gilneas
+-- Instance ID: 761
+-- Zone ID: 275
+-- Twin Peaks
+-- Instance ID: 726
+-- Zone ID: 206
+-- Silvershard Mines
+-- Instance ID: 727
+-- Zone ID: 423
+-- Temple of Kotmogu
+-- Instance ID: 998
+-- Zone ID: 417
+-- Deepwind Gorge
+-- Instance ID: 2245
+-- Zone ID: 1576
+-- Seething Shore
+-- Instance ID: 1803
+-- Zone ID: 907
+--]]

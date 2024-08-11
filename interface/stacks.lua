@@ -133,21 +133,21 @@ local function textUpdate(frame, stacks, killtime, time)
 
   if stacks >= 1 and NS.db.global.general.banner == false and NS.db.global.general.infogroup.infobg then
     if NS.IN_GAME == false then
-      NS.UpdateContainerSize(Info.frame, Banner)
+      NS.UpdateInfoSize(Info.frame, Banner)
     else
       if NS.IS_TP and showDebuffs ~= NS.db.global.maps.twinpeaks.showdebuffinfo then
         showDebuffs = NS.db.global.maps.twinpeaks.showdebuffinfo
-        NS.UpdateContainerSize(Info.frame, Banner)
+        NS.UpdateInfoSize(Info.frame, Banner)
       end
       if NS.IS_WG and showDebuffs ~= NS.db.global.maps.warsonggulch.showdebuffinfo then
         showDebuffs = NS.db.global.maps.warsonggulch.showdebuffinfo
-        NS.UpdateContainerSize(Info.frame, Banner)
+        NS.UpdateInfoSize(Info.frame, Banner)
       end
     end
   end
 end
 
-local function animationUpdate(frame, stacks, animationGroup)
+local function animationUpdate(frame, duration, stacks, animationGroup)
   local t = GetTime()
 
   if t >= frame.exp then
@@ -162,7 +162,7 @@ local function animationUpdate(frame, stacks, animationGroup)
     then
       localStacks = localStacks + 1
       NS.CURRENT_STACKS = localStacks
-      Stacks:Start(NS.STACK_TIME, localStacks)
+      Stacks:Start(duration, localStacks)
     else
       animationGroup:Stop()
       -- frame.text:Hide()
@@ -194,7 +194,7 @@ function Stacks:Start(duration, stacks)
 
   local killtime = 0
   if stacks < killStacks then
-    self.killremaining = NS.STACK_TIME * (killStacks - localStacks)
+    self.killremaining = duration * (killStacks - localStacks)
     killtime = self.killremaining
     self.killstart = GetTime()
     self.killexp = self.killstart + killtime
@@ -208,7 +208,7 @@ function Stacks:Start(duration, stacks)
     self.frame:SetAlpha(1)
 
     if NS.db.global.general.infogroup.infobg then
-      NS.UpdateContainerSize(Info.frame, Banner)
+      NS.UpdateInfoSize(Info.frame, Banner)
     end
   else
     self.frame:SetAlpha(0)
@@ -216,7 +216,7 @@ function Stacks:Start(duration, stacks)
 
   self.timerAnimationGroup:SetScript("OnLoop", function(updatedGroup)
     if updatedGroup then
-      animationUpdate(Stacks, stacks, updatedGroup)
+      animationUpdate(Stacks, duration, stacks, updatedGroup)
     end
   end)
 

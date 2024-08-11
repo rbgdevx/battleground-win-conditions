@@ -10,16 +10,25 @@ local Maps = NS.Maps
 
 local WG = Maps:NewMod()
 
-local instanceIdToMapId = {
+local instanceIDtoMapID = {
   -- Warsong Gulch
   [2106] = {
     id = 1339,
+    stackTime = 30,
   },
 }
 
-function WG:EnterZone(id)
+local function checkInfo(id, isBlitz)
+  local convertedInfo = {}
+  NS.CopyTable(instanceIDtoMapID[id], convertedInfo)
+  convertedInfo.stackTime = isBlitz and 15 or 30
+  return convertedInfo
+end
+
+function WG:EnterZone(id, isBlitz)
   if NS.db.global.maps.warsonggulch.enabled then
     NS.IS_WG = true
+
     Info:SetAnchor(Banner.frame, 0, 0)
 
     if NS.db.global.general.info == false then
@@ -28,7 +37,7 @@ function WG:EnterZone(id)
       Stacks:SetAnchor(Info.frame, 0, 0, "TOPLEFT", "TOPLEFT")
     end
 
-    FlagPrediction:StartInfoTracker(instanceIdToMapId[id].id)
+    FlagPrediction:StartInfoTracker(checkInfo(id, isBlitz))
   end
 end
 
@@ -39,6 +48,6 @@ function WG:ExitZone()
   end
 end
 
-for id in next, instanceIdToMapId do
+for id in next, instanceIDtoMapID do
   WG:RegisterZone(id)
 end

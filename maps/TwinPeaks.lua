@@ -10,16 +10,25 @@ local Maps = NS.Maps
 
 local TP = Maps:NewMod()
 
-local instanceIdToMapId = {
+local instanceIDtoMapID = {
   -- Twin Peaks
   [726] = {
     id = 206,
+    stackTime = 30,
   },
 }
 
-function TP:EnterZone(id)
+local function checkInfo(id, isBlitz)
+  local convertedInfo = {}
+  NS.CopyTable(instanceIDtoMapID[id], convertedInfo)
+  convertedInfo.stackTime = isBlitz and 15 or 30
+  return convertedInfo
+end
+
+function TP:EnterZone(id, isBlitz)
   if NS.db.global.maps.twinpeaks.enabled then
     NS.IS_TP = true
+
     Info:SetAnchor(Banner.frame, 0, 0)
 
     if NS.db.global.general.info == false then
@@ -28,7 +37,7 @@ function TP:EnterZone(id)
       Stacks:SetAnchor(Info.frame, 0, 0, "TOPLEFT", "TOPLEFT")
     end
 
-    FlagPrediction:StartInfoTracker(instanceIdToMapId[id].id)
+    FlagPrediction:StartInfoTracker(checkInfo(id, isBlitz))
   end
 end
 
@@ -39,6 +48,6 @@ function TP:ExitZone()
   end
 end
 
-for id in next, instanceIdToMapId do
+for id in next, instanceIDtoMapID do
   TP:RegisterZone(id)
 end
