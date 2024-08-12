@@ -10,7 +10,7 @@
   - Twin Peaks
   - Warsong Gulch
 - Updates the default font-size to 14
-- Prep work to add support for Battleground Blitz on the remaining maps
+- Prep work to add support for Battleground Blitz for the remaining maps
 - Minor cleanup and fixes
 
 ## [v9.5.10](https://github.com/rbgdevx/battleground-win-conditions/releases/tag/v9.5.10) (2024-08-01)

@@ -293,7 +293,8 @@ do
 
     function FlagPrediction:GetStacksByMapID(mapID)
       -- mapID == Zone ID in-game
-      -- WSG = 1339, TP = 206
+      -- WSG = 1339
+      -- TP = 206
       if mapID == 1339 or mapID == 206 then
         -- Warsong Gulch, Twin Peaks
         if UnitExists("arena1") or UnitExists("arena2") then
