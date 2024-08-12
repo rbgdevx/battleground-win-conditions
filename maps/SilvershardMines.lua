@@ -37,7 +37,7 @@ local instanceIdToMapId = {
 
 local function checkInfo(id, isBlitz)
   local convertedInfo = {}
-  NS.CopyTable(instanceIdToMapId[id], convertedInfo)
+  convertedInfo = NS.CopyTable(instanceIdToMapId[id], convertedInfo)
   return convertedInfo
 end
 

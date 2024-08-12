@@ -1,5 +1,6 @@
 local _, NS = ...
 
+local next = next
 local select = select
 local IsInInstance = IsInInstance
 local GetInstanceInfo = GetInstanceInfo
@@ -94,6 +95,16 @@ do
     local inInstance = IsInInstance()
     if inInstance then
       Interface:Clear()
+
+      if NS.IN_GAME == false then
+        After(10, function()
+          if NS.IN_GAME == false then
+            BGWC:LOADING_SCREEN_DISABLED()
+          end
+        end)
+      end
+    else
+      NS.IN_GAME = false
     end
   end
 end

@@ -28,7 +28,7 @@ local instanceIdToMapId = {
 
 local function checkInfo(id, isBlitz)
   local convertedInfo = {}
-  NS.CopyTable(instanceIdToMapId[id], convertedInfo)
+  convertedInfo = NS.CopyTable(instanceIdToMapId[id], convertedInfo)
   convertedInfo.assaultTime = isBlitz and 4 or 6
   convertedInfo.contestedTime = isBlitz and 30 or 60
   convertedInfo.baseResources = {

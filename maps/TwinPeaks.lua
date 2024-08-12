@@ -20,7 +20,7 @@ local instanceIdToMapId = {
 
 local function checkInfo(id, isBlitz)
   local convertedInfo = {}
-  NS.CopyTable(instanceIdToMapId[id], convertedInfo)
+  convertedInfo = NS.CopyTable(instanceIdToMapId[id], convertedInfo)
   convertedInfo.stackTime = isBlitz and 15 or 30
   return convertedInfo
 end

@@ -3,6 +3,7 @@ local _, NS = ...
 local next = next
 local pairs = pairs
 local GetTime = GetTime
+local CreateFrame = CreateFrame
 
 local sfind = string.find
 local smatch = string.match
@@ -51,7 +52,7 @@ do
   NS.BASE_TIMER_EXPIRED = false
 
   function BasePrediction:GetFlagValue(winName, maxScore, winScore, loseScore, winBases, loseBases)
-    if NS.isEOTS(curMap.id) and (allyBases > 0 or hordeBases > 0) then
+    if allyBases > 0 or hordeBases > 0 then
       local flagsNeeded = loseBases > 0
           and NS.calculateFlagsToCatchUp(maxScore, winScore, loseScore, winBases, loseBases, curMap)
         or 0
@@ -197,7 +198,7 @@ do
               end
             end
 
-            if NS.db.global.maps.eyeofthestorm.showflaginfo then
+            if NS.isEOTS(curMap.id) and NS.db.global.maps.eyeofthestorm.showflaginfo then
               self:GetFlagValue(winName, maxScore, winScore, loseScore, winBases, loseBases)
             end
           end
@@ -344,7 +345,7 @@ do
               end
             end
 
-            if NS.db.global.maps.eyeofthestorm.showflaginfo then
+            if NS.isEOTS(curMap.id) and NS.db.global.maps.eyeofthestorm.showflaginfo then
               self:GetFlagValue(winName, maxScore, winScore, loseScore, winBases, loseBases)
             end
           end

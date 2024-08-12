@@ -1,5 +1,6 @@
 local _, NS = ...
 
+local CreateFrame = CreateFrame
 local pairs = pairs
 
 local GetDoubleStateIconRowVisualizationInfo = C_UIWidgetManager.GetDoubleStateIconRowVisualizationInfo

@@ -9,6 +9,8 @@ local format = format
 local type = type
 local next = next
 local select = select
+local setmetatable = setmetatable
+local getmetatable = getmetatable
 
 local sformat = string.format
 local mfloor = math.floor
@@ -472,14 +474,25 @@ NS.CopyDefaults = function(src, dst)
 end
 
 NS.CopyTable = function(src, dest)
-  for k, v in pairs(src) do
-    if type(v) == "table" then
-      dest[k] = NS.CopyTable(v, dest)
-    else
-      dest[k] = v
-    end
+  -- Handle non-tables and previously-seen tables.
+  if type(src) ~= "table" then
+    return src
   end
-  return dest
+
+  if dest and dest[src] then
+    return dest[src]
+  end
+
+  -- New table; mark it as seen an copy recursively.
+  local s = dest or {}
+  local res = {}
+  s[src] = res
+
+  for k, v in next, src do
+    res[NS.CopyTable(k, s)] = NS.CopyTable(v, s)
+  end
+
+  return setmetatable(res, getmetatable(src))
 end
 
 -- Cleanup savedvariables by removing table values in src that no longer
