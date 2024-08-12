@@ -1,5 +1,18 @@
 # Battleground Win Conditions
 
+## [v9.6.11](https://github.com/rbgdevx/battleground-win-conditions/releases/tag/v9.6.11) (2024-08-10)
+
+- NEW Temple of Kotmogu feature that shows available orbs, and when an orb is taken it shows the damage taken increase percentage for that orb carrier
+  - This new feature can be toggled on/off in the settings
+- Lots of performance enhancements that aims to reduce and reuse duplicate code in loops and aura checking into helper functions
+- All new Battleground Blitz support for the following maps with EXISTING features:
+  - The Battle for Gilneas
+  - Twin Peaks
+  - Warsong Gulch
+- Updates the default font-size to 14
+- Prep work to add support for Battleground Blitz for the remaining maps
+- Minor cleanup and fixes
+
 ## [v9.5.10](https://github.com/rbgdevx/battleground-win-conditions/releases/tag/v9.5.10) (2024-08-01)
 
 - Lib updates
@@ -10,9 +23,9 @@
 - Simplifying win/lose text on banner upon timer expiring
 - Adding various win condition text info to help the user know in tricky situations what the loser wins with or not
 - Adding simplified lose text upon timer expiring
-- Refactor win condition table to only grab first win condition for performance reasons since bases can change all the time we dont need to process and store all future conditions if they never get used for the most part
+- Refactor win condition table to only grab first win condition for performance reasons since bases can change all the time we don't need to process and store all future conditions if they never get used for the most part
 - Triggering win condition prediction upon first win condition timer expiring based on new refactor
-- Fixing flag map stack issues resseting after droping then someone else picking up while stacks are counting
+- Fixing flag map stack issues resetting after dropping then someone else picking up while stacks are counting
 - Moving all flag stack logic to pvp channel messages instead of arena updates apis for consistency and reliability
 
 ## [v9.4.22](https://github.com/rbgdevx/battleground-win-conditions/releases/tag/v9.4.22) (2024-05-12)

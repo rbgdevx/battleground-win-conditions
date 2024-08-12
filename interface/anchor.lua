@@ -103,7 +103,7 @@ function Anchor:Create()
     bg:SetColorTexture(0, 1, 0, 0.2)
 
     local header = AnchorFrame:CreateFontString(nil, "OVERLAY")
-    header:SetFont("Fonts\\FRIZQT__.TTF", 12, "THINOUTLINE")
+    header:SetFont("Fonts\\FRIZQT__.TTF", 12, "OUTLINE")
     header:SetAllPoints(AnchorFrame)
     header:SetFormattedText("anchor")
     header:SetJustifyH("CENTER")

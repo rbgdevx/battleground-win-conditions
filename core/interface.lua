@@ -57,7 +57,7 @@ function Interface:Clear()
   Info.frame:SetSize(1, 1)
   Banner:Stop(Banner, Banner.timerAnimationGroup)
   Bases:Stop(Bases, Bases.timerAnimationGroup)
-  Orbs:Stop(Orbs, Orbs.timerAnimationGroup)
+  Orbs:Stop(Orbs, Orbs.timerAnimationGroup, true)
   Stacks:Stop(Stacks, Stacks.timerAnimationGroup)
   Score:Stop(Score)
   Flags:Stop(Flags)
@@ -70,13 +70,14 @@ function Interface:Refresh()
   Banner:SetScale(Banner.frame)
   Banner:SetFont(Banner.text)
   Bases:SetFont(Bases.text)
-  Orbs:SetFont(Orbs.text)
+  Orbs:SetFont(Orbs.orbText)
+  Orbs:SetFont(Orbs.buffText)
   Flags:SetFont(Flags.text)
   Score:SetFont(Score.text)
   Stacks:SetFont(Stacks.text)
 
   if NS.db.global.general.banner == false and NS.db.global.general.infogroup.infobg then
-    NS.UpdateContainerSize(Info.frame, Banner)
+    NS.UpdateInfoSize(Info.frame, Banner)
   end
 end
 
@@ -151,9 +152,13 @@ function Interface:CreateTestInfo()
   else
     Orbs:SetAnchor(Flags.frame, 0, -10)
   end
-  Orbs:Start(NS.ORB_BUFF_TIME, NS.formatTeamName(NS.PLAYER_FACTION, NS.PLAYER_FACTION))
+  Orbs:StartOrbList()
+  Orbs:Start(NS.DEFAULT_ORB_BUFF_TIME, NS.formatTeamName(NS.PLAYER_FACTION, NS.PLAYER_FACTION))
 
-  if NS.db.global.maps.templeofkotmogu.showbuffinfo == false then
+  if
+    NS.db.global.maps.templeofkotmogu.showorbinfo == false
+    and NS.db.global.maps.templeofkotmogu.showbuffinfo == false
+  then
     if NS.db.global.maps.eyeofthestorm.showflaginfo == false then
       Stacks:SetAnchor(Bases.frame, 0, -10)
     else
@@ -162,10 +167,10 @@ function Interface:CreateTestInfo()
   else
     Stacks:SetAnchor(Orbs.frame, 0, -10)
   end
-  Stacks:Start(NS.STACK_TIME, 0)
+  Stacks:Start(NS.DEFAULT_STACK_TIME, 0)
 
   if NS.db.global.general.banner == false and NS.db.global.general.infogroup.infobg then
-    NS.UpdateContainerSize(Info.frame, Banner)
+    NS.UpdateInfoSize(Info.frame, Banner)
   end
 end
 
@@ -198,7 +203,10 @@ function Interface:Create()
     end
   end
   if Orbs.frame then
-    if NS.db.global.maps.templeofkotmogu.showbuffinfo == false then
+    if
+      NS.db.global.maps.templeofkotmogu.showorbinfo == false
+      and NS.db.global.maps.templeofkotmogu.showbuffinfo == false
+    then
       Stacks:Create(Flags.frame)
     else
       Stacks:Create(Orbs.frame)

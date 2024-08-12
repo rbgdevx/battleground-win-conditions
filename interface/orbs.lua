@@ -3,6 +3,9 @@ local AddonName, NS = ...
 local CreateFrame = CreateFrame
 local LibStub = LibStub
 local GetTime = GetTime
+local ipairs = ipairs
+
+local sformat = string.format
 
 local LSM = LibStub("LibSharedMedia-3.0")
 
@@ -23,7 +26,15 @@ end
 
 function Orbs:SetText(frame, format, ...)
   frame:SetFormattedText(format, ...)
-  NS.UpdateSize(OrbsFrame, frame)
+  if self.orbTextFrame then
+    NS.UpdateSize(self.orbTextFrame, self.orbText)
+  end
+  if self.buffTextFrame then
+    NS.UpdateSize(self.buffTextFrame, self.buffText)
+  end
+  if self.frame and self.orbTextFrame and self.buffTextFrame then
+    NS.UpdateContainerSize(self.frame)
+  end
 end
 
 function Orbs:SetTextColor(frame, color)
@@ -34,9 +45,17 @@ function Orbs:SetFont(frame)
   frame:SetFont(
     LSM:Fetch("font", NS.db.global.general.infogroup.infofont),
     NS.db.global.general.infogroup.infofontsize,
-    "THINOUTLINE"
+    "OUTLINE"
   )
-  NS.UpdateSize(OrbsFrame, frame)
+  if self.orbTextFrame then
+    NS.UpdateSize(self.orbTextFrame, self.orbText)
+  end
+  if self.buffTextFrame then
+    NS.UpdateSize(self.buffTextFrame, self.buffText)
+  end
+  if self.frame and self.orbTextFrame and self.buffTextFrame then
+    NS.UpdateContainerSize(self.frame)
+  end
 end
 
 function Orbs:ToggleAlpha()
@@ -45,18 +64,81 @@ function Orbs:ToggleAlpha()
   self.frame:SetAlpha(newAlpha)
 end
 
-local function stopAnimation(frame, animationGroup)
-  animationGroup:Stop()
-  frame.frame:SetAlpha(0)
-  frame.text:SetFormattedText("")
+-- Define a table with orb colors and their respective color codes
+local orbColors = {
+  ["Blue"] = "|cFF01DFD7",
+  ["Green"] = "|cFF01DF01",
+  ["Orange"] = "|cFFFF8000",
+  ["Purple"] = "|cFFBF00FF",
+}
+local orbNames = { "Blue", "Green", "Orange", "Purple" }
 
-  if NS.IN_GAME then
-    Info.frame:SetSize(1, 1)
+-- Function to format each orb entry based on its value
+local function formatOrb(orbName, orbValue)
+  local colorCode = orbColors[orbName]
+  if orbValue == 0 then
+    return sformat("%s%s|r orb is available\n", colorCode, orbName)
+  else
+    return sformat("%s%s|r orb has %d%%\n", colorCode, orbName, orbValue)
   end
 end
 
-function Orbs:Stop(frame, animationGroup)
+function Orbs:StartOrbList(orbStacks)
+  local orbList = ""
+
+  if orbStacks then
+    -- Iterate through each orb in the specified order and add to the list
+    for _, orbName in ipairs(orbNames) do
+      local orbValue = orbStacks[orbName] or 0 -- Get the value from orbStacks, default to 0 if not present
+      orbList = orbList .. formatOrb(orbName, orbValue)
+    end
+  else
+    orbList = orbList .. formatOrb("Blue", 0)
+    orbList = orbList .. formatOrb("Green", 0)
+    orbList = orbList .. formatOrb("Orange", 0)
+    orbList = orbList .. formatOrb("Purple", 0)
+  end
+
+  self:SetText(self.orbText, "%s", orbList)
+  self:SetFont(self.orbText)
+
+  NS.UpdateSize(self.orbTextFrame, self.orbText)
+
+  if NS.db.global.maps.templeofkotmogu.showorbinfo == false then
+    self.orbTextFrame:SetAlpha(0)
+
+    if NS.db.global.maps.templeofkotmogu.showbuffinfo == false then
+      self.frame:SetAlpha(0)
+    end
+  else
+    self.frame:SetAlpha(1)
+    self.orbTextFrame:SetAlpha(1)
+
+    if NS.db.global.general.banner == false and NS.db.global.general.infogroup.infobg then
+      NS.UpdateInfoSize(Info.frame, Banner)
+    end
+  end
+
+  NS.UpdateContainerSize(self.frame)
+end
+
+local function stopAnimation(frame, animationGroup)
+  animationGroup:Stop()
+  frame.buffText:SetFormattedText("")
+  frame.buffTextFrame:SetAlpha(0)
+end
+
+function Orbs:Stop(frame, animationGroup, everything)
   stopAnimation(frame, animationGroup)
+
+  if everything then
+    frame.frame:SetAlpha(0)
+    frame.orbText:SetFormattedText("")
+
+    if NS.IN_GAME then
+      Info.frame:SetSize(1, 1)
+    end
+  end
 end
 
 local orbsformat1 = "%s get 4x points in %s"
@@ -66,13 +148,13 @@ local function animationUpdate(frame, text, animationGroup)
   local t = GetTime()
   if t >= frame.exp then
     animationGroup:Stop()
-    Orbs:SetText(frame.text, orbsformat2, text)
-    -- frame.text:Hide()
+    Orbs:SetText(frame.buffText, orbsformat2, text)
+    -- frame.buffText:Hide()
   else
     local time = frame.exp - t
     frame.remaining = time
-    Orbs:SetText(frame.text, orbsformat1, text, NS.formatTime(time))
-    -- frame.text:Show()
+    Orbs:SetText(frame.buffText, orbsformat1, text, NS.formatTime(time))
+    -- frame.buffText:Show()
   end
 end
 
@@ -84,22 +166,29 @@ function Orbs:Start(duration, text)
   self.start = GetTime()
   self.exp = self.start + time
 
-  self:SetText(self.text, orbsformat1, text, NS.formatTime(time))
-  self:SetFont(self.text)
+  self:SetText(self.buffText, orbsformat1, text, NS.formatTime(time))
+  self:SetFont(self.buffText)
+
+  NS.UpdateSize(self.buffTextFrame, self.buffText)
 
   if NS.db.global.maps.templeofkotmogu.showbuffinfo == false then
-    self.frame:SetAlpha(0)
+    if NS.db.global.maps.templeofkotmogu.showorbinfo == false then
+      self.frame:SetAlpha(0)
+    end
   else
     self.frame:SetAlpha(1)
+    self.buffTextFrame:SetAlpha(1)
 
     if NS.db.global.general.banner == false and NS.db.global.general.infogroup.infobg then
-      NS.UpdateContainerSize(Info.frame, Banner)
+      NS.UpdateInfoSize(Info.frame, Banner)
     end
   end
 
+  NS.UpdateContainerSize(self.frame)
+
   self.timerAnimationGroup:SetScript("OnLoop", function(updatedGroup)
     if updatedGroup then
-      animationUpdate(Orbs, text, updatedGroup)
+      animationUpdate(self, text, updatedGroup)
     end
   end)
 
@@ -107,20 +196,54 @@ function Orbs:Start(duration, text)
 end
 
 function Orbs:Create(anchor)
-  if not Orbs.text then
-    local Text = OrbsFrame:CreateFontString(nil, "ARTWORK")
-    Text:SetAllPoints()
-    self:SetFont(Text)
-    self:SetTextColor(Text, NS.db.global.general.infogroup.infotextcolor)
-    Text:SetShadowOffset(0, 0)
-    Text:SetShadowColor(0, 0, 0, 1)
-    Text:SetJustifyH("LEFT")
-    Text:SetJustifyV("TOP")
-
+  if not Orbs.orbTextFrame then
     OrbsFrame:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, 0)
+    OrbsFrame:SetWidth(1)
+    OrbsFrame:SetHeight(1)
     OrbsFrame:SetAlpha(0)
 
-    Orbs.text = Text
+    local OrbTextFrame = CreateFrame("Frame", AddonName .. "OrbsFrameGroupFrame", OrbsFrame)
+    OrbTextFrame:SetPoint("TOPLEFT", OrbsFrame, "TOPLEFT", 0, 0)
+    if NS.db.global.maps.templeofkotmogu.showorbinfo then
+      OrbTextFrame:SetAlpha(1)
+    else
+      OrbTextFrame:SetAlpha(0)
+    end
+
+    local OrbText = OrbTextFrame:CreateFontString(nil, "ARTWORK")
+    OrbText:SetAllPoints()
+    self:SetFont(OrbText)
+    self:SetTextColor(OrbText, NS.db.global.general.infogroup.infotextcolor)
+    OrbText:SetShadowOffset(0, 0)
+    OrbText:SetShadowColor(0, 0, 0, 1)
+    OrbText:SetJustifyH("LEFT")
+    OrbText:SetJustifyV("TOP")
+
+    local BuffTextFrame = CreateFrame("Frame", AddonName .. "OrbsFrameGroupFrame", OrbsFrame)
+    if NS.db.global.maps.templeofkotmogu.showorbinfo then
+      BuffTextFrame:SetPoint("TOPLEFT", OrbTextFrame, "BOTTOMLEFT", 0, -5)
+    else
+      BuffTextFrame:SetPoint("TOPLEFT", OrbsFrame, "TOPLEFT", 0, 0)
+    end
+    if NS.db.global.maps.templeofkotmogu.showbuffinfo then
+      BuffTextFrame:SetAlpha(1)
+    else
+      BuffTextFrame:SetAlpha(0)
+    end
+
+    local BuffText = BuffTextFrame:CreateFontString(nil, "ARTWORK")
+    BuffText:SetAllPoints()
+    self:SetFont(BuffText)
+    self:SetTextColor(BuffText, NS.db.global.general.infogroup.infotextcolor)
+    BuffText:SetShadowOffset(0, 0)
+    BuffText:SetShadowColor(0, 0, 0, 1)
+    BuffText:SetJustifyH("LEFT")
+    BuffText:SetJustifyV("TOP")
+
+    Orbs.orbTextFrame = OrbTextFrame
+    Orbs.buffTextFrame = BuffTextFrame
+    Orbs.orbText = OrbText
+    Orbs.buffText = BuffText
     Orbs.timerAnimationGroup = NS.CreateTimerAnimation(OrbsFrame)
   end
 end

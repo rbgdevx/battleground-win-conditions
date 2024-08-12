@@ -128,8 +128,8 @@ NS.AceConfig = {
               Score:SetAnchor(Info.frame, 0, -5)
             end
 
-            if NS.IN_GAME == false then
-              NS.UpdateContainerSize(Info.frame, Banner)
+            if NS.IN_GAME == false and NS.db.global.general.infogroup.infobg then
+              NS.UpdateInfoSize(Info.frame, Banner)
             end
           end,
           get = function(_)
@@ -335,7 +335,8 @@ NS.AceConfig = {
               set = function(_, val)
                 NS.db.global.general.infogroup.infofont = val
                 Bases:SetFont(Bases.text)
-                Orbs:SetFont(Orbs.text)
+                Orbs:SetFont(Orbs.orbText)
+                Orbs:SetFont(Orbs.buffText)
                 Flags:SetFont(Flags.text)
                 Score:SetFont(Score.text)
                 Stacks:SetFont(Stacks.text)
@@ -358,7 +359,8 @@ NS.AceConfig = {
                 Score:SetFont(Score.text)
                 Bases:SetFont(Bases.text)
                 Flags:SetFont(Flags.text)
-                Orbs:SetFont(Orbs.text)
+                Orbs:SetFont(Orbs.orbText)
+                Orbs:SetFont(Orbs.buffText)
                 Stacks:SetFont(Stacks.text)
               end,
               get = function(_)
@@ -379,7 +381,8 @@ NS.AceConfig = {
                 Score:SetTextColor(Score.text, NS.db.global.general.infogroup.infotextcolor)
                 Bases:SetTextColor(Bases.text, NS.db.global.general.infogroup.infotextcolor)
                 Flags:SetTextColor(Flags.text, NS.db.global.general.infogroup.infotextcolor)
-                Orbs:SetTextColor(Orbs.text, NS.db.global.general.infogroup.infotextcolor)
+                Orbs:SetTextColor(Orbs.orbText, NS.db.global.general.infogroup.infotextcolor)
+                Orbs:SetTextColor(Orbs.buffText, NS.db.global.general.infogroup.infotextcolor)
                 Stacks:SetTextColor(Stacks.text, NS.db.global.general.infogroup.infotextcolor)
               end,
               get = function(_)
@@ -401,7 +404,7 @@ NS.AceConfig = {
 
                 if val then
                   Info.bg:SetAlpha(1)
-                  NS.UpdateContainerSize(Info.frame, Banner)
+                  NS.UpdateInfoSize(Info.frame, Banner)
 
                   if NS.IN_GAME and NS.IS_TEMPLE then
                     Orbs:SetAnchor(Info.frame, 0, -5, "TOPLEFT", "TOPLEFT")
@@ -483,7 +486,7 @@ NS.AceConfig = {
               name = "Enabled",
               desc = "Enable for Arathi Basin. Toggling this feature on/off while inside a game requires a reload.",
               type = "toggle",
-              width = "normal",
+              width = "half",
               order = 1,
               disabled = false,
               set = function(_, val)
@@ -519,7 +522,7 @@ NS.AceConfig = {
               name = "Enabled",
               desc = "Enable for Deepwind Gorge",
               type = "toggle",
-              width = "normal",
+              width = "half",
               order = 1,
               disabled = false,
               set = function(_, val)
@@ -555,7 +558,7 @@ NS.AceConfig = {
               name = "Enabled",
               desc = "Enable for Eye of the Storm. Toggling this feature on/off while inside a game requires a reload.",
               type = "toggle",
-              width = "normal",
+              width = "half",
               order = 1,
               disabled = false,
               set = function(_, val)
@@ -584,7 +587,10 @@ NS.AceConfig = {
                   Flags.frame:SetAlpha(1)
                   Orbs:SetAnchor(Flags.frame, 0, -10)
 
-                  if NS.db.global.maps.templeofkotmogu.showbuffinfo == false then
+                  if
+                    NS.db.global.maps.templeofkotmogu.showorbinfo == false
+                    and NS.db.global.maps.templeofkotmogu.showbuffinfo == false
+                  then
                     Stacks:SetAnchor(Flags.frame, 0, -10)
                   else
                     Stacks:SetAnchor(Orbs.frame, 0, -10)
@@ -593,7 +599,10 @@ NS.AceConfig = {
                   Flags.frame:SetAlpha(0)
                   Orbs:SetAnchor(Bases.frame, 0, -10)
 
-                  if NS.db.global.maps.templeofkotmogu.showbuffinfo == false then
+                  if
+                    NS.db.global.maps.templeofkotmogu.showorbinfo == false
+                    and NS.db.global.maps.templeofkotmogu.showbuffinfo == false
+                  then
                     Stacks:SetAnchor(Bases.frame, 0, -10)
                   else
                     Stacks:SetAnchor(Orbs.frame, 0, -10)
@@ -601,7 +610,7 @@ NS.AceConfig = {
                 end
 
                 if NS.db.global.general.banner == false and NS.db.global.general.infogroup.infobg then
-                  NS.UpdateContainerSize(Info.frame, Banner)
+                  NS.UpdateInfoSize(Info.frame, Banner)
                 end
               end,
             },
@@ -626,7 +635,7 @@ NS.AceConfig = {
               name = "Enabled",
               desc = "Enable for Silvershard Mines. Toggling this feature on/off while inside a game requires a reload.",
               type = "toggle",
-              width = "normal",
+              width = "half",
               order = 1,
               disabled = true,
               set = function(_, val)
@@ -663,7 +672,7 @@ NS.AceConfig = {
               name = "Enabled",
               desc = "Enable for Temple of Kotmogu. Toggling this feature on/off while inside a game requires a reload.",
               type = "toggle",
-              width = "normal",
+              width = "half",
               order = 1,
               disabled = false,
               set = function(_, val)
@@ -679,30 +688,85 @@ NS.AceConfig = {
                 end
               end,
             },
+            showorbinfo = {
+              name = "Show Available Orbs",
+              desc = "Shows what orbs are available and what taken orbs stack percentages are.",
+              type = "toggle",
+              width = "normal",
+              order = 2,
+              set = function(_, val)
+                NS.db.global.maps.templeofkotmogu.showorbinfo = val
+
+                if val then
+                  Stacks:SetAnchor(Orbs.frame, 0, -10)
+
+                  if NS.db.global.maps.templeofkotmogu.showbuffinfo then
+                    Orbs.buffTextFrame:SetPoint("TOPLEFT", Orbs.orbTextFrame, "BOTTOMLEFT", 0, -5)
+                  end
+
+                  Orbs.orbTextFrame:SetAlpha(1)
+                  Orbs.frame:SetAlpha(1)
+                else
+                  Orbs.orbTextFrame:SetAlpha(0)
+
+                  if NS.db.global.maps.templeofkotmogu.showbuffinfo == false then
+                    if NS.db.global.maps.eyeofthestorm.showflaginfo == false then
+                      Stacks:SetAnchor(Bases.frame, 0, -10)
+                    else
+                      Stacks:SetAnchor(Flags.frame, 0, -10)
+                    end
+
+                    Orbs.frame:SetAlpha(0)
+                  else
+                    Orbs.buffTextFrame:SetPoint("TOPLEFT", Orbs.frame, "TOPLEFT", 0, 0)
+                  end
+                end
+
+                NS.UpdateContainerSize(Orbs.frame)
+
+                if NS.db.global.general.banner == false and NS.db.global.general.infogroup.infobg then
+                  NS.UpdateInfoSize(Info.frame, Banner)
+                end
+              end,
+            },
             showbuffinfo = {
               name = "Show 4x Orb Buff",
               desc = "Shows when the 4x point increase buff starts when carrying 4 orbs.",
               type = "toggle",
               width = "normal",
-              order = 2,
+              order = 3,
               set = function(_, val)
                 NS.db.global.maps.templeofkotmogu.showbuffinfo = val
 
                 if val then
                   Stacks:SetAnchor(Orbs.frame, 0, -10)
+
+                  if NS.db.global.maps.templeofkotmogu.showorbinfo then
+                    Orbs.buffTextFrame:SetPoint("TOPLEFT", Orbs.orbTextFrame, "BOTTOMLEFT", 0, -5)
+                  else
+                    Orbs.buffTextFrame:SetPoint("TOPLEFT", Orbs.frame, "TOPLEFT", 0, 0)
+                  end
+
+                  Orbs.buffTextFrame:SetAlpha(1)
                   Orbs.frame:SetAlpha(1)
                 else
-                  Orbs.frame:SetAlpha(0)
+                  Orbs.buffTextFrame:SetAlpha(0)
 
-                  if NS.db.global.maps.eyeofthestorm.showflaginfo == false then
-                    Stacks:SetAnchor(Bases.frame, 0, -10)
-                  else
-                    Stacks:SetAnchor(Flags.frame, 0, -10)
+                  if NS.db.global.maps.templeofkotmogu.showorbinfo == false then
+                    if NS.db.global.maps.eyeofthestorm.showflaginfo == false then
+                      Stacks:SetAnchor(Bases.frame, 0, -10)
+                    else
+                      Stacks:SetAnchor(Flags.frame, 0, -10)
+                    end
+
+                    Orbs.frame:SetAlpha(0)
                   end
                 end
 
+                NS.UpdateContainerSize(Orbs.frame)
+
                 if NS.db.global.general.banner == false and NS.db.global.general.infogroup.infobg then
-                  NS.UpdateContainerSize(Info.frame, Banner)
+                  NS.UpdateInfoSize(Info.frame, Banner)
                 end
               end,
             },
@@ -727,7 +791,7 @@ NS.AceConfig = {
               name = "Enabled",
               desc = "Enable for The Battle for Gilneas. Toggling this feature on/off while inside a game requires a reload.",
               type = "toggle",
-              width = "normal",
+              width = "half",
               order = 1,
               disabled = false,
               set = function(_, val)
@@ -764,7 +828,7 @@ NS.AceConfig = {
               name = "Enabled",
               desc = "Enable for Twin Peaks. Toggling this feature on/off while inside a game requires a reload.",
               type = "toggle",
-              width = "normal",
+              width = "half",
               order = 1,
               disabled = false,
               set = function(_, val)
@@ -808,7 +872,7 @@ NS.AceConfig = {
               name = "Enabled",
               desc = "Enable for Warsong Gulch. Toggling this feature on/off while inside a game requires a reload.",
               type = "toggle",
-              width = "normal",
+              width = "half",
               order = 1,
               disabled = false,
               set = function(_, val)

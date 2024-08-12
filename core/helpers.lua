@@ -9,6 +9,8 @@ local format = format
 local type = type
 local next = next
 local select = select
+local setmetatable = setmetatable
+local getmetatable = getmetatable
 
 local sformat = string.format
 local mfloor = math.floor
@@ -145,8 +147,8 @@ NS.getWinTime = function(ticksToWin, tickRate)
   return mmin(timeToWin, 10000)
 end
 
-NS.calculateFlagsToCatchUp = function(maxScore, winScore, loseScore, winBases, loseBases, curMapInfo, curTickRate)
-  local flagValue = curMapInfo.flagResources[loseBases]
+NS.calculateFlagsToCatchUp = function(maxScore, winScore, loseScore, winBases, loseBases, curMap)
+  local flagValue = curMap.flagResources[loseBases]
   local flagsNeeded = 0
 
   for flags = 1, 20 do
@@ -154,9 +156,9 @@ NS.calculateFlagsToCatchUp = function(maxScore, winScore, loseScore, winBases, l
     local potentialWinTeamScore = winScore
 
     local loseTicksToWin =
-      NS.getWinTicks(maxScore, potentialLoseTeamScore, curTickRate, curMapInfo.baseResources[loseBases])
+      NS.getWinTicks(maxScore, potentialLoseTeamScore, curMap.tickRate, curMap.baseResources[loseBases])
     local winTicksToWin =
-      NS.getWinTicks(maxScore, potentialWinTeamScore, curTickRate, curMapInfo.baseResources[winBases])
+      NS.getWinTicks(maxScore, potentialWinTeamScore, curMap.tickRate, curMap.baseResources[winBases])
 
     if loseTicksToWin < winTicksToWin then
       flagsNeeded = flags
@@ -192,7 +194,9 @@ NS.checkWinCondition = function(
   oldWinTime,
   oldWinTicks,
   tickRate,
-  resources
+  resources,
+  assaultTime,
+  contestedTime
 )
   local table = {}
 
@@ -207,9 +211,9 @@ NS.checkWinCondition = function(
   local potentialLoseTeamBaseCount = needBases
   local potentialWinTeamBaseCount = ((needBases + winBases) > maxBases) and maxBases - needBases or winBases
 
-  local loseTeamGapScore = mceil(NS.CONTESTED_TIME / tickRate) * (tickRate * resources[loseBases])
-  local winTeamGapScore = mceil(NS.CONTESTED_TIME / tickRate) * (tickRate * resources[potentialWinTeamBaseCount])
-  local assaultScore = mceil(NS.ASSAULT_TIME / tickRate) * (tickRate * resources[winBases])
+  local loseTeamGapScore = mceil(contestedTime / tickRate) * (tickRate * resources[loseBases])
+  local winTeamGapScore = mceil(contestedTime / tickRate) * (tickRate * resources[potentialWinTeamBaseCount])
+  local assaultScore = mceil(assaultTime / tickRate) * (tickRate * resources[winBases])
 
   --[[
   -- we need to look ahead in time to compare
@@ -229,9 +233,9 @@ NS.checkWinCondition = function(
     local loseTeamScoreNow = loseScore + loseTeamScoreIncrease
     local winTeamScoreNow = winScore + winTeamScoreIncrease
 
-    local loseGapScore = (oldWinTicks < mceil(NS.CONTESTED_TIME / tickRate)) and loseTeamScoreNow
+    local loseGapScore = (oldWinTicks < mceil(contestedTime / tickRate)) and loseTeamScoreNow
       or loseTeamScoreNow + loseTeamGapScore
-    local winGapScore = (oldWinTicks < mceil(NS.CONTESTED_TIME / tickRate)) and winTeamScoreNow
+    local winGapScore = (oldWinTicks < mceil(contestedTime / tickRate)) and winTeamScoreNow
       or winTeamScoreNow + winTeamGapScore
 
     local loseTicksToWin = NS.getWinTicks(maxScore, loseGapScore, tickRate, resources[potentialLoseTeamBaseCount])
@@ -248,7 +252,7 @@ NS.checkWinCondition = function(
       --[[
       -- we need to accomodate for the assault time
       --]]
-      local capTime = ownTime - NS.ASSAULT_TIME
+      local capTime = ownTime - assaultTime
       local capTicks = mceil(capTime / tickRate)
       --[[
       -- we need to subtract the gap score from the score
@@ -405,7 +409,26 @@ NS.UpdateSize = function(frame, text)
 end
 
 -- Function to update the size of the container based on visible children
-NS.UpdateContainerSize = function(frame, banner)
+NS.UpdateContainerSize = function(frame)
+  local maxWidth, maxHeight = 1, 1
+  for i = 1, frame:GetNumChildren() do
+    local child = select(i, frame:GetChildren())
+    if child and child:IsShown() and child:GetAlpha() > 0 then -- Check if the child is visible and not fully transparent
+      local childRight = child:GetRight() or 0
+      local childBottom = child:GetBottom() or 0
+      -- local childTop = child:GetTop() or 0
+      -- local childLeft = child:GetLeft() or 0
+
+      -- Adjust the container size based on child extents
+      maxWidth = mmax(maxWidth, childRight - frame:GetLeft())
+      maxHeight = mmax(maxHeight, frame:GetTop() - childBottom)
+    end
+  end
+  frame:SetSize(maxWidth, maxHeight)
+end
+
+-- Function to update the size of the container based on visible children
+NS.UpdateInfoSize = function(frame, banner)
   local maxWidth, maxHeight = 175, 25
   for i = 1, frame:GetNumChildren() do
     local child = select(i, frame:GetChildren())
@@ -422,6 +445,11 @@ NS.UpdateContainerSize = function(frame, banner)
   end
   frame:SetSize(maxWidth, maxHeight)
   banner.frame:SetWidth(maxWidth)
+end
+
+-- Function to strip color codes for plain text reference
+NS.stripColorCode = function(s)
+  return s:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "")
 end
 
 -- Copies table values from src to dst if they don't exist in dst
@@ -443,6 +471,28 @@ NS.CopyDefaults = function(src, dst)
   end
 
   return dst
+end
+
+NS.CopyTable = function(src, dest)
+  -- Handle non-tables and previously-seen tables.
+  if type(src) ~= "table" then
+    return src
+  end
+
+  if dest and dest[src] then
+    return dest[src]
+  end
+
+  -- New table; mark it as seen an copy recursively.
+  local s = dest or {}
+  local res = {}
+  s[src] = res
+
+  for k, v in next, src do
+    res[NS.CopyTable(k, s)] = NS.CopyTable(v, s)
+  end
+
+  return setmetatable(res, getmetatable(src))
 end
 
 -- Cleanup savedvariables by removing table values in src that no longer
