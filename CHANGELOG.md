@@ -1,6 +1,6 @@
 # Battleground Win Conditions
 
-## [v9.6.11](https://github.com/rbgdevx/battleground-win-conditions/releases/tag/v9.6.11) (2024-08-10)
+## [v9.6.11](https://github.com/rbgdevx/battleground-win-conditions/releases/tag/v9.6.11) (2024-08-11)
 
 - NEW Temple of Kotmogu feature that shows available orbs, and when an orb is taken it shows the damage taken increase percentage for that orb carrier
   - This new feature can be toggled on/off in the settings
