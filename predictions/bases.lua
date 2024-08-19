@@ -943,7 +943,7 @@ do
         if elapsed > 0.5 then
           -- If there's only 1 update, it could be either alliance or horde, so we update both stats in this one
           minScore = scoreInfo.leftBarMin -- Min Bar
-          maxScore = scoreInfo.leftBarMax -- Max Bara
+          maxScore = scoreInfo.leftBarMax -- Max Bar
           aScore = scoreInfo.leftBarValue -- Alliance Bar
           hScore = scoreInfo.rightBarValue -- Horde Bar
           aIncrease = aScore - prevAScore
