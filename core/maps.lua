@@ -33,6 +33,7 @@ do
 
     local inInstance = IsInInstance()
     if not inInstance or inInstance == false then
+      LOADING_SCREEN_DISABLED = false
       zoneIds[prevZone]:ExitZone()
       prevZone = 0
     end
@@ -52,7 +53,6 @@ do
 
   function Maps:PrepareZone()
     NS.PLAYER_FACTION = GetPlayerFactionGroup()
-    LOADING_SCREEN_DISABLED = true
 
     local inInstance = IsInInstance()
     if inInstance then
@@ -90,6 +90,8 @@ do
   function BGWC:LOADING_SCREEN_DISABLED()
     BGWCFrame:UnregisterEvent("LOADING_SCREEN_DISABLED")
 
+    LOADING_SCREEN_DISABLED = true
+
     After(0, function()
       Maps:PrepareZone()
     end)
@@ -104,7 +106,7 @@ do
         Interface:Clear()
 
         After(15, function()
-          if LOADING_SCREEN_DISABLED == false and NS.IN_GAME == false then
+          if LOADING_SCREEN_DISABLED == false or NS.IN_GAME == false then
             self:PrepareZone()
           end
         end)
