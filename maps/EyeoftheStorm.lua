@@ -21,6 +21,7 @@ local instanceIdToMapId = {
     tickRate = 2,
     assaultTime = 6,
     contestedTime = 60,
+    resetTime = 15,
     baseResources = {
       [0] = 0,
       [1] = 1,
@@ -43,6 +44,7 @@ local instanceIdToMapId = {
     tickRate = 2,
     assaultTime = 6,
     contestedTime = 60,
+    resetTime = 15,
     baseResources = {
       [0] = 0,
       [1] = 1,
@@ -65,6 +67,17 @@ local function checkInfo(id, isBlitz)
   convertedInfo = NS.CopyTable(instanceIdToMapId[id], convertedInfo)
   convertedInfo.assaultTime = isBlitz and 4 or 6
   convertedInfo.contestedTime = isBlitz and 30 or 60
+  convertedInfo.maxBases = isBlitz and 2 or 4
+  convertedInfo.baseResources = isBlitz and {
+    [0] = 0,
+    [1] = 3.5,
+    [2] = 7.5,
+  } or instanceIdToMapId[id].baseResources
+  convertedInfo.flagResources = isBlitz and {
+    [0] = 0,
+    [1] = 175,
+    [2] = 250,
+  } or instanceIdToMapId[id].flagResources
   return convertedInfo
 end
 
@@ -72,12 +85,10 @@ function EOTS:EnterZone(id, isBlitz)
   if NS.db.global.maps.eyeofthestorm.enabled then
     NS.IS_EOTS = true
 
-    if not isBlitz or isBlitz == false then
-      Info:SetAnchor(Banner.frame, 0, 0)
-      Flags:SetAnchor(Bases.frame, 0, -5)
+    Info:SetAnchor(Banner.frame, 0, 0)
+    Flags:SetAnchor(Bases.frame, 0, -5)
 
-      BasePrediction:StartInfoTracker(checkInfo(id, isBlitz))
-    end
+    BasePrediction:StartInfoTracker(checkInfo(id, isBlitz))
   end
 end
 

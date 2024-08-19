@@ -195,13 +195,15 @@ do
           if v.iconState == 1 then
             allyFlags = allyFlags + 1
 
-            local name, realm = UnitName("arena2")
-            local nameAndRealm = realm and (name .. "-" .. realm) or (name .. "-" .. GetRealmName())
+            if UnitName("arena2") then
+              local name, realm = UnitName("arena2")
+              local nameAndRealm = realm and (name .. "-" .. realm) or (name .. "-" .. GetRealmName())
 
-            allyFlagCarrier = nameAndRealm
-            allyHasFlag = true
-            flagCarrier = "arena2"
-            NS.HAS_FLAG_CARRIER = true
+              allyFlagCarrier = nameAndRealm
+              allyHasFlag = true
+              flagCarrier = "arena2"
+              NS.HAS_FLAG_CARRIER = true
+            end
           end
         end
 
@@ -209,13 +211,15 @@ do
           if v.iconState == 1 then
             hordeFlags = hordeFlags + 1
 
-            local name, realm = UnitName("arena1")
-            local nameAndRealm = realm and (name .. "-" .. realm) or (name .. "-" .. GetRealmName())
+            if UnitName("arena1") then
+              local name, realm = UnitName("arena1")
+              local nameAndRealm = realm and (name .. "-" .. realm) or (name .. "-" .. GetRealmName())
 
-            hordeFlagCarrier = nameAndRealm
-            hordeHasFlag = true
-            flagCarrier = "arena1"
-            NS.HAS_FLAG_CARRIER = true
+              hordeFlagCarrier = nameAndRealm
+              hordeHasFlag = true
+              flagCarrier = "arena1"
+              NS.HAS_FLAG_CARRIER = true
+            end
           end
         end
       end
