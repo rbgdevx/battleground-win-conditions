@@ -1,5 +1,18 @@
 # Battleground Win Conditions
 
+## [v9.6.21](https://github.com/rbgdevx/battleground-win-conditions/releases/tag/v9.6.21) (2024-08-19)
+
+- NEW Temple of Kotmogu feature that shows available orbs, and when an orb is taken it shows the damage taken increase percentage for that orb carrier
+  - This new feature can be toggled on/off in the settings
+- Lots of performance enhancements that aims to reduce and reuse duplicate code in loops and aura checking into helper functions
+- All new Battleground Blitz support for the following maps with EXISTING features:
+  - The Battle for Gilneas
+  - Twin Peaks
+  - Warsong Gulch
+- Updates the default font-size to 14
+- Prep work to add support for Battleground Blitz for the remaining maps
+- Minor cleanup and fixes
+
 ## [v9.6.11](https://github.com/rbgdevx/battleground-win-conditions/releases/tag/v9.6.11) (2024-08-11)
 
 - NEW Temple of Kotmogu feature that shows available orbs, and when an orb is taken it shows the damage taken increase percentage for that orb carrier
