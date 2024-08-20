@@ -3,8 +3,6 @@ local AddonName, NS = ...
 local LibStub = LibStub
 local CopyTable = CopyTable
 
-local After = C_Timer.After
-
 ---@type BGWC
 local BGWC = NS.BGWC
 local BGWCFrame = NS.BGWC.frame

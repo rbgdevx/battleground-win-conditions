@@ -10,7 +10,6 @@ local select = select
 
 local smatch = string.match
 
-local After = C_Timer.After
 local GetDoubleStateIconRowVisualizationInfo = C_UIWidgetManager.GetDoubleStateIconRowVisualizationInfo
 local GetAuraDataByAuraInstanceID = C_UnitAuras.GetAuraDataByAuraInstanceID
 
