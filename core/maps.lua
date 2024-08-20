@@ -42,7 +42,6 @@ do
   function Maps:EnableZone(instanceID, isBlitz)
     BGWCFrame:RegisterEvent("PLAYER_LEAVING_WORLD")
 
-    NS.IN_GAME = true
     NS.IS_BLITZ = isBlitz
     prevZone = instanceID
 
@@ -51,20 +50,34 @@ do
     zoneIds[instanceID]:EnterZone(instanceID, isBlitz)
   end
 
+  local function checkMaxPlayers(instanceID)
+    local maxPlayers = select(5, GetInstanceInfo())
+    local instanceGroupSize = select(9, GetInstanceInfo())
+
+    if maxPlayers == 0 then
+      After(1, function()
+        checkMaxPlayers(instanceID)
+      end)
+    else
+      if maxPlayers >= NS.DEFAULT_GROUP_SIZE or instanceGroupSize > NS.MIN_GROUP_SIZE then
+        Maps:EnableZone(instanceID, false)
+      else
+        Maps:EnableZone(instanceID, true)
+      end
+    end
+  end
+
   function Maps:PrepareZone()
     NS.PLAYER_FACTION = GetPlayerFactionGroup()
 
     local inInstance = IsInInstance()
     if inInstance then
       local instanceID = select(8, GetInstanceInfo())
-      if zoneIds[instanceID] then
-        local maxPlayers = select(5, GetInstanceInfo())
 
-        if maxPlayers >= NS.DEFAULT_GROUP_SIZE then
-          Maps:EnableZone(instanceID, false)
-        else
-          Maps:EnableZone(instanceID, true)
-        end
+      NS.IN_GAME = true
+
+      if zoneIds[instanceID] then
+        checkMaxPlayers(instanceID)
       end
     else
       Interface:Clear()
@@ -92,28 +105,24 @@ do
 
     LOADING_SCREEN_DISABLED = true
 
-    After(0, function()
-      Maps:PrepareZone()
-    end)
+    Maps:PrepareZone()
   end
 
   function Maps:ToggleZone()
     BGWCFrame:RegisterEvent("LOADING_SCREEN_DISABLED")
 
-    After(0, function()
-      local inInstance = IsInInstance()
-      if inInstance then
-        Interface:Clear()
+    local inInstance = IsInInstance()
+    if inInstance then
+      Interface:Clear()
 
-        After(15, function()
-          if LOADING_SCREEN_DISABLED == false or NS.IN_GAME == false then
-            self:PrepareZone()
-          end
-        end)
-      else
-        NS.IN_GAME = false
-      end
-    end)
+      After(30, function()
+        if LOADING_SCREEN_DISABLED == false and NS.IN_GAME == false then
+          self:PrepareZone()
+        end
+      end)
+    else
+      NS.IN_GAME = false
+    end
   end
 end
 

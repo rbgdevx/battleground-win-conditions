@@ -526,9 +526,7 @@ NS.AceConfig = {
           func = function()
             BattlegroundWinConditionsDB = CopyTable(NS.DefaultDatabase)
             NS.db = CopyTable(NS.DefaultDatabase)
-            After(0, function()
-              Interface:Refresh()
-            end)
+            Interface:Refresh()
           end,
         },
       },
