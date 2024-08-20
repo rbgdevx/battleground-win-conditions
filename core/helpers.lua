@@ -70,22 +70,6 @@ NS.formatTime = function(time)
   -- return sformat("%02d:%02d", NS.getMinutes(time), NS.getSeconds(time))
 end
 
-NS.isRandomEOTS = function(zoneID)
-  if zoneID == 112 then
-    return true
-  else
-    return false
-  end
-end
-
-NS.isEOTS = function(zoneID)
-  if zoneID == 112 or zoneID == 397 then
-    return true
-  else
-    return false
-  end
-end
-
 local formatToAlliance = function(string)
   return sformat("\124cff00AAFF%s\124r", string)
 end
@@ -186,8 +170,8 @@ NS.checkWinCondition = function(
   loseScore,
   winName,
   loseName,
-  winTicks,
   winTime,
+  winTicks,
   winTimeIncrease,
   maxBases,
   maxScore,
@@ -307,8 +291,8 @@ NS.checkWinCondition = function(
         -- we need to accomodate for the assault time to get by this time
         -- as well as the cap time
         --]]
-        winTime = mmin(mmax(0, oldWinTime), 1500) + GetTime(),
-        winTicks = mmin(mmax(0, oldWinTicks), mceil(1500 / tickRate)),
+        winTime = winTime + GetTime(), -- mmin(mmax(0, winTime), 1500) + GetTime(),
+        winTicks = winTicks, -- mmin(mmax(0, winTicks), mceil(1500 / tickRate)),
         --[[
         -- who wins and loses
         --]]
@@ -410,6 +394,10 @@ end
 
 -- Function to update the size of the container based on visible children
 NS.UpdateContainerSize = function(frame)
+  if frame == nil then
+    return
+  end
+
   local maxWidth, maxHeight = 1, 1
   for i = 1, frame:GetNumChildren() do
     local child = select(i, frame:GetChildren())
@@ -420,15 +408,20 @@ NS.UpdateContainerSize = function(frame)
       -- local childLeft = child:GetLeft() or 0
 
       -- Adjust the container size based on child extents
-      maxWidth = mmax(maxWidth, childRight - frame:GetLeft())
-      maxHeight = mmax(maxHeight, frame:GetTop() - childBottom)
+      maxWidth = frame:GetLeft() and mmax(maxWidth, childRight - frame:GetLeft()) or maxWidth
+      maxHeight = frame:GetTop() and mmax(maxHeight, frame:GetTop() - childBottom) or maxHeight
     end
   end
+
   frame:SetSize(maxWidth, maxHeight)
 end
 
 -- Function to update the size of the container based on visible children
 NS.UpdateInfoSize = function(frame, banner)
+  if frame == nil or banner == nil then
+    return
+  end
+
   local maxWidth, maxHeight = 175, 25
   for i = 1, frame:GetNumChildren() do
     local child = select(i, frame:GetChildren())
@@ -439,10 +432,11 @@ NS.UpdateInfoSize = function(frame, banner)
       -- local childLeft = child:GetLeft() or 0
 
       -- Adjust the container size based on child extents
-      maxWidth = mmax(maxWidth, childRight - frame:GetLeft())
-      maxHeight = mmax(maxHeight, frame:GetTop() - childBottom)
+      maxWidth = frame:GetLeft() and mmax(maxWidth, childRight - frame:GetLeft()) or maxWidth
+      maxHeight = frame:GetTop() and mmax(maxHeight, frame:GetTop() - childBottom) or maxHeight
     end
   end
+
   frame:SetSize(maxWidth, maxHeight)
   banner.frame:SetWidth(maxWidth)
 end

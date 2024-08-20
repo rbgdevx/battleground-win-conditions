@@ -26,6 +26,8 @@ local CreateFrame = CreateFrame
 ---@field wintextcolor ColorArray
 ---@field losebgcolor ColorArray
 ---@field losetextcolor ColorArray
+---@field resetbgcolor ColorArray
+---@field resettextcolor ColorArray
 
 ---@class InfoTable : table
 ---@field infofont string
@@ -44,6 +46,11 @@ local CreateFrame = CreateFrame
 ---@class MapTable : table
 ---@field enabled boolean
 
+---@class TOKTable : table
+---@field enabled boolean
+---@field showorbinfo boolean
+---@field showbuffinfo boolean
+
 ---@class EOTSTable : table
 ---@field enabled boolean
 ---@field showflaginfo boolean
@@ -53,7 +60,7 @@ local CreateFrame = CreateFrame
 ---@field deepwindgorge MapTable
 ---@field eyeofthestorm EOTSTable
 ---@field silvershardmines MapTable
----@field templeofkotmogu MapTable
+---@field templeofkotmogu TOKTable
 ---@field thebattleforgilneas MapTable
 ---@field twinpeaks MapTable
 ---@field warsonggulch MapTable
@@ -109,6 +116,7 @@ NS.CURRENT_STACKS = 0
 NS.DEFAULT_ORB_BUFF_TIME = 45
 NS.DEFAULT_STACK_TIME = 30 -- blitz = 15
 NS.DEFAULT_GROUP_SIZE = 10
+NS.MIN_GROUP_SIZE = 8
 NS.BASE_TIMER_EXPIRED = false
 NS.STACKS_COUNTING = false
 NS.HAS_FLAG_CARRIER = false
@@ -125,7 +133,7 @@ NS.userClassHexColor = "|c" .. select(4, GetClassColor(NS.userClass))
 
 NS.ADDON_PREFIX = "BGWC_VERSION"
 NS.FoundNewVersion = false
-NS.VERSION = 9611
+NS.VERSION = 9621
 
 NS.DefaultDatabase = {
   global = {
@@ -141,7 +149,7 @@ NS.DefaultDatabase = {
           r = 0 / 255,
           g = 0 / 255,
           b = 0 / 255,
-          a = 0.9,
+          a = 1,
         },
         tietextcolor = {
           r = 255 / 255,
@@ -173,10 +181,22 @@ NS.DefaultDatabase = {
           b = 255 / 255,
           a = 1,
         },
+        resetbgcolor = {
+          r = 119 / 255,
+          g = 119 / 255,
+          b = 119 / 255,
+          a = 1,
+        },
+        resettextcolor = {
+          r = 255 / 255,
+          g = 255 / 255,
+          b = 255 / 255,
+          a = 1,
+        },
       },
       infogroup = {
         infofont = "Friz Quadrata TT",
-        infofontsize = 14,
+        infofontsize = 12,
         infotextcolor = {
           r = 255 / 255,
           g = 255 / 255,

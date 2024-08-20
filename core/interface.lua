@@ -82,7 +82,7 @@ function Interface:Refresh()
 end
 
 function Interface:CreateTestBanner()
-  Banner:Start(434, "TIE")
+  Banner:Start(15, "RESET")
 end
 
 function Interface:CreateTestInfo()

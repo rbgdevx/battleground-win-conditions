@@ -3,8 +3,6 @@ local AddonName, NS = ...
 local LibStub = LibStub
 local CopyTable = CopyTable
 
-local After = C_Timer.After
-
 ---@type BGWC
 local BGWC = NS.BGWC
 local BGWCFrame = NS.BGWC.frame
@@ -212,6 +210,10 @@ NS.AceConfig = {
                 NS.db.global.general.bannergroup.tiebgcolor.g = val2
                 NS.db.global.general.bannergroup.tiebgcolor.b = val3
                 NS.db.global.general.bannergroup.tiebgcolor.a = val4
+
+                if NS.IN_GAME == false then
+                  Banner:SetBackgroundColor(Banner.bg, NS.db.global.general.bannergroup.tiebgcolor)
+                end
               end,
               get = function(_)
                 return NS.db.global.general.bannergroup.tiebgcolor.r,
@@ -231,6 +233,10 @@ NS.AceConfig = {
                 NS.db.global.general.bannergroup.tietextcolor.g = val2
                 NS.db.global.general.bannergroup.tietextcolor.b = val3
                 NS.db.global.general.bannergroup.tietextcolor.a = val4
+
+                if NS.IN_GAME == false then
+                  Banner:SetTextColor(Banner.text, NS.db.global.general.bannergroup.tietextcolor)
+                end
               end,
               get = function(_)
                 return NS.db.global.general.bannergroup.tietextcolor.r,
@@ -251,6 +257,10 @@ NS.AceConfig = {
                 NS.db.global.general.bannergroup.winbgcolor.g = val2
                 NS.db.global.general.bannergroup.winbgcolor.b = val3
                 NS.db.global.general.bannergroup.winbgcolor.a = val4
+
+                if NS.IN_GAME == false then
+                  Banner:SetBackgroundColor(Banner.bg, NS.db.global.general.bannergroup.winbgcolor)
+                end
               end,
               get = function(_)
                 return NS.db.global.general.bannergroup.winbgcolor.r,
@@ -270,6 +280,10 @@ NS.AceConfig = {
                 NS.db.global.general.bannergroup.wintextcolor.g = val2
                 NS.db.global.general.bannergroup.wintextcolor.b = val3
                 NS.db.global.general.bannergroup.wintextcolor.a = val4
+
+                if NS.IN_GAME == false then
+                  Banner:SetTextColor(Banner.text, NS.db.global.general.bannergroup.wintextcolor)
+                end
               end,
               get = function(_)
                 return NS.db.global.general.bannergroup.wintextcolor.r,
@@ -290,6 +304,10 @@ NS.AceConfig = {
                 NS.db.global.general.bannergroup.losebgcolor.g = val2
                 NS.db.global.general.bannergroup.losebgcolor.b = val3
                 NS.db.global.general.bannergroup.losebgcolor.a = val4
+
+                if NS.IN_GAME == false then
+                  Banner:SetBackgroundColor(Banner.bg, NS.db.global.general.bannergroup.losebgcolor)
+                end
               end,
               get = function(_)
                 return NS.db.global.general.bannergroup.losebgcolor.r,
@@ -309,12 +327,63 @@ NS.AceConfig = {
                 NS.db.global.general.bannergroup.losetextcolor.g = val2
                 NS.db.global.general.bannergroup.losetextcolor.b = val3
                 NS.db.global.general.bannergroup.losetextcolor.a = val4
+
+                if NS.IN_GAME == false then
+                  Banner:SetTextColor(Banner.text, NS.db.global.general.bannergroup.losetextcolor)
+                end
               end,
               get = function(_)
                 return NS.db.global.general.bannergroup.losetextcolor.r,
                   NS.db.global.general.bannergroup.losetextcolor.g,
                   NS.db.global.general.bannergroup.losetextcolor.b,
                   NS.db.global.general.bannergroup.losetextcolor.a
+              end,
+            },
+            spacing4 = { type = "description", order = 11, name = " " },
+            resetbgcolor = {
+              name = "Reset Background Color",
+              type = "color",
+              width = "double",
+              hasAlpha = true,
+              order = 12,
+              set = function(_, val1, val2, val3, val4)
+                NS.db.global.general.bannergroup.resetbgcolor.r = val1
+                NS.db.global.general.bannergroup.resetbgcolor.g = val2
+                NS.db.global.general.bannergroup.resetbgcolor.b = val3
+                NS.db.global.general.bannergroup.resetbgcolor.a = val4
+
+                if NS.IN_GAME == false then
+                  Banner:SetBackgroundColor(Banner.bg, NS.db.global.general.bannergroup.resetbgcolor)
+                end
+              end,
+              get = function(_)
+                return NS.db.global.general.bannergroup.resetbgcolor.r,
+                  NS.db.global.general.bannergroup.resetbgcolor.g,
+                  NS.db.global.general.bannergroup.resetbgcolor.b,
+                  NS.db.global.general.bannergroup.resetbgcolor.a
+              end,
+            },
+            resettextcolor = {
+              name = "Reset Text Color",
+              type = "color",
+              width = "normal",
+              hasAlpha = true,
+              order = 13,
+              set = function(_, val1, val2, val3, val4)
+                NS.db.global.general.bannergroup.resettextcolor.r = val1
+                NS.db.global.general.bannergroup.resettextcolor.g = val2
+                NS.db.global.general.bannergroup.resettextcolor.b = val3
+                NS.db.global.general.bannergroup.resettextcolor.a = val4
+
+                if NS.IN_GAME == false then
+                  Banner:SetTextColor(Banner.text, NS.db.global.general.bannergroup.resettextcolor)
+                end
+              end,
+              get = function(_)
+                return NS.db.global.general.bannergroup.resettextcolor.r,
+                  NS.db.global.general.bannergroup.resettextcolor.g,
+                  NS.db.global.general.bannergroup.resettextcolor.b,
+                  NS.db.global.general.bannergroup.resettextcolor.a
               end,
             },
           },
@@ -455,9 +524,7 @@ NS.AceConfig = {
           func = function()
             BattlegroundWinConditionsDB = CopyTable(NS.DefaultDatabase)
             NS.db = CopyTable(NS.DefaultDatabase)
-            After(0, function()
-              Interface:Refresh()
-            end)
+            Interface:Refresh()
           end,
         },
       },

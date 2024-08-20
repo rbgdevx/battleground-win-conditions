@@ -17,6 +17,7 @@ local instanceIdToMapId = {
     tickRate = 2,
     assaultTime = 6,
     contestedTime = 60,
+    resetTime = 0,
     baseResources = {
       [0] = 0,
       [1] = 1,

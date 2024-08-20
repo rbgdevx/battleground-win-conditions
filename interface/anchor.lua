@@ -81,9 +81,12 @@ end
 
 function Anchor:AddControls()
   AnchorFrame:EnableMouse(true)
+
   AnchorFrame:SetScript("OnMouseUp", function(_, btn)
-    if btn == "RightButton" then
-      LibStub("AceConfigDialog-3.0"):Open(AddonName)
+    if NS.db.global.general.lock == false then
+      if btn == "RightButton" then
+        LibStub("AceConfigDialog-3.0"):Open(AddonName)
+      end
     end
   end)
 

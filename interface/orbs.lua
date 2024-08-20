@@ -123,7 +123,10 @@ function Orbs:StartOrbList(orbStacks)
 end
 
 local function stopAnimation(frame, animationGroup)
-  animationGroup:Stop()
+  if animationGroup then
+    animationGroup:Stop()
+  end
+
   frame.buffText:SetFormattedText("")
   frame.buffTextFrame:SetAlpha(0)
 end
@@ -147,7 +150,10 @@ local orbsformat2 = "%s are earning 4x points"
 local function animationUpdate(frame, text, animationGroup)
   local t = GetTime()
   if t >= frame.exp then
-    animationGroup:Stop()
+    if animationGroup then
+      animationGroup:Stop()
+    end
+
     Orbs:SetText(frame.buffText, orbsformat2, text)
     -- frame.buffText:Hide()
   else

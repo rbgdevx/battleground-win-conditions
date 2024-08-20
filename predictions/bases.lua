@@ -42,6 +42,7 @@ do
     tickRate = 0,
     assaultTime = 0,
     contestedTime = 0,
+    resetTime = 0,
     baseResources = {},
     flagResources = {},
   }
@@ -175,8 +176,8 @@ do
                 loseScore,
                 winName,
                 loseName,
-                winTicks,
                 winTime,
+                winTicks,
                 0,
                 curMap.maxBases,
                 maxScore,
@@ -198,7 +199,7 @@ do
               end
             end
 
-            if NS.isEOTS(curMap.id) and NS.db.global.maps.eyeofthestorm.showflaginfo then
+            if NS.IS_EOTS and NS.db.global.maps.eyeofthestorm.showflaginfo then
               self:GetFlagValue(winName, maxScore, winScore, loseScore, winBases, loseBases)
             end
           end
@@ -322,8 +323,8 @@ do
                 loseScore,
                 winName,
                 loseName,
-                winTicks,
                 winTime,
+                winTicks,
                 winTimeIncrease,
                 curMap.maxBases,
                 maxScore,
@@ -345,7 +346,7 @@ do
               end
             end
 
-            if NS.isEOTS(curMap.id) and NS.db.global.maps.eyeofthestorm.showflaginfo then
+            if NS.IS_EOTS and NS.db.global.maps.eyeofthestorm.showflaginfo then
               self:GetFlagValue(winName, maxScore, winScore, loseScore, winBases, loseBases)
             end
           end
@@ -954,13 +955,17 @@ do
 
           After(0.5, function()
             if aIncrease ~= prevAIncrease or hIncrease ~= prevHIncrease or timeBetweenEachTick ~= prevTick then
-              -- Scores can reduce in DWG
+              -- > 60 increase means captured a flag/cart in EOTS/DWG
               if aIncrease > 60 or hIncrease > 60 or aIncrease < 0 or hIncrease < 0 then
-                -- > 60 increase means captured a flag/cart in EOTS/DWG
                 Interface:Clear()
+
+                if NS.IS_EOTS and NS.IS_BLITZ then
+                  Banner:Start(curMap.resetTime, "RESET")
+                end
 
                 prevAIncrease = -1
                 prevHIncrease = -1
+
                 return
               end
 

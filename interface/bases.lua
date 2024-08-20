@@ -50,7 +50,10 @@ function Bases:ToggleAlpha()
 end
 
 local function stopAnimation(frame, animationGroup)
-  animationGroup:Stop()
+  if animationGroup then
+    animationGroup:Stop()
+  end
+
   frame.frame:SetAlpha(0)
   frame.text:SetFormattedText("")
 end
@@ -83,8 +86,9 @@ local function winMessage(text, winCondition)
     end
 
     if
-      (NS.WIN_INC_BASE_COUNT > 0 and capBases == winMinBases + 1)
-      or (NS.ACTIVE_BASE_COUNT < maxBases and capBases < maxBases and winMinBases == 1)
+      winMinBases == 1 and capBases == winMinBases + 1 and loseBases == 0
+      or (NS.WIN_INC_BASE_COUNT > 0 and capBases == winMinBases + 1)
+      or (NS.ACTIVE_BASE_COUNT < maxBases and winMinBases == 1 and capBases < maxBases)
       or (NS.INCOMING_BASE_COUNT > 0 and NS.ACTIVE_BASE_COUNT == maxBases and loseBases == 0)
     then
       message = message
@@ -138,7 +142,9 @@ local function animationUpdate(frame, winTable, animationGroup, callbackFn)
   local t = GetTime()
 
   if t >= frame.exp then
-    animationGroup:Stop()
+    if animationGroup then
+      animationGroup:Stop()
+    end
     -- frame.text:Hide()
     return
   end

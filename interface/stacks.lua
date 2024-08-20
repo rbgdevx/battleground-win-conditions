@@ -53,7 +53,10 @@ function Stacks:ToggleAlpha()
 end
 
 local function stopAnimation(frame, animationGroup)
-  animationGroup:Stop()
+  if animationGroup then
+    animationGroup:Stop()
+  end
+
   frame.frame:SetAlpha(0)
   frame.text:SetFormattedText("")
 
@@ -164,7 +167,9 @@ local function animationUpdate(frame, duration, stacks, animationGroup)
       NS.CURRENT_STACKS = localStacks
       Stacks:Start(duration, localStacks)
     else
-      animationGroup:Stop()
+      if animationGroup then
+        animationGroup:Stop()
+      end
       -- frame.text:Hide()
     end
   else

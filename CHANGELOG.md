@@ -1,5 +1,19 @@
 # Battleground Win Conditions
 
+## [v9.6.21](https://github.com/rbgdevx/battleground-win-conditions/releases/tag/v9.6.21) (2024-08-19)
+
+- Adding EOTS Battleground Blitz mode support
+  - NEW feature that shows reset timer in the banner after capping
+- Updated alphas of backgrounds and shadows
+- Added new setting for the new reset banner timer
+  - Fixed being able to see your banner color changes realtime
+- Removed old helper functions
+- Fixed incorrect win time in info text when winning with 1 base
+- Added some null checks based on recent testing and bugs caught
+- Added new "they can still win with" condition based on EOTS blitz testing
+- Adding failsafe for map zone toggle
+- Minor cleanup
+
 ## [v9.6.11](https://github.com/rbgdevx/battleground-win-conditions/releases/tag/v9.6.11) (2024-08-11)
 
 - NEW Temple of Kotmogu feature that shows available orbs, and when an orb is taken it shows the damage taken increase percentage for that orb carrier

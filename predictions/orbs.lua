@@ -10,7 +10,6 @@ local select = select
 
 local smatch = string.match
 
-local After = C_Timer.After
 local GetDoubleStateIconRowVisualizationInfo = C_UIWidgetManager.GetDoubleStateIconRowVisualizationInfo
 local GetAuraDataByAuraInstanceID = C_UnitAuras.GetAuraDataByAuraInstanceID
 
@@ -363,10 +362,8 @@ do
     -- - Fired when the player releases from death to a graveyard; or accepts a resurrect before releasing their spirit.
     --]]
     function OrbPrediction:PLAYER_UNGHOST()
-      After(0, function()
-        self:GetStacksByMapID(curMap.id)
-        Orbs:StartOrbList(orbStacks)
-      end)
+      self:GetStacksByMapID(curMap.id)
+      Orbs:StartOrbList(orbStacks)
     end
 
     function OrbPrediction:StartInfoTracker(mapInfo)

@@ -46,7 +46,10 @@ function Banner:ToggleAlpha()
 end
 
 local function stopAnimation(frame, animationGroup)
-  animationGroup:Stop()
+  if animationGroup then
+    animationGroup:Stop()
+  end
+
   frame.frame:SetAlpha(0)
   frame.text:SetFormattedText("")
 end
@@ -57,22 +60,41 @@ end
 
 local bannerformat = "GG YOU %s IN %s"
 local bannerformatWin = "GG YOU %s"
+local bannerformatReset = "RESET IN %s"
+local bannerformatResetComplete = "RESET COMPLETE"
 local function animationUpdate(frame, text, animationGroup)
   local t = GetTime()
 
   if t >= frame.exp then
-    Banner:SetText(frame.text, bannerformatWin, text)
-    animationGroup:Stop()
+    if text == "RESET" then
+      Banner:SetText(frame.text, bannerformatResetComplete, text)
+    else
+      Banner:SetText(frame.text, bannerformatWin, text)
+    end
+
+    if animationGroup then
+      animationGroup:Stop()
+    end
+
     -- frame.text:Hide()
   else
     local time = frame.exp - t
     frame.remaining = time
 
-    if time <= 0 then
-      Banner:SetText(frame.text, bannerformatWin, text)
+    if text == "RESET" then
+      if time <= 0 then
+        Banner:SetText(frame.text, bannerformatResetComplete)
+      else
+        Banner:SetText(frame.text, bannerformatReset, NS.formatTime(time))
+      end
     else
-      Banner:SetText(frame.text, bannerformat, text, NS.formatTime(time))
+      if time <= 0 then
+        Banner:SetText(frame.text, bannerformatWin, text)
+      else
+        Banner:SetText(frame.text, bannerformat, text, NS.formatTime(time))
+      end
     end
+
     -- frame.text:Show()
   end
 end
@@ -88,6 +110,9 @@ function Banner:Start(duration, text)
   elseif text == "WIN" then
     BGColor = NS.db.global.general.bannergroup.winbgcolor
     TextColor = NS.db.global.general.bannergroup.wintextcolor
+  elseif text == "RESET" then
+    BGColor = NS.db.global.general.bannergroup.resetbgcolor
+    TextColor = NS.db.global.general.bannergroup.resettextcolor
   else
     BGColor = NS.db.global.general.bannergroup.losebgcolor
     TextColor = NS.db.global.general.bannergroup.losetextcolor
@@ -103,10 +128,18 @@ function Banner:Start(duration, text)
   self.start = GetTime()
   self.exp = self.start + time
 
-  if time <= 0 then
-    self:SetText(self.text, bannerformatWin, text)
+  if text == "RESET" then
+    if time <= 0 then
+      self:SetText(self.text, bannerformatResetComplete)
+    else
+      self:SetText(self.text, bannerformatReset, NS.formatTime(time))
+    end
   else
-    self:SetText(self.text, bannerformat, text, NS.formatTime(time))
+    if time <= 0 then
+      self:SetText(self.text, bannerformatWin, text)
+    else
+      self:SetText(self.text, bannerformat, text, NS.formatTime(time))
+    end
   end
 
   if NS.db.global.general.info == false then
@@ -134,7 +167,7 @@ function Banner:Create(anchor)
     self:SetTextColor(Text, NS.db.global.general.bannergroup.tietextcolor)
     self:SetFont(Text)
     Text:SetShadowOffset(1, -1)
-    Text:SetShadowColor(0, 0, 0, 0.9)
+    Text:SetShadowColor(0, 0, 0, 1)
     Text:SetJustifyH("CENTER")
     Text:SetJustifyV("MIDDLE")
     Text:SetPoint("CENTER", BG, "CENTER", 0, 0)
