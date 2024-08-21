@@ -199,7 +199,7 @@ do
               end
             end
 
-            if NS.IS_EOTS and NS.db.global.maps.eyeofthestorm.showflaginfo then
+            if NS.isEOTS(curMap.id) and NS.db.global.maps.eyeofthestorm.showflaginfo then
               self:GetFlagValue(winName, maxScore, winScore, loseScore, winBases, loseBases)
             end
           end
@@ -346,7 +346,7 @@ do
               end
             end
 
-            if NS.IS_EOTS and NS.db.global.maps.eyeofthestorm.showflaginfo then
+            if NS.isEOTS(curMap.id) and NS.db.global.maps.eyeofthestorm.showflaginfo then
               self:GetFlagValue(winName, maxScore, winScore, loseScore, winBases, loseBases)
             end
           end
@@ -954,12 +954,27 @@ do
           timeBetweenEachTick = elapsed % 1 >= 0.5 and mceil(elapsed) or mfloor(elapsed)
 
           After(0.5, function()
+            if NS.DEBUG then
+              print("aIncrease", aIncrease, prevAIncrease)
+              print("hIncrease", hIncrease, prevHIncrease)
+            end
             if aIncrease ~= prevAIncrease or hIncrease ~= prevHIncrease or timeBetweenEachTick ~= prevTick then
-              -- > 60 increase means captured a flag/cart in EOTS/DWG
-              if aIncrease > 60 or hIncrease > 60 or aIncrease < 0 or hIncrease < 0 then
+              -- > 60 increase means captured a flag in EOTS
+              if aIncrease > 60 or hIncrease > 60 then
                 Interface:Clear()
 
-                if NS.IS_EOTS and NS.IS_BLITZ then
+                if NS.DEBUG then
+                  print(
+                    "HERHERHERHERHER",
+                    NS.isEOTS(curMap.id),
+                    NS.isBlitz(),
+                    aScore ~= maxScore,
+                    hScore ~= maxScore,
+                    "HERHERHERHERHER"
+                  )
+                end
+
+                if NS.isEOTS(curMap.id) and NS.isBlitz() and aScore ~= maxScore and hScore ~= maxScore then
                   Banner:Start(curMap.resetTime, "RESET")
                 end
 

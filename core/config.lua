@@ -127,13 +127,14 @@ NS.IS_SSM = false
 NS.IS_TP = false
 NS.IS_WG = false
 NS.IS_BLITZ = false
+NS.DEBUG = false
 
 NS.userClass = select(2, UnitClass("player"))
 NS.userClassHexColor = "|c" .. select(4, GetClassColor(NS.userClass))
 
 NS.ADDON_PREFIX = "BGWC_VERSION"
 NS.FoundNewVersion = false
-NS.VERSION = 9621
+NS.VERSION = 9622
 
 NS.DefaultDatabase = {
   global = {
