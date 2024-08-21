@@ -7,6 +7,7 @@
 - Fixed group size check from wrong variable/api
 - Fixed faction setting by updating and adding placements for setting it upon entering a bg
 - Fixed load in game check when toggling zones in and out of instances
+- Updated flag cap check on base maps (EOTS) to remove old dwg check which no longer exists
 
 ## [v9.6.21](https://github.com/rbgdevx/battleground-win-conditions/releases/tag/v9.6.21) (2024-08-19)
 
