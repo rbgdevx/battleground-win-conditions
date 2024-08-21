@@ -4,6 +4,7 @@ local next = next
 local select = select
 local IsInInstance = IsInInstance
 local GetInstanceInfo = GetInstanceInfo
+local GetNumGroupMembers = GetNumGroupMembers
 
 local After = C_Timer.After
 
@@ -18,7 +19,6 @@ local Maps = {}
 NS.Maps = Maps
 
 do
-  local LOADING_SCREEN_DISABLED = false
   local prevZone = 0
   local zoneIds = {}
 
@@ -33,7 +33,7 @@ do
 
     local inInstance = IsInInstance()
     if not inInstance or inInstance == false then
-      LOADING_SCREEN_DISABLED = false
+      NS.PLAYER_FACTION = GetPlayerFactionGroup()
       zoneIds[prevZone]:ExitZone()
       prevZone = 0
     end
@@ -42,24 +42,33 @@ do
   function Maps:EnableZone(instanceID, isBlitz)
     BGWCFrame:RegisterEvent("PLAYER_LEAVING_WORLD")
 
-    NS.IS_BLITZ = isBlitz
+    NS.PLAYER_FACTION = GetPlayerFactionGroup()
+    NS.IS_BLITZ = NS.isBlitz()
     prevZone = instanceID
 
     Version:SendVersion()
+
+    if NS.DEBUG then
+      print("Maps:EnableZone(instanceID, isBlitz)", NS.PLAYER_FACTION, isBlitz)
+    end
 
     zoneIds[instanceID]:EnterZone(instanceID, isBlitz)
   end
 
   local function checkMaxPlayers(instanceID)
     local maxPlayers = select(5, GetInstanceInfo())
-    local instanceGroupSize = select(9, GetInstanceInfo())
+    local groupSize = GetNumGroupMembers()
+
+    if NS.DEBUG then
+      print("checkMaxPlayers(instanceID)", maxPlayers, groupSize)
+    end
 
     if maxPlayers == 0 then
       After(1, function()
         checkMaxPlayers(instanceID)
       end)
     else
-      if maxPlayers >= NS.DEFAULT_GROUP_SIZE or instanceGroupSize > NS.MIN_GROUP_SIZE then
+      if maxPlayers >= NS.DEFAULT_GROUP_SIZE or groupSize > NS.MIN_GROUP_SIZE then
         Maps:EnableZone(instanceID, false)
       else
         Maps:EnableZone(instanceID, true)
@@ -69,6 +78,12 @@ do
 
   function Maps:PrepareZone()
     NS.PLAYER_FACTION = GetPlayerFactionGroup()
+
+    if NS.DEBUG then
+      print("Maps:PrepareZone()", NS.PLAYER_FACTION)
+    end
+
+    Interface:Clear()
 
     local inInstance = IsInInstance()
     if inInstance then
@@ -80,8 +95,6 @@ do
         checkMaxPlayers(instanceID)
       end
     else
-      Interface:Clear()
-
       NS.IN_GAME = false
       NS.IS_BLITZ = false
 
@@ -100,29 +113,26 @@ do
     end
   end
 
+  -- Fired when loading screen disappears; when player is finished loading the new zone.
+  -- Also fired upon death, which we don't want, so we unregister it after its first use
+  -- Because of this we dont want to use this as a reliable source to start the zone code
   function BGWC:LOADING_SCREEN_DISABLED()
     BGWCFrame:UnregisterEvent("LOADING_SCREEN_DISABLED")
+    NS.PLAYER_FACTION = GetPlayerFactionGroup()
 
-    LOADING_SCREEN_DISABLED = true
-
-    Maps:PrepareZone()
+    if NS.DEBUG then
+      print("BGWC:LOADING_SCREEN_DISABLED()", NS.PLAYER_FACTION)
+    end
   end
 
   function Maps:ToggleZone()
     BGWCFrame:RegisterEvent("LOADING_SCREEN_DISABLED")
 
-    local inInstance = IsInInstance()
-    if inInstance then
-      Interface:Clear()
-
-      After(30, function()
-        if LOADING_SCREEN_DISABLED == false and NS.IN_GAME == false then
-          self:PrepareZone()
-        end
-      end)
-    else
-      NS.IN_GAME = false
+    if NS.DEBUG then
+      print("Maps:ToggleZone()", NS.PLAYER_FACTION)
     end
+
+    self:PrepareZone()
   end
 end
 

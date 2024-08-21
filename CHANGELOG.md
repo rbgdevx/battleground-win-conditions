@@ -1,12 +1,21 @@
 # Battleground Win Conditions
 
+## [v9.6.22](https://github.com/rbgdevx/battleground-win-conditions/releases/tag/v9.6.22) (2024-08-21)
+
+- Adding back in EOTS helper function to check if we're on EOTS
+- Adding in a new debug feature to easily leave out prints when not debugging
+- Fixed group size check from wrong variable/api
+- Fixed faction setting by updating and adding placements for setting it upon entering a bg
+- Fixed load in game check when toggling zones in and out of instances
+- Updated flag cap check on base maps (EOTS) to remove old dwg check which no longer exists
+
 ## [v9.6.21](https://github.com/rbgdevx/battleground-win-conditions/releases/tag/v9.6.21) (2024-08-19)
 
 - Adding EOTS Battleground Blitz mode support
   - NEW feature that shows reset timer in the banner after capping
 - Updated alphas of backgrounds and shadows
 - Added new setting for the new reset banner timer
-  - Fixed being able to see your banner color changes realtime
+  - Fixed being able to see your banner color changes real time
 - Removed old helper functions
 - Fixed incorrect win time in info text when winning with 1 base
 - Added some null checks based on recent testing and bugs caught

@@ -232,7 +232,9 @@ local function animationUpdate(frame, winTable, animationGroup, callbackFn)
                           loseMessage(frame.text, winCondition)
                         end
                       else
-                        -- print("NO OPTIONS LEFT")
+                        if NS.DEBUG then
+                          print("NO OPTIONS LEFT")
+                        end
                       end
                     end
                   end

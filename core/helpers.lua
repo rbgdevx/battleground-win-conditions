@@ -11,6 +11,8 @@ local next = next
 local select = select
 local setmetatable = setmetatable
 local getmetatable = getmetatable
+local GetInstanceInfo = GetInstanceInfo
+local GetNumGroupMembers = GetNumGroupMembers
 
 local sformat = string.format
 local mfloor = math.floor
@@ -68,6 +70,25 @@ end
 NS.formatTime = function(time)
   return NS.secondsToClock(time, false)
   -- return sformat("%02d:%02d", NS.getMinutes(time), NS.getSeconds(time))
+end
+
+NS.isEOTS = function(zoneID)
+  if zoneID == 112 or zoneID == 397 then
+    return true
+  else
+    return false
+  end
+end
+
+NS.isBlitz = function()
+  local maxPlayers = select(5, GetInstanceInfo())
+  local groupSize = GetNumGroupMembers()
+
+  if maxPlayers >= NS.DEFAULT_GROUP_SIZE or groupSize > NS.MIN_GROUP_SIZE then
+    return false
+  else
+    return true
+  end
 end
 
 local formatToAlliance = function(string)
