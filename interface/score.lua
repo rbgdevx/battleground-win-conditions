@@ -3,7 +3,7 @@ local AddonName, NS = ...
 local CreateFrame = CreateFrame
 local LibStub = LibStub
 
-local LSM = LibStub("LibSharedMedia-3.0")
+local SharedMedia = LibStub("LibSharedMedia-3.0")
 
 local Info = NS.Info
 
@@ -40,7 +40,7 @@ end
 
 function Score:SetFont(frame)
   frame:SetFont(
-    LSM:Fetch("font", NS.db.global.general.infogroup.infofont),
+    SharedMedia:Fetch("font", NS.db.global.general.infogroup.infofont),
     NS.db.global.general.infogroup.infofontsize,
     "OUTLINE"
   )

@@ -2,6 +2,8 @@ local AddonName, NS = ...
 
 local LibStub = LibStub
 
+local LibChangelog = LibStub("LibChangelog")
+
 local Changelog = {}
 NS.Changelog = Changelog
 
@@ -505,6 +507,6 @@ local changelog = {
 }
 
 function Changelog:Setup()
-  LibStub("LibChangelog"):Register(AddonName, changelog, NS.db, "lastReadVersion", "onlyShowWhenNewVersion")
-  LibStub("LibChangelog"):ShowChangelog(AddonName)
+  LibChangelog:Register(AddonName, changelog, NS.db, "lastReadVersion", "onlyShowWhenNewVersion")
+  LibChangelog:ShowChangelog(AddonName)
 end

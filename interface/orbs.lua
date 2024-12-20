@@ -7,7 +7,7 @@ local ipairs = ipairs
 
 local sformat = string.format
 
-local LSM = LibStub("LibSharedMedia-3.0")
+local SharedMedia = LibStub("LibSharedMedia-3.0")
 
 local Info = NS.Info
 local Banner = NS.Banner
@@ -43,7 +43,7 @@ end
 
 function Orbs:SetFont(frame)
   frame:SetFont(
-    LSM:Fetch("font", NS.db.global.general.infogroup.infofont),
+    SharedMedia:Fetch("font", NS.db.global.general.infogroup.infofont),
     NS.db.global.general.infogroup.infofontsize,
     "OUTLINE"
   )

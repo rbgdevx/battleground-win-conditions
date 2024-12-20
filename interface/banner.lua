@@ -7,7 +7,7 @@ local GetTime = GetTime
 local mmin = math.min
 local mmax = math.max
 
-local LSM = LibStub("LibSharedMedia-3.0")
+local SharedMedia = LibStub("LibSharedMedia-3.0")
 
 local Banner = {}
 NS.Banner = Banner
@@ -32,7 +32,7 @@ function Banner:SetTextColor(frame, color)
 end
 
 function Banner:SetFont(frame)
-  frame:SetFont(LSM:Fetch("font", NS.db.global.general.bannergroup.bannerfont), 12, "NORMAL")
+  frame:SetFont(SharedMedia:Fetch("font", NS.db.global.general.bannergroup.bannerfont), 12, "NORMAL")
 end
 
 function Banner:SetScale(frame)

@@ -13,7 +13,7 @@ local sformat = string.format
 local Info = NS.Info
 local Banner = NS.Banner
 
-local LSM = LibStub("LibSharedMedia-3.0")
+local SharedMedia = LibStub("LibSharedMedia-3.0")
 
 local Bases = {}
 NS.Bases = Bases
@@ -36,7 +36,7 @@ end
 
 function Bases:SetFont(frame)
   frame:SetFont(
-    LSM:Fetch("font", NS.db.global.general.infogroup.infofont),
+    SharedMedia:Fetch("font", NS.db.global.general.infogroup.infofont),
     NS.db.global.general.infogroup.infofontsize,
     "OUTLINE"
   )
