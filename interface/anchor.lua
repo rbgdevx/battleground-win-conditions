@@ -2,6 +2,9 @@ local AddonName, NS = ...
 
 local CreateFrame = CreateFrame
 local LibStub = LibStub
+local IsInInstance = IsInInstance
+
+local AceConfigDialog = LibStub("AceConfigDialog-3.0")
 
 local Anchor = {}
 NS.Anchor = Anchor
@@ -19,11 +22,14 @@ function Anchor:SetAnchor()
   )
 end
 
-function Anchor:StopMovement()
-  AnchorFrame:SetMovable(false)
+function Anchor:MakeUnmovable(frame)
+  frame:SetMovable(false)
+  frame:RegisterForDrag()
+  frame:SetScript("OnDragStart", nil)
+  frame:SetScript("OnDragStop", nil)
 end
 
-function Anchor:StopHover()
+function Anchor:MakeUnhoverable()
   AnchorFrame:SetScript("OnEnter", function(f)
     f:SetAlpha(1)
   end)
@@ -41,16 +47,16 @@ function Anchor:MakeHoverable()
   end)
 end
 
-function Anchor:MakeMoveable()
-  AnchorFrame:SetMovable(true)
-  AnchorFrame:RegisterForDrag("LeftButton")
-  AnchorFrame:SetScript("OnDragStart", function(f)
-    if NS.db.global.general.lock == false then
+function Anchor:MakeMoveable(frame)
+  frame:SetMovable(true)
+  frame:RegisterForDrag("LeftButton")
+  frame:SetScript("OnDragStart", function(f)
+    if NS.db.global.general.lock == false and frame:IsVisible() and frame:GetAlpha() ~= 0 then
       f:StartMoving()
     end
   end)
-  AnchorFrame:SetScript("OnDragStop", function(f)
-    if NS.db.global.general.lock == false then
+  frame:SetScript("OnDragStop", function(f)
+    if NS.db.global.general.lock == false and frame:IsVisible() and frame:GetAlpha() ~= 0 then
       f:StopMovingOrSizing()
       local a, _, b, c, d = f:GetPoint()
       NS.db.global.position[1] = a
@@ -69,34 +75,35 @@ function Anchor:ToggleShow(show)
   end
 end
 
-function Anchor:Lock()
-  self:StopMovement()
+function Anchor:RemoveControls(frame)
+  frame:EnableMouse(false)
+  frame:SetScript("OnMouseUp", nil)
+end
+
+function Anchor:AddControls(frame)
+  frame:EnableMouse(true)
+  frame:SetScript("OnMouseUp", function(_, btn)
+    frame:EnableMouse(true)
+    frame:SetScript("OnMouseUp", function(_, btn)
+      if NS.db.global.general.lock == false and not IsInInstance() and frame:IsVisible() and frame:GetAlpha() ~= 0 then
+        if btn == "RightButton" then
+          AceConfigDialog:Open(AddonName)
+        end
+      end
+    end)
+  end)
+end
+
+function Anchor:Lock(frame)
+  self:RemoveControls(frame)
+  self:MakeUnmovable(frame)
   self:ToggleShow(false)
 end
 
-function Anchor:Unlock()
-  self:MakeMoveable()
+function Anchor:Unlock(frame)
+  self:AddControls(frame)
+  self:MakeMoveable(frame)
   self:ToggleShow(true)
-end
-
-function Anchor:AddControls()
-  AnchorFrame:EnableMouse(true)
-
-  AnchorFrame:SetScript("OnMouseUp", function(_, btn)
-    if NS.db.global.general.lock == false then
-      if btn == "RightButton" then
-        LibStub("AceConfigDialog-3.0"):Open(AddonName)
-      end
-    end
-  end)
-
-  if NS.db.global.general.lock then
-    self:StopMovement()
-    self:ToggleShow(false)
-  else
-    self:MakeMoveable()
-    self:ToggleShow(true)
-  end
 end
 
 function Anchor:Create()
@@ -118,7 +125,11 @@ function Anchor:Create()
     AnchorFrame:SetHeight(15)
     AnchorFrame:SetClampedToScreen(true)
 
-    self:AddControls()
+    if NS.db.global.general.lock then
+      self:Lock(AnchorFrame)
+    else
+      self:Unlock(AnchorFrame)
+    end
 
     Anchor.header = header
   end

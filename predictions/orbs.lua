@@ -74,26 +74,27 @@ do
     -- aura.points[2] = Damage taken increase, ex: 60
     -- aura.points[3] = Damage done increase, ex: 20
     local function updateOrbStacks(unitTarget, orbKey, spellId, changeType, updateInfo, isRemoved)
-      local name, realm = UnitName(unitTarget)
-      local nameAndRealm = realm and (name .. "-" .. realm) or (name .. "-" .. GetRealmName())
+      local nameAndRealm = NS.GetUnitNameAndRealm(unitTarget)
 
-      if orbCarriers[orbKey] == nameAndRealm then
-        if changeType == "update" or changeType == "remove" then
-          for _, auraInstanceID in ipairs(updateInfo) do
-            local aura = GetAuraDataByAuraInstanceID(unitTarget, auraInstanceID)
-            if aura and aura.spellId == spellId then
-              orbStacks[orbKey] = isRemoved and 0 or aura.points[2]
-              Orbs:StartOrbList(orbStacks)
-              break
-            end
+      if orbCarriers[orbKey] ~= nameAndRealm then
+        return
+      end
+
+      if changeType == "update" or changeType == "remove" then
+        for _, auraInstanceID in ipairs(updateInfo) do
+          local aura = GetAuraDataByAuraInstanceID(unitTarget, auraInstanceID)
+          if aura and aura.spellId == spellId then
+            orbStacks[orbKey] = isRemoved and 0 or aura.points[2]
+            Orbs:StartOrbList(orbStacks)
+            break
           end
-        elseif changeType == "add" then
-          for _, aura in ipairs(updateInfo) do
-            if aura and aura.spellId == spellId then
-              orbStacks[orbKey] = aura.points[2]
-              Orbs:StartOrbList(orbStacks)
-              break
-            end
+        end
+      elseif changeType == "add" then
+        for _, aura in ipairs(updateInfo) do
+          if aura and aura.spellId == spellId then
+            orbStacks[orbKey] = aura.points[2]
+            Orbs:StartOrbList(orbStacks)
+            break
           end
         end
       end
@@ -163,7 +164,7 @@ do
 
         -- temple base states are always state 1 which is technically contested in all other maps
         for _, v in pairs(baseInfo.leftIcons) do
-          if v.iconState == 1 then
+          if v.iconState == Enum.IconState.ShowState1 then
             local str = v.state1Tooltip
 
             allyOrbs = allyOrbs + 1
@@ -174,7 +175,7 @@ do
         end
 
         for _, v in pairs(baseInfo.rightIcons) do
-          if v.iconState == 1 then
+          if v.iconState == Enum.IconState.ShowState1 then
             local str = v.state1Tooltip
 
             hordeOrbs = hordeOrbs + 1
@@ -201,7 +202,7 @@ do
 
         -- temple base states are always state 1 which is technically contested in all other maps
         for _, v in pairs(baseInfo.leftIcons) do
-          if v.iconState == 1 then
+          if v.iconState == Enum.IconState.ShowState1 then
             local str = v.state1Tooltip
 
             allyOrbs = allyOrbs + 1
@@ -212,7 +213,7 @@ do
         end
 
         for _, v in pairs(baseInfo.rightIcons) do
-          if v.iconState == 1 then
+          if v.iconState == Enum.IconState.ShowState1 then
             local str = v.state1Tooltip
 
             hordeOrbs = hordeOrbs + 1
@@ -235,8 +236,7 @@ do
           or spellId == orbTypes["Orange"]
           or spellId == orbTypes["Purple"]
         then
-          local name, realm = UnitName(unitID)
-          local nameAndRealm = realm and (name .. "-" .. realm) or (name .. "-" .. GetRealmName())
+          local nameAndRealm = NS.GetUnitNameAndRealm(unitID)
           if spellId == orbTypes["Blue"] then
             local debuffPercentage = select(17, ...)
             orbCarriers["Blue"] = nameAndRealm

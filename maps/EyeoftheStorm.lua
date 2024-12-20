@@ -11,63 +11,61 @@ local Bases = NS.Bases
 
 local EOTS = Maps:NewMod()
 
+local commonConfig = {
+  maxBases = 4,
+  tickRate = 2,
+  assaultTime = 6,
+  contestedTime = 60,
+  resetTime = 15,
+  baseResources = {
+    [0] = 0,
+    [1] = 1,
+    [2] = 1.5,
+    [3] = 2,
+    [4] = 6,
+  },
+  flagResources = {
+    [0] = 0,
+    [1] = 75,
+    [2] = 85,
+    [3] = 100,
+    [4] = 500,
+  },
+}
+
+-- only iconState 1 has flag info
+-- "TEAM has taken the flag"
 local instanceIdToMapId = {
   -- EyeoftheStorm
-  -- only iconState 1 has flag info
-  -- "TEAM has taken the flag"
   [566] = {
     id = 112,
-    maxBases = 4,
-    tickRate = 2,
-    assaultTime = 6,
-    contestedTime = 60,
-    resetTime = 15,
-    baseResources = {
-      [0] = 0,
-      [1] = 1,
-      [2] = 1.5,
-      [3] = 2,
-      [4] = 6,
-    },
-    flagResources = {
-      [0] = 0,
-      [1] = 75,
-      [2] = 85,
-      [3] = 100,
-      [4] = 500,
-    },
+    maxBases = commonConfig.maxBases,
+    tickRate = commonConfig.tickRate,
+    assaultTime = commonConfig.assaultTime,
+    contestedTime = commonConfig.contestedTime,
+    resetTime = commonConfig.resetTime,
+    baseResources = commonConfig.baseResources,
+    flagResources = commonConfig.flagResources,
   },
   -- RatedEyeoftheStorm
   [968] = {
     id = 397,
-    maxBases = 4,
-    tickRate = 2,
-    assaultTime = 6,
-    contestedTime = 60,
-    resetTime = 15,
-    baseResources = {
-      [0] = 0,
-      [1] = 1,
-      [2] = 1.5,
-      [3] = 2,
-      [4] = 6,
-    },
-    flagResources = {
-      [0] = 0,
-      [1] = 75,
-      [2] = 85,
-      [3] = 100,
-      [4] = 500,
-    },
+    maxBases = commonConfig.maxBases,
+    tickRate = commonConfig.tickRate,
+    assaultTime = commonConfig.assaultTime,
+    contestedTime = commonConfig.contestedTime,
+    resetTime = commonConfig.resetTime,
+    baseResources = commonConfig.baseResources,
+    flagResources = commonConfig.flagResources,
   },
 }
 
 local function checkInfo(id, isBlitz)
   local convertedInfo = {}
   convertedInfo = NS.CopyTable(instanceIdToMapId[id], convertedInfo)
-  convertedInfo.assaultTime = isBlitz and 4 or 6
-  convertedInfo.contestedTime = isBlitz and 30 or 60
-  convertedInfo.maxBases = isBlitz and 2 or 4
+  convertedInfo.assaultTime = isBlitz and 4 or commonConfig.assaultTime
+  convertedInfo.contestedTime = isBlitz and 30 or commonConfig.contestedTime
+  convertedInfo.maxBases = isBlitz and 2 or commonConfig.maxBases
   convertedInfo.baseResources = isBlitz and {
     [0] = 0,
     [1] = 3.5,
@@ -84,10 +82,8 @@ end
 function EOTS:EnterZone(id, isBlitz)
   if NS.db.global.maps.eyeofthestorm.enabled then
     NS.IS_EOTS = true
-
     Info:SetAnchor(Banner.frame, 0, 0)
     Flags:SetAnchor(Bases.frame, 0, -5)
-
     BasePrediction:StartInfoTracker(checkInfo(id, isBlitz))
   end
 end

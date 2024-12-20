@@ -1,5 +1,30 @@
 # Battleground Win Conditions
 
+## [v9.7.0](https://github.com/rbgdevx/battleground-win-conditions/releases/tag/v9.7.0) (2024-12-20)
+
+- Complete overhaul of map controller managing entering/exiting bgs and their state
+- Adding Deephaul Ravine to the list of maps, but not yet completed
+- New supporting helpers from event and state refactoring
+- Adding some additional conditional checks from recent testing and bugs
+- Map settings overhaul for all maps to create common configs for easy switching between blitz and regular bgs
+- Leveraging blizzard api enums over hard coded values in conditionals
+- Using variables for max scores instead of hard coded values
+- Changing checks in base caps to proper conditional lua statements
+- Adding additional checks for win con triggers to include inc base changes not just point changes
+- Fixing base reset on blitz eots to always show correctly
+- Adding an additional check for flag caps to reset stacks
+- Reverting flag cap functions back to inline handling logic per battleground message
+- Adding early out on orbs if unit isn't a carrier
+- Updating db cleanup function to ignore lastReadVersion and lastFlagCapBy as those are set dynamically
+- New simplified interface start function
+- New changelog manager and dialog lib
+- Adding version check code
+- Drag and Click control updates to ensure click through when hidden or locked
+- Fixing font dropdown list
+- Updating font size range
+- Minor Cleanup
+- Update toc
+
 ## [v9.6.22](https://github.com/rbgdevx/battleground-win-conditions/releases/tag/v9.6.22) (2024-08-21)
 
 - Adding back in EOTS helper function to check if we're on EOTS

@@ -1,14 +1,6 @@
 local _, NS = ...
 
-local select = select
-local UnitGUID = UnitGUID
-local UnitClass = UnitClass
-local UnitName = UnitName
-local GetRealmName = GetRealmName
-
-local sformat = string.format
-
-local GetPlayerFactionGroup = GetPlayerFactionGroup
+local GetActiveMatchState = C_PvP.GetActiveMatchState
 
 ---@type BGWC
 local BGWC = NS.BGWC
@@ -17,23 +9,80 @@ local BGWCFrame = NS.BGWC.frame
 local Maps = NS.Maps
 local Interface = NS.Interface
 
+local INIT_EVENTS = {
+  "PLAYER_ENTERING_WORLD",
+  "PLAYER_JOINED_PVP_MATCH",
+}
+
+local ACTIVE_EVENTS = {
+  "PLAYER_LEAVING_WORLD",
+  "PVP_MATCH_COMPLETE",
+}
+
+function BGWC:Init()
+  if self.isInitialized then
+    return
+  end
+  self.isInitialized = true
+
+  FrameUtil.RegisterFrameForEvents(BGWCFrame, ACTIVE_EVENTS)
+
+  Interface:Clear()
+  Maps:PrepareZone()
+end
+
+function BGWC:Shutdown()
+  FrameUtil.UnregisterFrameForEvents(BGWCFrame, ACTIVE_EVENTS)
+
+  self.isInitialized = false
+
+  Interface:Clear()
+  Maps:DisableZone()
+end
+
+local function HandleMatchEnd()
+  if C_PvP.GetActiveMatchState() >= Enum.PvPMatchState.PostRound then
+    BGWC:Shutdown()
+  end
+end
+
+-- The "PLAYER_LEAVING_WORLD" and "PLAYER_LOGOUT" events both fire on a ui reload so addons can shut down cleanly before being reloaded
+-- https://www.reddit.com/r/wowaddons/comments/92ch0u/comment/e34zj4j/
+function BGWC:PLAYER_LEAVING_WORLD()
+  HandleMatchEnd()
+end
+
+function BGWC:PVP_MATCH_COMPLETE()
+  HandleMatchEnd()
+end
+
 function BGWC:PLAYER_ENTERING_WORLD()
-  Maps:ToggleZone()
+  local matchState = GetActiveMatchState()
+  if matchState >= Enum.PvPMatchState.Waiting and matchState <= Enum.PvPMatchState.Engaged then
+    self:Init()
+  elseif matchState <= Enum.PvPMatchState.Waiting then
+    NS.PLAYER_FACTION = GetPlayerFactionGroup()
+    NS.IN_GAME = false
+    NS.IS_BLITZ = false
+
+    Interface:Start()
+  end
+end
+
+function BGWC:PLAYER_JOINED_PVP_MATCH()
+  local matchState = GetActiveMatchState()
+  if matchState >= Enum.PvPMatchState.Waiting and matchState <= Enum.PvPMatchState.Engaged then
+    self:Init()
+  end
 end
 
 function BGWC:PLAYER_LOGIN()
   BGWCFrame:UnregisterEvent("PLAYER_LOGIN")
 
-  NS.PLAYER_GUID = UnitGUID("player")
-  NS.PLAYER_CLASS = select(2, UnitClass("player"))
-  NS.PLAYER_FACTION = GetPlayerFactionGroup()
-
-  NS.userName = UnitName("player")
-  NS.userRealm = GetRealmName()
-  NS.userNameWithRealm = sformat("%s-%s", NS.userName, NS.userRealm)
+  NS.userNameWithRealm = NS.GetUnitNameAndRealm("player")
 
   Interface:Create()
 
-  BGWCFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
+  FrameUtil.RegisterFrameForEvents(BGWCFrame, INIT_EVENTS)
 end
 BGWCFrame:RegisterEvent("PLAYER_LOGIN")

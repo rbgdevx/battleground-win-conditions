@@ -62,13 +62,13 @@ do
       end
 
       for _, v in pairs(flagInfo.leftIcons) do
-        if v.iconState == 1 then
+        if v.iconState == Enum.IconState.ShowState1 then
           allyFlags = allyFlags + 1
         end
       end
 
       for _, v in pairs(flagInfo.rightIcons) do
-        if v.iconState == 1 then
+        if v.iconState == Enum.IconState.ShowState1 then
           hordeFlags = hordeFlags + 1
         end
       end
@@ -77,12 +77,13 @@ do
 
   do
     local winTime = 0
-    local aScore, hScore = 0, 0
+    local prevAScore, prevHScore = 0, 0
+    local minScore, maxScore, aScore, hScore = 0, 3, 0, 0
 
     function FlagPrediction:FlagPredictor(team)
       if aScore == 0 and hScore == 0 then
         Banner:Start(winTime, "TIE")
-      elseif aScore < 3 and hScore < 3 then
+      elseif aScore < maxScore and hScore < maxScore then
         if team then
           NS.db.global.lastFlagCapBy = team
         end
@@ -109,7 +110,7 @@ do
     function FlagPrediction:GetRemainingTime(widgetID, team)
       local timeInfo = GetIconAndTextWidgetVisualizationInfo(widgetID)
 
-      if timeInfo and timeInfo.text and timeInfo.state == 1 then
+      if timeInfo and timeInfo.text and timeInfo.state == Enum.IconAndTextWidgetState.Shown then
         local minutes, seconds = smatch(timeInfo.text, "(%d+):(%d+)")
 
         minutes = tnumber(minutes)
@@ -192,12 +193,11 @@ do
         end
 
         for _, v in pairs(flagInfo.leftIcons) do
-          if v.iconState == 1 then
+          if v.iconState == Enum.IconState.ShowState1 then
             allyFlags = allyFlags + 1
 
             if UnitName("arena2") then
-              local name, realm = UnitName("arena2")
-              local nameAndRealm = realm and (name .. "-" .. realm) or (name .. "-" .. GetRealmName())
+              local nameAndRealm = NS.GetUnitNameAndRealm("arena2")
 
               allyFlagCarrier = nameAndRealm
               allyHasFlag = true
@@ -208,12 +208,11 @@ do
         end
 
         for _, v in pairs(flagInfo.rightIcons) do
-          if v.iconState == 1 then
+          if v.iconState == Enum.IconState.ShowState1 then
             hordeFlags = hordeFlags + 1
 
             if UnitName("arena1") then
-              local name, realm = UnitName("arena1")
-              local nameAndRealm = realm and (name .. "-" .. realm) or (name .. "-" .. GetRealmName())
+              local nameAndRealm = NS.GetUnitNameAndRealm("arena1")
 
               hordeFlagCarrier = nameAndRealm
               hordeHasFlag = true
@@ -251,6 +250,9 @@ do
 
         aScore = scoreInfo.leftBarValue -- Alliance Bar
         hScore = scoreInfo.rightBarValue -- Horde Bar
+
+        prevAScore = aScore
+        prevHScore = hScore
 
         if aScore > 0 and hScore > 0 then
           if aScore > hScore then
@@ -324,6 +326,162 @@ do
       end
     end
 
+    function FlagPrediction:CHAT_MSG_BG_SYSTEM_ALLIANCE(message)
+      local pickedName = smatch(message, "picked up by (.+)%!") -- horde picked ally flag
+      if pickedName then
+        hordeFlagCarrier = pickedName
+        hordeHasFlag = true
+        NS.HAS_FLAG_CARRIER = true
+        if allyFlagCarrier and stacksCounting == false then
+          flagCarrier = "arena2"
+          FlagsFrame:RegisterEvent("UNIT_AURA")
+          stacksCounting = true
+          NS.STACKS_COUNTING = stacksCounting
+          Stacks:Start(curMap.stackTime, 0)
+        end
+      end
+
+      if smatch(message, "dropped by (.+)%!") then -- horde dropped ally flag
+        hordeHasFlag = false
+        if allyHasFlag == false then
+          NS.HAS_FLAG_CARRIER = false
+        end
+      end
+
+      if sfind(message, "returned to its base by") then -- ally flag returned by ally
+        hordeFlagCarrier = nil
+        hordeHasFlag = false
+        if allyFlagCarrier == nil and stacksCounting then
+          FlagsFrame:UnregisterEvent("UNIT_AURA")
+          allyHasFlag = false
+          flagCarrier = nil
+          NS.HAS_FLAG_CARRIER = false
+          stacksCounting = false
+          NS.STACKS_COUNTING = stacksCounting
+          Stacks:Stop(Stacks, Stacks.timerAnimationGroup)
+        end
+      end
+
+      if sfind(message, "captured the") then -- alliance captured horde flag
+        FlagsFrame:UnregisterEvent("UNIT_AURA")
+        allyFlagCarrier = nil
+        hordeFlagCarrier = nil
+        allyHasFlag = false
+        hordeHasFlag = false
+        flagCarrier = nil
+        NS.HAS_FLAG_CARRIER = false
+        stacksCounting = false
+        NS.STACKS_COUNTING = stacksCounting
+        currentStacks = 0
+        NS.CURRENT_STACKS = currentStacks
+        Stacks:Stop(Stacks, Stacks.timerAnimationGroup)
+        self:GetRemainingTime(6, NS.ALLIANCE_NAME)
+      end
+
+      if sfind(message, "wins") then -- ally wins
+        FlagsFrame:UnregisterEvent("UNIT_AURA")
+        allyFlagCarrier = nil
+        hordeFlagCarrier = nil
+        allyHasFlag = false
+        hordeHasFlag = false
+        flagCarrier = nil
+        NS.HAS_FLAG_CARRIER = false
+        stacksCounting = false
+        NS.STACKS_COUNTING = stacksCounting
+        currentStacks = 0
+        NS.CURRENT_STACKS = currentStacks
+        Stacks:Stop(Stacks, Stacks.timerAnimationGroup)
+        Banner:Stop(Banner, Banner.timerAnimationGroup)
+      end
+    end
+
+    function FlagPrediction:CHAT_MSG_BG_SYSTEM_HORDE(message)
+      local pickedName = smatch(message, "picked up by (.+)%!") -- ally picked horde flag
+      if pickedName then
+        allyFlagCarrier = pickedName
+        allyHasFlag = true
+        NS.HAS_FLAG_CARRIER = true
+        if hordeFlagCarrier and stacksCounting == false then
+          flagCarrier = "arena2"
+          FlagsFrame:RegisterEvent("UNIT_AURA")
+          stacksCounting = true
+          NS.STACKS_COUNTING = stacksCounting
+          Stacks:Start(curMap.stackTime, 0)
+        end
+      end
+
+      if smatch(message, "dropped by (.+)%!") then -- ally dropped horde flag
+        allyHasFlag = false
+        if hordeHasFlag == false then
+          NS.HAS_FLAG_CARRIER = false
+        end
+      end
+
+      if sfind(message, "returned to its base by") then -- horde flag returned by horde
+        allyFlagCarrier = nil
+        allyHasFlag = false
+        if hordeFlagCarrier == nil and stacksCounting then
+          FlagsFrame:UnregisterEvent("UNIT_AURA")
+          hordeHasFlag = false
+          flagCarrier = nil
+          NS.HAS_FLAG_CARRIER = false
+          stacksCounting = false
+          NS.STACKS_COUNTING = stacksCounting
+          Stacks:Stop(Stacks, Stacks.timerAnimationGroup)
+        end
+      end
+
+      if sfind(message, "captured the") then -- horde captured alliance flag
+        FlagsFrame:UnregisterEvent("UNIT_AURA")
+        allyFlagCarrier = nil
+        hordeFlagCarrier = nil
+        allyHasFlag = false
+        hordeHasFlag = false
+        flagCarrier = nil
+        NS.HAS_FLAG_CARRIER = false
+        stacksCounting = false
+        NS.STACKS_COUNTING = stacksCounting
+        currentStacks = 0
+        NS.CURRENT_STACKS = currentStacks
+        Stacks:Stop(Stacks, Stacks.timerAnimationGroup)
+        self:GetRemainingTime(6, NS.HORDE_NAME)
+      end
+
+      if sfind(message, "wins") then -- horde wins
+        FlagsFrame:UnregisterEvent("UNIT_AURA")
+        allyFlagCarrier = nil
+        hordeFlagCarrier = nil
+        allyHasFlag = false
+        hordeHasFlag = false
+        flagCarrier = nil
+        NS.HAS_FLAG_CARRIER = false
+        stacksCounting = false
+        NS.STACKS_COUNTING = stacksCounting
+        currentStacks = 0
+        NS.CURRENT_STACKS = currentStacks
+        Stacks:Stop(Stacks, Stacks.timerAnimationGroup)
+        Banner:Stop(Banner, Banner.timerAnimationGroup)
+      end
+    end
+
+    function FlagPrediction:CHAT_MSG_BG_SYSTEM_NEUTRAL(message)
+      local flagsReturned = string.find(message, "placed at their bases") -- all flags returned
+      if flagsReturned then
+        FlagsFrame:UnregisterEvent("UNIT_AURA")
+        allyFlagCarrier = nil
+        hordeFlagCarrier = nil
+        allyHasFlag = false
+        hordeHasFlag = false
+        flagCarrier = nil
+        NS.HAS_FLAG_CARRIER = false
+        stacksCounting = false
+        NS.STACKS_COUNTING = stacksCounting
+        currentStacks = 0
+        NS.CURRENT_STACKS = currentStacks
+        Stacks:Stop(Stacks, Stacks.timerAnimationGroup)
+      end
+    end
+
     function FlagPrediction:ScoreTracker(widgetID)
       -- widgetType == 3
       -- 2 = WG, TP
@@ -337,6 +495,27 @@ do
 
         aScore = scoreInfo.leftBarValue -- Alliance Bar
         hScore = scoreInfo.rightBarValue -- Horde Bar
+
+        if (aScore ~= prevAScore or hScore ~= prevHScore) and aScore < maxScore and hScore < maxScore then
+          prevAScore = aScore
+          prevHScore = hScore
+
+          NS.Debug("TRIGGERED", "aScore", aScore, "hScore", hScore)
+
+          FlagsFrame:UnregisterEvent("UNIT_AURA")
+          allyFlagCarrier = nil
+          hordeFlagCarrier = nil
+          allyHasFlag = false
+          hordeHasFlag = false
+          flagCarrier = nil
+          NS.HAS_FLAG_CARRIER = false
+          stacksCounting = false
+          NS.STACKS_COUNTING = stacksCounting
+          currentStacks = 0
+          NS.CURRENT_STACKS = currentStacks
+          Stacks:Stop(Stacks, Stacks.timerAnimationGroup)
+          self:GetRemainingTime(6, NS.HORDE_NAME)
+        end
       end
     end
 
@@ -346,128 +525,11 @@ do
       if widgetID == 6 then
         local timeInfo = GetIconAndTextWidgetVisualizationInfo(widgetID)
 
-        if not timeInfo or not timeInfo.text or timeInfo.state ~= 1 then
+        if not timeInfo or not timeInfo.text or timeInfo.state ~= Enum.IconAndTextWidgetState.Shown then
           return
         end
 
         self:GetRemainingTime(widgetID)
-      end
-    end
-
-    local function resetFlagState()
-      FlagsFrame:UnregisterEvent("UNIT_AURA")
-      allyFlagCarrier = nil
-      hordeFlagCarrier = nil
-      allyHasFlag = false
-      hordeHasFlag = false
-      flagCarrier = nil
-      NS.HAS_FLAG_CARRIER = false
-      stacksCounting = false
-      NS.STACKS_COUNTING = stacksCounting
-      currentStacks = 0
-      NS.CURRENT_STACKS = currentStacks
-      Stacks:Stop(Stacks, Stacks.timerAnimationGroup)
-    end
-
-    local function handleFlagCapture(teamName)
-      resetFlagState()
-      FlagPrediction:GetRemainingTime(6, teamName)
-    end
-
-    local function handleFlagReturn(carrier, enemyFlagCarrier)
-      if carrier == "ally" then
-        allyFlagCarrier = nil
-        allyHasFlag = false
-      elseif carrier == "horde" then
-        hordeFlagCarrier = nil
-        hordeHasFlag = false
-      end
-      if enemyFlagCarrier == nil and stacksCounting then
-        resetFlagState()
-      end
-    end
-
-    local function handleFlagPickup(carrier, enemyFlagCarrier, unitID)
-      if carrier == "ally" then
-        allyFlagCarrier = unitID
-        allyHasFlag = true
-      elseif carrier == "horde" then
-        hordeFlagCarrier = unitID
-        hordeHasFlag = true
-      end
-      NS.HAS_FLAG_CARRIER = true
-      if enemyFlagCarrier and stacksCounting == false then
-        flagCarrier = "arena2"
-        FlagsFrame:RegisterEvent("UNIT_AURA")
-        stacksCounting = true
-        NS.STACKS_COUNTING = stacksCounting
-        Stacks:Start(curMap.stackTime, 0)
-      end
-    end
-
-    local function handleWin()
-      resetFlagState()
-      Banner:Stop(Banner, Banner.timerAnimationGroup)
-    end
-
-    function FlagPrediction:CHAT_MSG_BG_SYSTEM_ALLIANCE(message)
-      local pickedName = smatch(message, "picked up by (.+)%!") -- horde picked ally flag
-      if pickedName then
-        handleFlagPickup("horde", allyFlagCarrier, pickedName)
-      end
-
-      local droppedName = smatch(message, "dropped by (.+)%!") -- horde dropped ally flag
-      if droppedName then
-        hordeHasFlag = false
-        if allyHasFlag == false then
-          NS.HAS_FLAG_CARRIER = false
-        end
-      end
-
-      if sfind(message, "returned to its base by") then -- ally flag returned by ally
-        handleFlagReturn("horde", allyFlagCarrier)
-      end
-
-      if sfind(message, "captured the") then -- alliance captured horde flag
-        handleFlagCapture(NS.ALLIANCE_NAME)
-      end
-
-      if sfind(message, "wins") then -- ally wins
-        handleWin()
-      end
-    end
-
-    function FlagPrediction:CHAT_MSG_BG_SYSTEM_HORDE(message)
-      local pickedName = smatch(message, "picked up by (.+)%!") -- ally picked horde flag
-      if pickedName then
-        handleFlagPickup("ally", hordeFlagCarrier, pickedName)
-      end
-
-      local droppedName = smatch(message, "dropped by (.+)%!") -- ally dropped horde flag
-      if droppedName then
-        allyHasFlag = false
-        if hordeHasFlag == false then
-          NS.HAS_FLAG_CARRIER = false
-        end
-      end
-
-      if sfind(message, "returned to its base by") then -- horde flag returned by horde
-        handleFlagReturn("ally", hordeFlagCarrier)
-      end
-
-      if sfind(message, "captured the") then -- horde captured alliance flag
-        handleFlagCapture(NS.HORDE_NAME)
-      end
-
-      if sfind(message, "wins") then -- horde wins
-        handleWin()
-      end
-    end
-
-    function FlagPrediction:CHAT_MSG_BG_SYSTEM_NEUTRAL(message)
-      local flagsReturned = string.find(message, "placed at their bases") -- all flags returned
-      if flagsReturned then
-        resetFlagState()
       end
     end
 
@@ -487,7 +549,7 @@ do
     --]]
     -- function FlagPrediction:ARENA_OPPONENT_UPDATE(unitToken, updateReason)
     --   -- make sure we dont spam updates when the game is over
-    --   if aScore < 3 and hScore < 3 then
+    --   if aScore < maxScore and hScore < maxScore then
     --     -- we only care about the flag carriers
     --     if unitToken == "arena1" or unitToken == "arena2" then
     --       -- old code here
@@ -513,7 +575,8 @@ do
     function FlagPrediction:StartInfoTracker(mapInfo)
       -- local
       winTime = 0
-      aScore, hScore = 0, 0
+      prevAScore, prevHScore = 0, 0
+      minScore, maxScore, aScore, hScore = 0, 3, 0, 0
       -- global
       allyFlagCarrier, hordeFlagCarrier, flagCarrier = nil, nil, nil
       NS.HAS_FLAG_CARRIER = false

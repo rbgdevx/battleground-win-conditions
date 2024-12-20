@@ -2,6 +2,10 @@ local AddonName, NS = ...
 
 local LibStub = LibStub
 local CopyTable = CopyTable
+local next = next
+
+local AceConfig = LibStub("AceConfig-3.0")
+local AceConfigDialog = LibStub("AceConfigDialog-3.0")
 
 ---@type BGWC
 local BGWC = NS.BGWC
@@ -18,6 +22,8 @@ local Flags = NS.Flags
 local Score = NS.Score
 local Stacks = NS.Stacks
 local Maps = NS.Maps
+local Version = NS.Version
+local Changelog = NS.Changelog
 
 local Options = {}
 NS.Options = Options
@@ -41,9 +47,9 @@ NS.AceConfig = {
           set = function(_, val)
             NS.db.global.general.lock = val
             if val then
-              Anchor:Lock()
+              Anchor:Lock(Anchor.frame)
             else
-              Anchor:Unlock()
+              Anchor:Unlock(Anchor.frame)
             end
           end,
           get = function(_)
@@ -516,6 +522,19 @@ NS.AceConfig = {
             },
           },
         },
+        debug = {
+          name = "Toggle debug mode",
+          desc = "Turning this feature on prints debug messages to the chat window.",
+          type = "toggle",
+          width = "full",
+          order = 99,
+          set = function(_, val)
+            NS.db.global.debug = val
+          end,
+          get = function(_)
+            return NS.db.global.debug
+          end,
+        },
         reset = {
           name = "Reset Everything",
           type = "execute",
@@ -559,7 +578,7 @@ NS.AceConfig = {
               set = function(_, val)
                 NS.db.global.maps.arathibasin.enabled = val
                 if val then
-                  Maps:ToggleZone()
+                  Maps:PrepareZone()
                 else
                   if NS.IN_GAME then
                     Prediction:StopInfoTracker()
@@ -595,7 +614,7 @@ NS.AceConfig = {
               set = function(_, val)
                 NS.db.global.maps.deepwindgorge.enabled = val
                 if val then
-                  Maps:ToggleZone()
+                  Maps:PrepareZone()
                 else
                   if NS.IN_GAME then
                     Prediction:StopInfoTracker()
@@ -632,7 +651,7 @@ NS.AceConfig = {
                 NS.db.global.maps.eyeofthestorm.enabled = val
 
                 if val then
-                  Maps:ToggleZone()
+                  Maps:PrepareZone()
                 else
                   if NS.IN_GAME then
                     Prediction:StopInfoTracker()
@@ -709,7 +728,44 @@ NS.AceConfig = {
                 NS.db.global.maps.silvershardmines.enabled = val
 
                 if val then
-                  Maps:ToggleZone()
+                  Maps:PrepareZone()
+                else
+                  if NS.IN_GAME then
+                    Prediction:StopInfoTracker()
+                    Interface:Clear()
+                  end
+                end
+              end,
+            },
+          },
+        },
+        deephaulravine = {
+          name = "Deephaul Ravine",
+          type = "group",
+          disabled = function(info)
+            return info[3] and not NS.db.global.maps[info[2]].enabled
+          end,
+          get = function(info)
+            local name = info[#info]
+            return NS.db.global.maps.deephaulravine[name]
+          end,
+          set = function(info, val)
+            local name = info[#info]
+            NS.db.global.maps.deephaulravine[name] = val
+          end,
+          args = {
+            enabled = {
+              name = "Enabled",
+              desc = "Enable for Deephaul Ravine. Toggling this feature on/off while inside a game requires a reload.",
+              type = "toggle",
+              width = "half",
+              order = 1,
+              disabled = true,
+              set = function(_, val)
+                NS.db.global.maps.deephaulravine.enabled = val
+
+                if val then
+                  Maps:PrepareZone()
                 else
                   if NS.IN_GAME then
                     Prediction:StopInfoTracker()
@@ -746,7 +802,7 @@ NS.AceConfig = {
                 NS.db.global.maps.templeofkotmogu.enabled = val
 
                 if val then
-                  Maps:ToggleZone()
+                  Maps:PrepareZone()
                 else
                   if NS.IN_GAME then
                     Prediction:StopInfoTracker()
@@ -865,7 +921,7 @@ NS.AceConfig = {
                 NS.db.global.maps.thebattleforgilneas.enabled = val
 
                 if val then
-                  Maps:ToggleZone()
+                  Maps:PrepareZone()
                 else
                   if NS.IN_GAME then
                     Prediction:StopInfoTracker()
@@ -902,7 +958,7 @@ NS.AceConfig = {
                 NS.db.global.maps.twinpeaks.enabled = val
 
                 if val then
-                  Maps:ToggleZone()
+                  Maps:PrepareZone()
                 else
                   if NS.IN_GAME then
                     Prediction:StopInfoTracker()
@@ -946,7 +1002,7 @@ NS.AceConfig = {
                 NS.db.global.maps.warsonggulch.enabled = val
 
                 if val then
-                  Maps:ToggleZone()
+                  Maps:PrepareZone()
                 else
                   if NS.IN_GAME then
                     Prediction:StopInfoTracker()
@@ -973,8 +1029,10 @@ function Options:SlashCommands(message)
   if message == "toggle lock" then
     if NS.db.global.general.lock == false then
       NS.db.global.general.lock = true
+      Anchor:Lock(Anchor.frame)
     else
       NS.db.global.general.lock = false
+      Anchor:Unlock(Anchor.frame)
     end
   elseif message == "toggle placeholder" then
     if NS.db.global.general.test == false then
@@ -989,16 +1047,17 @@ function Options:SlashCommands(message)
       NS.db.global.general.banner = false
     end
   else
-    LibStub("AceConfigDialog-3.0"):Open(AddonName)
+    AceConfigDialog:Open(AddonName)
   end
 end
 
 function Options:Setup()
-  LibStub("AceConfig-3.0"):RegisterOptionsTable(AddonName, NS.AceConfig)
-  LibStub("AceConfigDialog-3.0"):AddToBlizOptions(AddonName, AddonName)
+  AceConfig:RegisterOptionsTable(AddonName, NS.AceConfig)
+  AceConfigDialog:AddToBlizOptions(AddonName, AddonName)
 
-  SLASH_BGWC1 = AddonName
+  SLASH_BGWC1 = "/battlegroundwinconditions"
   SLASH_BGWC2 = "/bgwc"
+  SLASH_BGWC3 = "/bwc"
 
   function SlashCmdList.BGWC(message)
     self:SlashCommands(message)
@@ -1025,6 +1084,8 @@ function BGWC:ADDON_LOADED(addon)
     NS.CleanupDB(BattlegroundWinConditionsDB, NS.DefaultDatabase)
 
     Options:Setup()
+    Version:Setup()
+    Changelog:Setup()
   end
 end
 BGWCFrame:RegisterEvent("ADDON_LOADED")

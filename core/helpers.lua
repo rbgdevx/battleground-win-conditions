@@ -13,6 +13,8 @@ local setmetatable = setmetatable
 local getmetatable = getmetatable
 local GetInstanceInfo = GetInstanceInfo
 local GetNumGroupMembers = GetNumGroupMembers
+local GetRealmName = GetRealmName
+local UnitName = UnitName
 
 local sformat = string.format
 local mfloor = math.floor
@@ -21,7 +23,9 @@ local mmin = math.min
 local mmax = math.max
 local tinsert = table.insert
 local tsort = table.sort
-local wipe = table.wipe
+local twipe = table.wipe
+
+local IsSoloRBG = C_PvP.IsSoloRBG
 
 NS.secondsToMinutes = function(seconds)
   return seconds / SECONDS_PER_MIN
@@ -72,6 +76,22 @@ NS.formatTime = function(time)
   -- return sformat("%02d:%02d", NS.getMinutes(time), NS.getSeconds(time))
 end
 
+NS.isArathi = function(zoneID)
+  if zoneID == 1366 or zoneID == 1383 or zoneID == 837 then
+    return true
+  else
+    return false
+  end
+end
+
+NS.isDeepwind = function(zoneID)
+  if zoneID == 1576 then
+    return true
+  else
+    return false
+  end
+end
+
 NS.isEOTS = function(zoneID)
   if zoneID == 112 or zoneID == 397 then
     return true
@@ -83,12 +103,19 @@ end
 NS.isBlitz = function()
   local maxPlayers = select(5, GetInstanceInfo())
   local groupSize = GetNumGroupMembers()
+  local isSolo = IsSoloRBG()
 
-  if maxPlayers >= NS.DEFAULT_GROUP_SIZE or groupSize > NS.MIN_GROUP_SIZE then
-    return false
-  else
-    return true
-  end
+  local correctMaxPlayers = maxPlayers >= NS.DEFAULT_GROUP_SIZE
+  local correctGroupSize = groupSize > NS.MIN_GROUP_SIZE
+  local correctGameMode = not isSolo
+
+  return not (correctMaxPlayers or correctGroupSize or correctGameMode)
+
+  -- if maxPlayers >= NS.DEFAULT_GROUP_SIZE or groupSize > NS.MIN_GROUP_SIZE or not isSolo then
+  -- 	return false
+  -- else
+  -- 	return true
+  -- end
 end
 
 local formatToAlliance = function(string)
@@ -115,6 +142,12 @@ NS.formatScore = function(team, score)
   else
     return mfloor(score)
   end
+end
+
+NS.GetUnitNameAndRealm = function(unit)
+  local name, realm = UnitName(unit)
+  local nameAndRealm = realm and (name .. "-" .. realm) or (name .. "-" .. GetRealmName())
+  return nameAndRealm
 end
 
 NS.getCorrectName = function(team, faction)
@@ -151,6 +184,8 @@ NS.getWinTime = function(ticksToWin, tickRate)
   local timeToWin = ticksToWin == 10000 and ticksToWin or tickRate * ticksToWin -- convert ticks to seconds
   return mmin(timeToWin, 10000)
 end
+
+NS.getWinTimeIncrease = function() end
 
 NS.calculateFlagsToCatchUp = function(maxScore, winScore, loseScore, winBases, loseBases, curMap)
   local flagValue = curMap.flagResources[loseBases]
@@ -303,13 +338,13 @@ NS.checkWinCondition = function(
         ownTime = ownTime + GetTime(),
         ownTicks = ownTicks,
         --[[
-        -- we need to accomodate for the assault time to get by this time
+        -- we need to accommodate for the assault time to get by this time
         -- as well as the cap time
         --]]
         capTime = capTime + GetTime(),
         capTicks = capTicks,
         --[[
-        -- we need to accomodate for the assault time to get by this time
+        -- we need to accommodate for the assault time to get by this time
         -- as well as the cap time
         --]]
         winTime = winTime + GetTime(), -- mmin(mmax(0, winTime), 1500) + GetTime(),
@@ -359,7 +394,7 @@ NS.getIncomingBaseInfo = function(timers, ownedBases, incomingBases, resources, 
             --]]
             local newBases = ownedBases + index - 1
             --[[
-            -- we need to caclulate the time difference between
+            -- we need to calculate the time difference between
             -- one incoming base and the next to know
             -- how much time we have earning points with each
             -- base until the next one caps over
@@ -375,7 +410,7 @@ NS.getIncomingBaseInfo = function(timers, ownedBases, incomingBases, resources, 
             local newPoints = newTicks * (tickRate * resources[newBases])
             --[[
             -- this is a way to store up our total time
-            -- spent cappping over incoming bases
+            -- spent capping over incoming bases
             --]]
             baseIncrease = index
             scoreIncrease = scoreIncrease + newPoints
@@ -396,6 +431,12 @@ end
 
 NS.write = function(...)
   print(NS.userClassHexColor .. "BattlegroundWinConditions|r: ", ...)
+end
+
+NS.Debug = function(...)
+  if NS.db and NS.db.global.debug then
+    print(...)
+  end
 end
 
 NS.CreateTimerAnimation = function(frame)
@@ -517,7 +558,12 @@ NS.CleanupDB = function(src, dst)
     if dst[key] == nil then
       -- HACK: offsetsXY are not set in DEFAULT_SETTINGS but sat on demand instead to save memory,
       -- which causes nil comparison to always be true here, so always ignore these for now
-      if key ~= "offsetsX" and key ~= "offsetsY" and key ~= "version" then
+      if
+        key ~= "lastReadVersion"
+        and key ~= "onlyShowWhenNewVersion"
+        and key ~= "lastFlagCapBy"
+        and key ~= "version"
+      then
         src[key] = nil
       end
     elseif type(value) == "table" then
@@ -541,7 +587,7 @@ do
 
   NS.RemoveTable = function(tbl)
     if tbl then
-      pool[wipe(tbl)] = true -- add to pool, wipe returns pointer to tbl here
+      pool[twipe(tbl)] = true -- add to pool, wipe returns pointer to tbl here
     end
   end
 

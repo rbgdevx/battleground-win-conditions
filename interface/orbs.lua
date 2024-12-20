@@ -7,7 +7,7 @@ local ipairs = ipairs
 
 local sformat = string.format
 
-local LSM = LibStub("LibSharedMedia-3.0")
+local SharedMedia = LibStub("LibSharedMedia-3.0")
 
 local Info = NS.Info
 local Banner = NS.Banner
@@ -43,7 +43,7 @@ end
 
 function Orbs:SetFont(frame)
   frame:SetFont(
-    LSM:Fetch("font", NS.db.global.general.infogroup.infofont),
+    SharedMedia:Fetch("font", NS.db.global.general.infogroup.infofont),
     NS.db.global.general.infogroup.infofontsize,
     "OUTLINE"
   )
@@ -127,8 +127,13 @@ local function stopAnimation(frame, animationGroup)
     animationGroup:Stop()
   end
 
-  frame.buffText:SetFormattedText("")
-  frame.buffTextFrame:SetAlpha(0)
+  if frame.buffTextFrame then
+    frame.buffTextFrame:SetAlpha(0)
+  end
+
+  if frame.buffText then
+    frame.buffText:SetFormattedText("")
+  end
 end
 
 function Orbs:Stop(frame, animationGroup, everything)
@@ -136,7 +141,10 @@ function Orbs:Stop(frame, animationGroup, everything)
 
   if everything then
     frame.frame:SetAlpha(0)
-    frame.orbText:SetFormattedText("")
+
+    if frame.orbText then
+      frame.orbText:SetFormattedText("")
+    end
 
     if NS.IN_GAME then
       Info.frame:SetSize(1, 1)
@@ -155,7 +163,7 @@ local function animationUpdate(frame, text, animationGroup)
     end
 
     Orbs:SetText(frame.buffText, orbsformat2, text)
-    -- frame.buffText:Hide()
+  -- frame.buffText:Hide()
   else
     local time = frame.exp - t
     frame.remaining = time

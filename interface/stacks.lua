@@ -5,7 +5,7 @@ local LibStub = LibStub
 local GetTime = GetTime
 local UnitIsDeadOrGhost = UnitIsDeadOrGhost
 
-local LSM = LibStub("LibSharedMedia-3.0")
+local SharedMedia = LibStub("LibSharedMedia-3.0")
 
 local Info = NS.Info
 local Banner = NS.Banner
@@ -39,7 +39,7 @@ end
 
 function Stacks:SetFont(frame)
   frame:SetFont(
-    LSM:Fetch("font", NS.db.global.general.infogroup.infofont),
+    SharedMedia:Fetch("font", NS.db.global.general.infogroup.infofont),
     NS.db.global.general.infogroup.infofontsize,
     "OUTLINE"
   )
@@ -58,7 +58,10 @@ local function stopAnimation(frame, animationGroup)
   end
 
   frame.frame:SetAlpha(0)
-  frame.text:SetFormattedText("")
+
+  if frame.text then
+    frame.text:SetFormattedText("")
+  end
 
   if NS.IN_GAME then
     Info.frame:SetSize(1, 1)

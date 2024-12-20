@@ -26,7 +26,7 @@ local function checkInfo(id, isBlitz)
 end
 
 function WG:EnterZone(id, isBlitz)
-  if NS.db.global.maps.warsonggulch.enabled then
+  if NS.db and NS.db.global.maps.warsonggulch.enabled then
     NS.IS_WG = true
 
     Info:SetAnchor(Banner.frame, 0, 0)

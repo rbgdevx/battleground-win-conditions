@@ -26,7 +26,7 @@ local function checkInfo(id, isBlitz)
 end
 
 function TP:EnterZone(id, isBlitz)
-  if NS.db.global.maps.twinpeaks.enabled then
+  if NS.db and NS.db.global.maps.twinpeaks.enabled then
     NS.IS_TP = true
 
     Info:SetAnchor(Banner.frame, 0, 0)

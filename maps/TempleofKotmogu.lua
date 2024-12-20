@@ -53,7 +53,7 @@ local function checkInfo(id, isBlitz)
 end
 
 function TOK:EnterZone(id, isBlitz)
-  if NS.db.global.maps.templeofkotmogu.enabled then
+  if NS.db and NS.db.global.maps.templeofkotmogu.enabled then
     NS.IS_TEMPLE = true
 
     Info:SetAnchor(Anchor.frame, 0, 0)

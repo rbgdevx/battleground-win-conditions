@@ -42,12 +42,11 @@ local function checkInfo(id, isBlitz)
 end
 
 function SSM:EnterZone(id, isBlitz)
-  if NS.db.global.maps.silvershardmines.enabled then
+  if NS.db and NS.db.global.maps.silvershardmines.enabled then
     NS.IS_SSM = true
 
     if not isBlitz or isBlitz == false then
       Info:SetAnchor(Banner.frame, 0, 0)
-
       CartPrediction:StartInfoTracker(checkInfo(id, isBlitz))
     end
   end

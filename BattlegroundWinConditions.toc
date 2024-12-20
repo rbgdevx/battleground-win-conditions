@@ -1,13 +1,12 @@
-## Interface: 110002
+## Interface: 110007
 ## Title: BattlegroundWinConditions
-## Version: 9.6.22
+## Version: 9.7.0
 ## Author: RBGDEV
 ## Notes: Real time win conditions for battlegrounds
-## OptionalDeps: Ace3, LibStub, LibSharedMedia-3.0, AceGUI-3.0-SharedMediaWidgets
+## OptionalDeps: AceConfig-3.0, AceGUI-3.0, AceGUI-3.0-SharedMediaWidgets, CallbackHandler-1.0, LibChangelog, LibSharedMedia-3.0, LibStub
 ## IconTexture: Interface\AddOns\BattlegroundWinConditions\logo.tga
 ## SavedVariables: BattlegroundWinConditionsDB
 ## X-Category: Battlegrounds/PvP
-## X-Credits: Ajax
 ## X-License: All Rights Reserved
 ## X-Website: https://www.curseforge.com/wow/addons/battleground-win-conditions
 ## X-Curse-Project-ID: 932307
@@ -21,6 +20,7 @@ embeds.xml
 core/config.lua
 core/helpers.lua
 core/version.lua
+core/changelog.lua
 interface/anchor.lua
 interface/banner.lua
 interface/info.lua
@@ -36,6 +36,7 @@ predictions/carts.lua
 predictions/flags.lua
 predictions/orbs.lua
 maps/ArathiBasin.lua
+maps/DeephaulRavine.lua
 maps/DeepwindGorge.lua
 maps/EyeoftheStorm.lua
 maps/SilvershardMines.lua

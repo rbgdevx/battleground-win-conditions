@@ -39,17 +39,17 @@ do
         return
       end
 
-      -- local barMinValue = captureInfo.barMinValue -- 100 (friendly)
-      -- local barMaxValue = captureInfo.barMaxValue -- 0 (enemy)
-      -- local barValue = captureInfo.barValue -- (starts at 50)
-      -- local isVisible = captureInfo.shownState -- 1 (shown) or 0 (not)
-      -- local neutralZoneCenter = captureInfo.neutralZoneCenter -- 50
-      -- local neutralZoneSize = captureInfo.neutralZoneSize -- 40/4 (40 on random eots/4 on carts)
+      local barMinValue = captureInfo.barMinValue -- 100 (friendly)
+      local barMaxValue = captureInfo.barMaxValue -- 0 (enemy)
+      local barValue = captureInfo.barValue -- (starts at 50)
+      local isVisible = captureInfo.shownState -- 1 (shown) or 0 (not)
+      local neutralZoneCenter = captureInfo.neutralZoneCenter -- 50
+      local neutralZoneSize = captureInfo.neutralZoneSize -- 40/4 (40 on random eots/4 on carts)
       -- so that means your team wins with 71+ (50+(40/2))=70
       -- 50 being middle and 40 point buffer (20 each side)
       -- 100 being fully controlled, 0 being enemy controlled
       -- so positive progression = taking it, negative = losing it
-      -- print("barValue", widgetID, barValue, isVisible == 1, neutralZoneCenter, neutralZoneSize)
+      NS.Debug("barValue", widgetID, barValue, isVisible == 1, neutralZoneCenter, neutralZoneSize)
     end
   end
 
@@ -68,12 +68,12 @@ do
         end
 
         for _, v in pairs(baseInfo.leftIcons) do
-          if v.iconState == 1 then
+          if v.iconState == Enum.IconState.ShowState1 then
             allyCarts = allyCarts + 1
           end
         end
         for _, v in pairs(baseInfo.rightIcons) do
-          if v.iconState == 1 then
+          if v.iconState == Enum.IconState.ShowState1 then
             hordeCarts = hordeCarts + 1
           end
         end
@@ -94,12 +94,12 @@ do
         end
 
         for _, v in pairs(baseInfo.leftIcons) do
-          if v.iconState == 1 then
+          if v.iconState == Enum.IconState.ShowState1 then
             allyCarts = allyCarts + 1
           end
         end
         for _, v in pairs(baseInfo.rightIcons) do
-          if v.iconState == 1 then
+          if v.iconState == Enum.IconState.ShowState1 then
             hordeCarts = hordeCarts + 1
           end
         end

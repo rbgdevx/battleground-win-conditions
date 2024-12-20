@@ -63,6 +63,21 @@ function Interface:Clear()
   Flags:Stop(Flags)
 end
 
+function Interface:Start()
+  if NS.db and NS.db.global.general.test then
+    if NS.db.global.general.banner then
+      Interface:CreateTestBanner()
+    else
+      if NS.db.global.general.info then
+        Interface:CreateTestInfo()
+      else
+        Interface:CreateTestBanner()
+        Interface:CreateTestInfo()
+      end
+    end
+  end
+end
+
 function Interface:Refresh()
   Anchor:SetAnchor()
   Banner:SetTextColor(Banner.text, NS.db.global.general.bannergroup.tietextcolor)
