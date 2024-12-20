@@ -55,7 +55,10 @@ local function stopAnimation(frame, animationGroup)
   end
 
   frame.frame:SetAlpha(0)
-  frame.text:SetFormattedText("")
+
+  if frame.text then
+    frame.text:SetFormattedText("")
+  end
 end
 
 function Bases:Stop(frame, animationGroup)
@@ -232,9 +235,7 @@ local function animationUpdate(frame, winTable, animationGroup, callbackFn)
                           loseMessage(frame.text, winCondition)
                         end
                       else
-                        if NS.DEBUG then
-                          print("NO OPTIONS LEFT")
-                        end
+                        NS.Debug("NO OPTIONS LEFT")
                       end
                     end
                   end

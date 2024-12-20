@@ -55,7 +55,10 @@ end
 
 function Score:Stop(frame)
   frame.frame:SetAlpha(0)
-  frame.text:SetFormattedText("")
+
+  if frame.text then
+    frame.text:SetFormattedText("")
+  end
 end
 
 function Score:Create(anchor)

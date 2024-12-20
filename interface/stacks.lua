@@ -58,7 +58,10 @@ local function stopAnimation(frame, animationGroup)
   end
 
   frame.frame:SetAlpha(0)
-  frame.text:SetFormattedText("")
+
+  if frame.text then
+    frame.text:SetFormattedText("")
+  end
 
   if NS.IN_GAME then
     Info.frame:SetSize(1, 1)

@@ -51,7 +51,10 @@ local function stopAnimation(frame, animationGroup)
   end
 
   frame.frame:SetAlpha(0)
-  frame.text:SetFormattedText("")
+
+  if frame.text then
+    frame.text:SetFormattedText("")
+  end
 end
 
 function Banner:Stop(frame, animationGroup)
@@ -76,7 +79,7 @@ local function animationUpdate(frame, text, animationGroup)
       animationGroup:Stop()
     end
 
-    -- frame.text:Hide()
+  -- frame.text:Hide()
   else
     local time = frame.exp - t
     frame.remaining = time

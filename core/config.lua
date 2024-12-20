@@ -1,4 +1,4 @@
-local _, NS = ...
+local AddonName, NS = ...
 
 local select = select
 local UnitClass = UnitClass
@@ -60,6 +60,7 @@ local CreateFrame = CreateFrame
 ---@field deepwindgorge MapTable
 ---@field eyeofthestorm EOTSTable
 ---@field silvershardmines MapTable
+---@field deephaulravine MapTable
 ---@field templeofkotmogu TOKTable
 ---@field thebattleforgilneas MapTable
 ---@field twinpeaks MapTable
@@ -70,8 +71,11 @@ local CreateFrame = CreateFrame
 ---@field maps MapsTable
 ---@field position PositionArray
 ---@field lastFlagCapBy string
+---@field debug boolean
 
 ---@class DBTable : table
+---@field lastReadVersion string
+---@field onlyShowWhenNewVersion boolean
 ---@field global GlobalTable
 
 ---@class BGWC
@@ -81,22 +85,27 @@ local CreateFrame = CreateFrame
 ---@field LOADING_SCREEN_DISABLED function
 ---@field PLAYER_LEAVING_WORLD function
 ---@field PLAYER_ENTERING_WORLD function
+---@field PVP_MATCH_COMPLETE function
+---@field PLAYER_JOINED_PVP_MATCH function
 ---@field UNIT_AURA function
 ---@field ARENA_OPPONENT_UPDATE function
 ---@field CHAT_MSG_ADDON function
 ---@field CHAT_MSG_BG_SYSTEM_ALLIANCE function
 ---@field CHAT_MSG_BG_SYSTEM_HORDE function
 ---@field CHAT_MSG_BG_SYSTEM_NEUTRAL function
+---@field Init function
+---@field Shutdown function
 ---@field SlashCommands function
 ---@field frame Frame
----@field db DBTable
+---@field db GlobalTable
+---@field isInitialized boolean
 
 ---@type BGWC
 ---@diagnostic disable-next-line: missing-fields
 local BGWC = {}
 NS.BGWC = BGWC
 
-local BGWCFrame = CreateFrame("Frame", "BGWCFrame")
+local BGWCFrame = CreateFrame("Frame", AddonName .. "Frame")
 BGWCFrame:SetScript("OnEvent", function(_, event, ...)
   if BGWC[event] then
     BGWC[event](BGWC, ...)
@@ -127,16 +136,17 @@ NS.IS_SSM = false
 NS.IS_TP = false
 NS.IS_WG = false
 NS.IS_BLITZ = false
-NS.DEBUG = false
 
 NS.userClass = select(2, UnitClass("player"))
 NS.userClassHexColor = "|c" .. select(4, GetClassColor(NS.userClass))
 
 NS.ADDON_PREFIX = "BGWC_VERSION"
 NS.FoundNewVersion = false
-NS.VERSION = 9622
+NS.VERSION = 970
 
 NS.DefaultDatabase = {
+  lastReadVersion = "9.6.22",
+  onlyShowWhenNewVersion = true,
   global = {
     general = {
       lock = false,
@@ -227,6 +237,9 @@ NS.DefaultDatabase = {
       silvershardmines = {
         enabled = false,
       },
+      deephaulravine = {
+        enabled = false,
+      },
       templeofkotmogu = {
         enabled = true,
         showorbinfo = true,
@@ -252,6 +265,7 @@ NS.DefaultDatabase = {
     },
     lastFlagCapBy = "",
     version = NS.VERSION,
+    debug = false,
   },
 }
 
@@ -283,4 +297,7 @@ NS.DefaultDatabase = {
 -- Seething Shore
 -- Instance ID: 1803
 -- Zone ID: 907
+-- Deephaul Ravine
+-- Instance ID: 2656
+-- Zone ID: 2345
 --]]
