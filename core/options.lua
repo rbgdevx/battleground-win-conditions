@@ -486,7 +486,7 @@ NS.AceConfig = {
                   end
                 else
                   Info.bg:SetAlpha(0)
-                  Banner.frame:SetWidth(175)
+                  NS.UpdateInfoSize(Info.frame, Banner)
 
                   if NS.IN_GAME and NS.IS_TEMPLE then
                     Orbs:SetAnchor(Info.frame, 0, 0, "TOPLEFT", "TOPLEFT")

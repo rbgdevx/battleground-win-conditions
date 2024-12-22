@@ -1,6 +1,6 @@
 ## Interface: 110007
 ## Title: BattlegroundWinConditions
-## Version: 9.7.0
+## Version: 9.7.1
 ## Author: RBGDEV
 ## Notes: Real time win conditions for battlegrounds
 ## OptionalDeps: AceConfig-3.0, AceGUI-3.0, AceGUI-3.0-SharedMediaWidgets, CallbackHandler-1.0, LibChangelog, LibSharedMedia-3.0, LibStub

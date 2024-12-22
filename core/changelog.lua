@@ -9,6 +9,18 @@ NS.Changelog = Changelog
 
 local changelog = {
   {
+    Version = "9.7.1",
+    General = "Fixing minor background bug",
+    Sections = {
+      {
+        Header = "Bugfixes",
+        Entries = {
+          "Updating info and banner size updates based on recent bugs and testing",
+        },
+      },
+    },
+  },
+  {
     Version = "9.7.0",
     General = "Major overhaul and cleanup",
     Sections = {
