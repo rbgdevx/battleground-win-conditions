@@ -484,7 +484,7 @@ NS.UpdateInfoSize = function(frame, banner)
     return
   end
 
-  local maxWidth, maxHeight = 175, 25
+  local maxWidth, maxHeight = 1, 1
   for i = 1, frame:GetNumChildren() do
     local child = select(i, frame:GetChildren())
     if child and child:IsShown() and child:GetAlpha() > 0 then -- Check if the child is visible and not fully transparent

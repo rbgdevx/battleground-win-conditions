@@ -163,7 +163,7 @@ local function animationUpdate(frame, text, animationGroup)
     end
 
     Orbs:SetText(frame.buffText, orbsformat2, text)
-  -- frame.buffText:Hide()
+    -- frame.buffText:Hide()
   else
     local time = frame.exp - t
     frame.remaining = time

@@ -1,6 +1,10 @@
 # Battleground Win Conditions
 
-## [v9.7.0](https://github.com/rbgdevx/battleground-win-conditions/releases/tag/v9.7.0) (2024-12-20)
+## [v9.7.1](https://github.com/rbgdevx/battleground-win-conditions/releases/tag/v9.7.1) (2024-12-22)
+
+- Updating info and banner size updates based on recent bugs and testing
+
+## [v9.7.0](https://github.com/rbgdevx/battleground-win-conditions/releases/tag/v9.7.0) (2024-12-21)
 
 - Complete overhaul of map controller managing entering/exiting bgs and their state
 - Adding Deephaul Ravine to the list of maps, but not yet completed

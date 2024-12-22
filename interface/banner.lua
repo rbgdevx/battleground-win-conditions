@@ -124,6 +124,8 @@ function Banner:Start(duration, text)
   self:SetBackgroundColor(self.bg, BGColor)
   self:SetTextColor(self.text, TextColor)
   self:SetFont(self.text)
+  BannerFrame:SetWidth(175)
+  BannerFrame:SetHeight(25)
   self:SetScale(BannerFrame)
 
   self.remaining = mmin(mmax(0, duration), 1500)
@@ -176,9 +178,7 @@ function Banner:Create(anchor)
     Text:SetPoint("CENTER", BG, "CENTER", 0, 0)
 
     BannerFrame:SetPoint("TOP", anchor, "BOTTOM", 0, 0)
-    BannerFrame:SetWidth(175)
-    BannerFrame:SetHeight(25)
-    self:SetScale(BannerFrame)
+    BannerFrame:SetSize(1, 1) -- Start with a minimal size
 
     Banner.bg = BG
     Banner.text = Text
