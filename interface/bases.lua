@@ -13,7 +13,7 @@ local sformat = string.format
 local Info = NS.Info
 local Banner = NS.Banner
 
-local LSM = LibStub("LibSharedMedia-3.0")
+local SharedMedia = LibStub("LibSharedMedia-3.0")
 
 local Bases = {}
 NS.Bases = Bases
@@ -36,7 +36,7 @@ end
 
 function Bases:SetFont(frame)
   frame:SetFont(
-    LSM:Fetch("font", NS.db.global.general.infogroup.infofont),
+    SharedMedia:Fetch("font", NS.db.global.general.infogroup.infofont),
     NS.db.global.general.infogroup.infofontsize,
     "OUTLINE"
   )
@@ -55,7 +55,10 @@ local function stopAnimation(frame, animationGroup)
   end
 
   frame.frame:SetAlpha(0)
-  frame.text:SetFormattedText("")
+
+  if frame.text then
+    frame.text:SetFormattedText("")
+  end
 end
 
 function Bases:Stop(frame, animationGroup)
@@ -232,9 +235,7 @@ local function animationUpdate(frame, winTable, animationGroup, callbackFn)
                           loseMessage(frame.text, winCondition)
                         end
                       else
-                        if NS.DEBUG then
-                          print("NO OPTIONS LEFT")
-                        end
+                        NS.Debug("NO OPTIONS LEFT")
                       end
                     end
                   end
