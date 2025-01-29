@@ -142,7 +142,7 @@ NS.userClassHexColor = "|c" .. select(4, GetClassColor(NS.userClass))
 
 NS.ADDON_PREFIX = "BGWC_VERSION"
 NS.FoundNewVersion = false
-NS.VERSION = 971
+NS.VERSION = 972
 
 NS.DefaultDatabase = {
   onlyShowWhenNewVersion = true,
@@ -232,6 +232,7 @@ NS.DefaultDatabase = {
       eyeofthestorm = {
         enabled = true,
         showflaginfo = true,
+        showflagvalue = true,
       },
       silvershardmines = {
         enabled = false,

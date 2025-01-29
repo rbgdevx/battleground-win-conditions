@@ -32,6 +32,7 @@ do
 
   function Maps:EnableZone(instanceID, isBlitz)
     NS.PLAYER_FACTION = GetPlayerFactionGroup()
+    NS.IN_GAME = true
     NS.IS_BLITZ = NS.isBlitz()
 
     prevZone = instanceID
@@ -43,12 +44,11 @@ do
   local function checkMaxPlayers(instanceID)
     local function checkPlayers()
       local maxPlayers = select(5, GetInstanceInfo())
-      local groupSize = GetNumGroupMembers()
 
       if maxPlayers == 0 then
         After(1, checkPlayers)
       else
-        local isBlitz = not (maxPlayers >= NS.DEFAULT_GROUP_SIZE or groupSize > NS.MIN_GROUP_SIZE or not IsSoloRBG())
+        local isBlitz = NS.isBlitz()
 
         Maps:EnableZone(instanceID, isBlitz)
       end
@@ -59,13 +59,14 @@ do
 
   function Maps:PrepareZone()
     if IsInInstance() then
-      NS.IN_GAME = true
-
       local instanceID = select(8, GetInstanceInfo())
       if zoneIds[instanceID] then
         checkMaxPlayers(instanceID)
+      else
+        Interface:Clear()
       end
     else
+      NS.PLAYER_FACTION = GetPlayerFactionGroup()
       NS.IN_GAME = false
       NS.IS_BLITZ = false
 

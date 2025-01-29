@@ -9,6 +9,25 @@ NS.Changelog = Changelog
 
 local changelog = {
   {
+    Version = "9.7.2",
+    General = "EOTS additions + bugfixes",
+    Sections = {
+      {
+        Header = "New",
+        Entries = {
+          "Adding back in EOTS Flag Value text line so you know when to cap to win in blitz",
+        },
+      },
+      {
+        Header = "Bugfixes",
+        Entries = {
+          "Hiding test info when loading into non-battleground instances or not outdoors",
+          "Updating EOTS Blitz base reset timer to be the correct 20 seconds instead of 15",
+        },
+      },
+    },
+  },
+  {
     Version = "9.7.1",
     General = "Fixing minor background bug",
     Sections = {

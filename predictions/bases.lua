@@ -36,8 +36,11 @@ end)
 do
   local allyBases, allyIncBases = 0, 0
   local hordeBases, hordeIncBases = 0, 0
+  local winBases, loseBases = 0, 0
   local allyFlags, hordeFlags = 0, 0
   local allyTimers, hordeTimers, winTable = {}, {}, {}
+  local minScore, maxScore, winScore, loseScore = 0, 1500, 0, 0
+  local winName, loseName = "", ""
   local curMap = {
     id = 0,
     maxBases = 0,
@@ -54,17 +57,17 @@ do
   NS.WIN_INC_BASE_COUNT = 0
   NS.BASE_TIMER_EXPIRED = false
 
-  function BasePrediction:GetFlagValue(winName, maxScore, winScore, loseScore, winBases, loseBases)
+  function BasePrediction:GetFlagValue()
     if allyBases > 0 or hordeBases > 0 then
       local flagsNeeded = loseBases > 0
           and NS.calculateFlagsToCatchUp(maxScore, winScore, loseScore, winBases, loseBases, curMap)
         or 0
 
-      if flagsNeeded == 0 then
-        Flags:Stop(Flags)
-      else
-        Flags:SetText(Flags.text, NS.PLAYER_FACTION, winName, flagsNeeded)
-      end
+      local allyFlagValue = curMap.flagResources[allyBases]
+      local hordeFlagValue = curMap.flagResources[hordeBases]
+      local flagValue = NS.PLAYER_FACTION == NS.ALLIANCE_NAME and allyFlagValue or hordeFlagValue
+
+      Flags:SetText(Flags, NS.PLAYER_FACTION, winName, flagsNeeded, flagValue, allyFlags, hordeFlags)
     end
   end
 
@@ -101,13 +104,17 @@ do
           end
         end
       end
+
+      if NS.isEOTS(curMap.id) then
+        self:GetFlagValue()
+      end
     end
   end
 
   do
     local prevTime, prevAScore, prevHScore, prevAIncrease, prevHIncrease = 0, 0, 0, 0, 0
     local timeBetweenEachTick, prevTick, winTime = 0, 0, 0
-    local minScore, maxScore, aScore, hScore, aIncrease, hIncrease = 0, 1500, 0, 0, 0, 0
+    local aScore, hScore, aIncrease, hIncrease = 0, 0, 0, 0
     local prevABases, prevHBases, prevAIncBases, prevHIncBases = 0, 0, 0, 0
 
     function BasePrediction:BasePredictor(refresh)
@@ -151,8 +158,8 @@ do
             local hfs = aWins and hScore + (currentWinTicks * hordeIncrease) or maxScore
             local finalHScore = (hordeBases == 0 and hordeIncBases == 0) and hScore or hfs
 
-            local winName = aWins and NS.ALLIANCE_NAME or NS.HORDE_NAME
-            local loseName = aWins and NS.HORDE_NAME or NS.ALLIANCE_NAME
+            winName = aWins and NS.ALLIANCE_NAME or NS.HORDE_NAME
+            loseName = aWins and NS.HORDE_NAME or NS.ALLIANCE_NAME
             local winText = winName == NS.PLAYER_FACTION and "WIN" or "LOSE"
 
             Banner:Start(winTime, winText)
@@ -161,10 +168,10 @@ do
             -- local currentWinBases = aWins and allyBases or hordeBases
             -- local currentLoseBases = aWins and hordeBases or allyBases
 
-            local winBases = aWins and allyBases or hordeBases
-            local loseBases = aWins and hordeBases or allyBases
-            local winScore = aWins and aScore or hScore
-            local loseScore = aWins and hScore or aScore
+            winBases = aWins and allyBases or hordeBases
+            loseBases = aWins and hordeBases or allyBases
+            winScore = aWins and aScore or hScore
+            loseScore = aWins and hScore or aScore
 
             NS.WIN_INC_BASE_COUNT = 0
 
@@ -201,8 +208,8 @@ do
               end
             end
 
-            if NS.isEOTS(curMap.id) and NS.db.global.maps.eyeofthestorm.showflaginfo then
-              self:GetFlagValue(winName, maxScore, winScore, loseScore, winBases, loseBases)
+            if NS.isEOTS(curMap.id) then
+              self:GetFlagValue()
             end
           end
         else
@@ -298,13 +305,13 @@ do
             -- local currentWinBases = aWins and allyBases or hordeBases
             local currentLoseBases = aWins and hordeBases or allyBases
 
-            local winBases = aWins and newAllyBases or newHordeBases
-            local loseBases = aWins and newHordeBases or newAllyBases
-            local winScore = aWins and aFutureScore or hFutureScore
-            local loseScore = aWins and hFutureScore or aFutureScore
+            winBases = aWins and newAllyBases or newHordeBases
+            loseBases = aWins and newHordeBases or newAllyBases
+            winScore = aWins and aFutureScore or hFutureScore
+            loseScore = aWins and hFutureScore or aFutureScore
 
-            local winName = aWins and NS.ALLIANCE_NAME or NS.HORDE_NAME
-            local loseName = aWins and NS.HORDE_NAME or NS.ALLIANCE_NAME
+            winName = aWins and NS.ALLIANCE_NAME or NS.HORDE_NAME
+            loseName = aWins and NS.HORDE_NAME or NS.ALLIANCE_NAME
             local winText = winName == NS.PLAYER_FACTION and "WIN" or "LOSE"
 
             Banner:Start(winTime, winText)
@@ -348,8 +355,8 @@ do
               end
             end
 
-            if NS.isEOTS(curMap.id) and NS.db.global.maps.eyeofthestorm.showflaginfo then
-              self:GetFlagValue(winName, maxScore, winScore, loseScore, winBases, loseBases)
+            if NS.isEOTS(curMap.id) then
+              self:GetFlagValue()
             end
           end
         end
@@ -1006,13 +1013,16 @@ do
       -- local
       prevTime, prevAScore, prevHScore, prevAIncrease, prevHIncrease = 0, 0, 0, 0, 0
       timeBetweenEachTick, prevTick, winTime = 0, 0, 0
-      minScore, maxScore, aScore, hScore, aIncrease, hIncrease = 0, 1500, 0, 0, 0, 0
+      aScore, hScore, aIncrease, hIncrease = 0, 0, 0, 0
       prevABases, prevHBases, prevAIncBases, prevHIncBases = 0, 0, 0, 0
       -- global
-      curMap = mapInfo
       allyBases, allyIncBases = 0, 0
       hordeBases, hordeIncBases = 0, 0
+      winBases, loseBases = 0, 0
       allyFlags, hordeFlags = 0, 0
+      minScore, maxScore, winScore, loseScore = 0, 1500, 0, 0
+      winName, loseName = "", ""
+      curMap = mapInfo
 
       twipe(allyTimers)
       twipe(hordeTimers)
