@@ -1,6 +1,6 @@
 # Battleground Win Conditions
 
-## [v9.7.2](https://github.com/rbgdevx/battleground-win-conditions/releases/tag/v9.7.2) (2025-01-29)
+## [v9.7.2](https://github.com/rbgdevx/battleground-win-conditions/releases/tag/v9.7.2) (2025-01-30)
 
 - Adding back in EOTS Flag Value text line so you know when to cap to win in blitz
 - Hiding test info when loading into non-battleground instances or not outdoors
