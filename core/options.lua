@@ -661,13 +661,53 @@ NS.AceConfig = {
               end,
             },
             showflaginfo = {
-              name = "Show Flag Info",
+              name = "Show Flags Needed",
               desc = "Show how many flag caps your team is ahead or behind by.",
               type = "toggle",
               width = "normal",
               order = 2,
               set = function(_, val)
                 NS.db.global.maps.eyeofthestorm.showflaginfo = val
+
+                if val then
+                  Flags.frame:SetAlpha(1)
+                  Orbs:SetAnchor(Flags.frame, 0, -10)
+
+                  if
+                    NS.db.global.maps.templeofkotmogu.showorbinfo == false
+                    and NS.db.global.maps.templeofkotmogu.showbuffinfo == false
+                  then
+                    Stacks:SetAnchor(Flags.frame, 0, -10)
+                  else
+                    Stacks:SetAnchor(Orbs.frame, 0, -10)
+                  end
+                else
+                  Flags.frame:SetAlpha(0)
+                  Orbs:SetAnchor(Bases.frame, 0, -10)
+
+                  if
+                    NS.db.global.maps.templeofkotmogu.showorbinfo == false
+                    and NS.db.global.maps.templeofkotmogu.showbuffinfo == false
+                  then
+                    Stacks:SetAnchor(Bases.frame, 0, -10)
+                  else
+                    Stacks:SetAnchor(Orbs.frame, 0, -10)
+                  end
+                end
+
+                if NS.db.global.general.banner == false and NS.db.global.general.infogroup.infobg then
+                  NS.UpdateInfoSize(Info.frame, Banner)
+                end
+              end,
+            },
+            showflagvalue = {
+              name = "Show Flag Value",
+              desc = "Show how many points a flag cap for your team is worth.",
+              type = "toggle",
+              width = "normal",
+              order = 3,
+              set = function(_, val)
+                NS.db.global.maps.eyeofthestorm.showflagvalue = val
 
                 if val then
                   Flags.frame:SetAlpha(1)
@@ -833,7 +873,10 @@ NS.AceConfig = {
                   Orbs.orbTextFrame:SetAlpha(0)
 
                   if NS.db.global.maps.templeofkotmogu.showbuffinfo == false then
-                    if NS.db.global.maps.eyeofthestorm.showflaginfo == false then
+                    if
+                      NS.db.global.maps.eyeofthestorm.showflaginfo == false
+                      and NS.db.global.maps.eyeofthestorm.showflagvalue == false
+                    then
                       Stacks:SetAnchor(Bases.frame, 0, -10)
                     else
                       Stacks:SetAnchor(Flags.frame, 0, -10)
@@ -876,7 +919,10 @@ NS.AceConfig = {
                   Orbs.buffTextFrame:SetAlpha(0)
 
                   if NS.db.global.maps.templeofkotmogu.showorbinfo == false then
-                    if NS.db.global.maps.eyeofthestorm.showflaginfo == false then
+                    if
+                      NS.db.global.maps.eyeofthestorm.showflaginfo == false
+                      and NS.db.global.maps.eyeofthestorm.showflagvalue == false
+                    then
                       Stacks:SetAnchor(Bases.frame, 0, -10)
                     else
                       Stacks:SetAnchor(Flags.frame, 0, -10)

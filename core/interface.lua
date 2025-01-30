@@ -160,9 +160,11 @@ function Interface:CreateTestInfo()
   })
 
   Flags:SetAnchor(Bases.frame, 0, -5)
-  Flags:SetText(Flags.text, NS.PLAYER_FACTION, NS.PLAYER_FACTION, 20)
+  Flags:SetText(Flags, NS.PLAYER_FACTION, NS.PLAYER_FACTION, 20, 175, 1, 0)
 
-  if NS.db.global.maps.eyeofthestorm.showflaginfo == false then
+  if
+    NS.db.global.maps.eyeofthestorm.showflaginfo == false and NS.db.global.maps.eyeofthestorm.showflagvalue == false
+  then
     Orbs:SetAnchor(Bases.frame, 0, -10)
   else
     Orbs:SetAnchor(Flags.frame, 0, -10)
@@ -174,7 +176,10 @@ function Interface:CreateTestInfo()
     NS.db.global.maps.templeofkotmogu.showorbinfo == false
     and NS.db.global.maps.templeofkotmogu.showbuffinfo == false
   then
-    if NS.db.global.maps.eyeofthestorm.showflaginfo == false then
+    if
+      NS.db.global.maps.eyeofthestorm.showflaginfo == false
+      and NS.db.global.maps.eyeofthestorm.showflagvalue == false
+    then
       Stacks:SetAnchor(Bases.frame, 0, -10)
     else
       Stacks:SetAnchor(Flags.frame, 0, -10)
@@ -211,7 +216,10 @@ function Interface:Create()
     Flags:Create(Bases.frame)
   end
   if Flags.frame then
-    if NS.db.global.maps.eyeofthestorm.showflaginfo == false then
+    if
+      NS.db.global.maps.eyeofthestorm.showflaginfo == false
+      and NS.db.global.maps.eyeofthestorm.showflagvalue == false
+    then
       Orbs:Create(Bases.frame)
     else
       Orbs:Create(Flags.frame)

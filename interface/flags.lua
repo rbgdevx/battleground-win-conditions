@@ -3,6 +3,8 @@ local AddonName, NS = ...
 local CreateFrame = CreateFrame
 local LibStub = LibStub
 
+local sformat = string.format
+
 local SharedMedia = LibStub("LibSharedMedia-3.0")
 
 local Info = NS.Info
@@ -14,21 +16,58 @@ local FlagsFrame = CreateFrame("Frame", AddonName .. "FlagsFrame", Info.frame)
 Flags.frame = FlagsFrame
 
 local flagformat = "%s by %d %s"
+local flagFormat2 = "Flag Value: %d"
 
 function Flags:SetAnchor(anchor, x, y)
   self.frame:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", x, y)
 end
 
-function Flags:SetText(frame, faction, winName, flagsNeeded)
+function Flags:SetText(frame, faction, winName, flagsNeeded, flagValue, allyFlags, hordeFlags)
   local label = faction == winName and "Ahead" or "Behind"
   local noun = flagsNeeded == 1 and "flag" or "flags"
-  frame:SetFormattedText(flagformat, label, flagsNeeded, noun)
-  NS.UpdateSize(FlagsFrame, frame)
+  local lineOne = sformat(flagformat, label, flagsNeeded, noun)
+  local lineTwo = sformat(flagFormat2, flagValue)
+  local text = ""
 
-  if NS.db.global.general.banner == false and NS.db.global.maps.eyeofthestorm.showflaginfo then
-    FlagsFrame:SetAlpha(1)
-  else
+  if NS.db.global.maps.eyeofthestorm.showflaginfo and NS.db.global.maps.eyeofthestorm.showflagvalue then
+    if flagsNeeded == 0 then
+      if
+        (allyFlags > 0 and NS.PLAYER_FACTION == NS.ALLIANCE_NAME)
+        or (hordeFlags > 0 and NS.PLAYER_FACTION == NS.HORDE_NAME)
+      then
+        text = lineTwo
+      end
+    else
+      if
+        (allyFlags > 0 and NS.PLAYER_FACTION == NS.ALLIANCE_NAME)
+        or (hordeFlags > 0 and NS.PLAYER_FACTION == NS.HORDE_NAME)
+      then
+        text = lineOne .. "\n" .. lineTwo
+      else
+        text = lineOne
+      end
+    end
+  elseif NS.db.global.maps.eyeofthestorm.showflaginfo then
+    if flagsNeeded > 0 then
+      text = lineOne
+    end
+  elseif NS.db.global.maps.eyeofthestorm.showflagvalue then
+    if
+      (allyFlags > 0 and NS.PLAYER_FACTION == NS.ALLIANCE_NAME)
+      or (hordeFlags > 0 and NS.PLAYER_FACTION == NS.HORDE_NAME)
+    then
+      text = lineTwo
+    end
+  end
+
+  frame.text:SetFormattedText(text)
+
+  NS.UpdateSize(FlagsFrame, frame.text)
+
+  if NS.db.global.general.banner then
     FlagsFrame:SetAlpha(0)
+  elseif NS.db.global.maps.eyeofthestorm.showflaginfo or NS.db.global.maps.eyeofthestorm.showflagvalue then
+    FlagsFrame:SetAlpha(1)
   end
 end
 
