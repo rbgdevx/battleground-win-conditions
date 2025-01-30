@@ -145,6 +145,7 @@ NS.FoundNewVersion = false
 NS.VERSION = 972
 
 NS.DefaultDatabase = {
+  lastReadVersion = "9.7.1",
   onlyShowWhenNewVersion = true,
   global = {
     general = {
