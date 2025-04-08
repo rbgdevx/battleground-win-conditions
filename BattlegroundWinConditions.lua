@@ -43,7 +43,8 @@ function BGWC:Shutdown()
 end
 
 local function HandleMatchEnd()
-  if GetActiveMatchState() >= Enum.PvPMatchState.PostRound then
+  local isInInstance = IsInInstance()
+  if GetActiveMatchState() >= Enum.PvPMatchState.PostRound or isInInstance == false then
     BGWC:Shutdown()
   end
 end

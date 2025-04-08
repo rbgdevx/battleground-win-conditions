@@ -143,7 +143,10 @@ do
             Banner:Start(winTime, winText)
             Bases:Stop(Bases, Bases.timerAnimationGroup)
             Score:Stop(Score)
-            Flags:Stop(Flags)
+            -- Flags:Stop(Flags)
+            if NS.isEOTS(curMap.id) then
+              Flags:SetAnchor(Banner.frame, 0, -5)
+            end
 
             prevAIncrease, prevHIncrease = -1, -1
             return
@@ -164,6 +167,9 @@ do
 
             Banner:Start(winTime, winText)
             Score:SetText(Score.text, finalAScore, finalHScore)
+            if NS.isEOTS(curMap.id) then
+              Flags:SetAnchor(Score.frame, 0, -5)
+            end
 
             -- local currentWinBases = aWins and allyBases or hordeBases
             -- local currentLoseBases = aWins and hordeBases or allyBases
@@ -206,10 +212,6 @@ do
               if firstKey and winTable[firstKey] then
                 break
               end
-            end
-
-            if NS.isEOTS(curMap.id) then
-              self:GetFlagValue()
             end
           end
         else
@@ -287,7 +289,10 @@ do
             Banner:Start(winTime, winText)
             Bases:Stop(Bases, Bases.timerAnimationGroup)
             Score:Stop(Score)
-            Flags:Stop(Flags)
+            -- Flags:Stop(Flags)
+            if NS.isEOTS(curMap.id) then
+              Flags:SetAnchor(Banner.frame, 0, -5)
+            end
 
             prevAIncrease, prevHIncrease = -1, -1
             return
@@ -316,6 +321,9 @@ do
 
             Banner:Start(winTime, winText)
             Score:SetText(Score.text, finalAScore, finalHScore)
+            if NS.isEOTS(curMap.id) then
+              Flags:SetAnchor(Score.frame, 0, -5)
+            end
 
             local trueLoseBases = currentLoseBases == 0 and loseBases or currentLoseBases
             -- local trueLoseBases = currentLoseBases + 1 == winBases and loseBases or currentLoseBases
@@ -354,16 +362,19 @@ do
                 break
               end
             end
-
-            if NS.isEOTS(curMap.id) then
-              self:GetFlagValue()
-            end
           end
+        end
+
+        if NS.isEOTS(curMap.id) then
+          self:GetFlagValue()
         end
 
         local firstKey = next(winTable)
         if firstKey and winTable[firstKey] then
           Bases:Start(winTime, winTable, BasePrediction)
+          if NS.isEOTS(curMap.id) then
+            Flags:SetAnchor(Bases.frame, 0, -5)
+          end
         end
       end
     end

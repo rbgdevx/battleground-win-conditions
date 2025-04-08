@@ -9,6 +9,25 @@ NS.Changelog = Changelog
 
 local changelog = {
   {
+    Version = "9.7.3",
+    General = "EOTS changes + bugfixes",
+    Sections = {
+      {
+        Header = "Changes",
+        Entries = {
+          "Shows flag info on EOTS even during tie game since you can still win with a flag",
+          "Update toc",
+        },
+      },
+      {
+        Header = "Bugfixes",
+        Entries = {
+          "Hiding previous game info when leaving a battleground",
+        },
+      },
+    },
+  },
+  {
     Version = "9.7.2",
     General = "EOTS additions + bugfixes",
     Sections = {
