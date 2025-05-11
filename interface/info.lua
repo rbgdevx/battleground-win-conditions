@@ -46,5 +46,7 @@ function Info:Create(anchor)
     end
 
     Info.bg = BG
+
+    Info.name = "Info"
   end
 end

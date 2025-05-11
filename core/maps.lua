@@ -39,6 +39,8 @@ do
     zoneIds[instanceID]:EnterZone(instanceID, isBlitz)
 
     Version:SendVersion()
+
+    -- SELECTED_CHAT_FRAME:Clear()
   end
 
   local function checkMaxPlayers(instanceID)

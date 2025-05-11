@@ -133,7 +133,12 @@ NS.AceConfig = {
             end
 
             if NS.IN_GAME == false and NS.db.global.general.infogroup.infobg then
-              NS.UpdateInfoSize(Info.frame, Banner)
+              NS.UpdateInfoSize(
+                NS.Info.frame,
+                NS.Banner,
+                { NS.Score, NS.Bases, NS.Flags, NS.Orbs, NS.Stacks },
+                "NS.AceConfig 1"
+              )
             end
           end,
           get = function(_)
@@ -479,14 +484,24 @@ NS.AceConfig = {
 
                 if val then
                   Info.bg:SetAlpha(1)
-                  NS.UpdateInfoSize(Info.frame, Banner)
+                  NS.UpdateInfoSize(
+                    NS.Info.frame,
+                    NS.Banner,
+                    { NS.Score, NS.Bases, NS.Flags, NS.Orbs, NS.Stacks },
+                    "NS.AceConfig 2"
+                  )
 
                   if NS.IN_GAME and NS.IS_TEMPLE then
-                    Orbs:SetAnchor(Info.frame, 0, -5, "TOPLEFT", "TOPLEFT")
+                    Orbs:SetAnchor(Info.frame, 0, 0, "TOPLEFT", "TOPLEFT")
                   end
                 else
                   Info.bg:SetAlpha(0)
-                  NS.UpdateInfoSize(Info.frame, Banner)
+                  NS.UpdateInfoSize(
+                    NS.Info.frame,
+                    NS.Banner,
+                    { NS.Score, NS.Bases, NS.Flags, NS.Orbs, NS.Stacks },
+                    "NS.AceConfig 3"
+                  )
 
                   if NS.IN_GAME and NS.IS_TEMPLE then
                     Orbs:SetAnchor(Info.frame, 0, 0, "TOPLEFT", "TOPLEFT")
@@ -671,7 +686,9 @@ NS.AceConfig = {
 
                 if val then
                   Flags.frame:SetAlpha(1)
-                  Orbs:SetAnchor(Flags.frame, 0, -10)
+                  if NS.IN_GAME == false then
+                    Orbs:SetAnchor(Flags.frame, 0, -10)
+                  end
 
                   if
                     NS.db.global.maps.templeofkotmogu.showorbinfo == false
@@ -683,7 +700,9 @@ NS.AceConfig = {
                   end
                 else
                   Flags.frame:SetAlpha(0)
-                  Orbs:SetAnchor(Bases.frame, 0, -10)
+                  if NS.IN_GAME == false then
+                    Orbs:SetAnchor(Bases.frame, 0, -10)
+                  end
 
                   if
                     NS.db.global.maps.templeofkotmogu.showorbinfo == false
@@ -696,7 +715,12 @@ NS.AceConfig = {
                 end
 
                 if NS.db.global.general.banner == false and NS.db.global.general.infogroup.infobg then
-                  NS.UpdateInfoSize(Info.frame, Banner)
+                  NS.UpdateInfoSize(
+                    NS.Info.frame,
+                    NS.Banner,
+                    { NS.Score, NS.Bases, NS.Flags, NS.Orbs, NS.Stacks },
+                    "NS.AceConfig 4"
+                  )
                 end
               end,
             },
@@ -711,7 +735,9 @@ NS.AceConfig = {
 
                 if val then
                   Flags.frame:SetAlpha(1)
-                  Orbs:SetAnchor(Flags.frame, 0, -10)
+                  if NS.IN_GAME == false then
+                    Orbs:SetAnchor(Flags.frame, 0, -10)
+                  end
 
                   if
                     NS.db.global.maps.templeofkotmogu.showorbinfo == false
@@ -723,7 +749,9 @@ NS.AceConfig = {
                   end
                 else
                   Flags.frame:SetAlpha(0)
-                  Orbs:SetAnchor(Bases.frame, 0, -10)
+                  if NS.IN_GAME == false then
+                    Orbs:SetAnchor(Bases.frame, 0, -10)
+                  end
 
                   if
                     NS.db.global.maps.templeofkotmogu.showorbinfo == false
@@ -736,7 +764,12 @@ NS.AceConfig = {
                 end
 
                 if NS.db.global.general.banner == false and NS.db.global.general.infogroup.infobg then
-                  NS.UpdateInfoSize(Info.frame, Banner)
+                  NS.UpdateInfoSize(
+                    NS.Info.frame,
+                    NS.Banner,
+                    { NS.Score, NS.Bases, NS.Flags, NS.Orbs, NS.Stacks },
+                    "NS.AceConfig 5"
+                  )
                 end
               end,
             },
@@ -891,7 +924,12 @@ NS.AceConfig = {
                 NS.UpdateContainerSize(Orbs.frame)
 
                 if NS.db.global.general.banner == false and NS.db.global.general.infogroup.infobg then
-                  NS.UpdateInfoSize(Info.frame, Banner)
+                  NS.UpdateInfoSize(
+                    NS.Info.frame,
+                    NS.Banner,
+                    { NS.Score, NS.Bases, NS.Flags, NS.Orbs, NS.Stacks },
+                    "NS.AceConfig 6"
+                  )
                 end
               end,
             },
@@ -935,7 +973,12 @@ NS.AceConfig = {
                 NS.UpdateContainerSize(Orbs.frame)
 
                 if NS.db.global.general.banner == false and NS.db.global.general.infogroup.infobg then
-                  NS.UpdateInfoSize(Info.frame, Banner)
+                  NS.UpdateInfoSize(
+                    NS.Info.frame,
+                    NS.Banner,
+                    { NS.Score, NS.Bases, NS.Flags, NS.Orbs, NS.Stacks },
+                    "NS.AceConfig 7"
+                  )
                 end
               end,
             },

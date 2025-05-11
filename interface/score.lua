@@ -76,6 +76,12 @@ function Score:Create(anchor)
     ScoreFrame:SetParent(Info.frame)
     ScoreFrame:SetAlpha(0)
 
+    -- local BG = ScoreFrame:CreateTexture(nil, "BACKGROUND")
+    -- BG:SetAllPoints()
+    -- BG:SetColorTexture(1, 0, 1, 1)
+
     Score.text = Text
+
+    Score.name = "Score"
   end
 end

@@ -166,10 +166,8 @@ function Banner:Create(anchor)
   if not Banner.text then
     local BG = BannerFrame:CreateTexture(nil, "BACKGROUND")
     BG:SetAllPoints()
-    self:SetBackgroundColor(BG, NS.db.global.general.bannergroup.tiebgcolor)
 
     local Text = BannerFrame:CreateFontString(nil, "ARTWORK")
-    self:SetTextColor(Text, NS.db.global.general.bannergroup.tietextcolor)
     self:SetFont(Text)
     Text:SetShadowOffset(1, -1)
     Text:SetShadowColor(0, 0, 0, 1)
@@ -179,6 +177,8 @@ function Banner:Create(anchor)
 
     BannerFrame:SetPoint("TOP", anchor, "BOTTOM", 0, 0)
     BannerFrame:SetSize(1, 1) -- Start with a minimal size
+
+    -- BG:SetColorTexture(1, 0, 1, 1)
 
     Banner.bg = BG
     Banner.text = Text

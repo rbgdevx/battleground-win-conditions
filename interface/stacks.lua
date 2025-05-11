@@ -7,8 +7,12 @@ local UnitIsDeadOrGhost = UnitIsDeadOrGhost
 
 local SharedMedia = LibStub("LibSharedMedia-3.0")
 
-local Info = NS.Info
 local Banner = NS.Banner
+local Score = NS.Score
+local Info = NS.Info
+local Bases = NS.Bases
+local Flags = NS.Flags
+local Orbs = NS.Orbs
 
 local Stacks = {}
 NS.Stacks = Stacks
@@ -20,7 +24,9 @@ local killStacks = 6
 local localStacks = 0
 local healingDecrease = 5
 local damageIncrease = 10
-local showDebuffs = true
+local showDebuffs = false
+
+Stacks.frame.showDebuffs = showDebuffs
 
 function Stacks:SetAnchor(anchor, x, y, pA, pB)
   local pointA = pA or "TOPLEFT"
@@ -73,6 +79,7 @@ function Stacks:Stop(frame, animationGroup)
 end
 
 local buffformat1 = "First stack in %s\n%d stacks - %d stacks in %s"
+local alternateformat1 = ""
 local buffformat2 = "Next stack in %s\n%d stack - %d stacks in %s"
 local alternateformat2 = "Next stack in %s\nHealing received -%d%%\nDamage taken +%d%%\n%d stack - %d stacks in %s"
 local buffformat3 = "Next stack in %s\n%d stacks - %d stacks in %s"
@@ -81,13 +88,31 @@ local buffformat4 = "Next stack in %s\n%d stacks"
 local alternateformat4 = "Next stack in %s\nHealing received -%d%%\nDamage taken +%d%%\n%d stacks"
 
 local function textUpdate(frame, stacks, killtime, time)
+  if stacks >= 1 then
+    if NS.IN_GAME then
+      if NS.IS_TP and NS.db.global.maps.twinpeaks.showdebuffinfo then
+        showDebuffs = NS.db.global.maps.twinpeaks.showdebuffinfo
+      end
+      if NS.IS_WG and NS.db.global.maps.warsonggulch.showdebuffinfo then
+        showDebuffs = NS.db.global.maps.warsonggulch.showdebuffinfo
+      end
+    else
+      if NS.db.global.maps.twinpeaks.showdebuffinfo or NS.db.global.maps.warsonggulch.showdebuffinfo then
+        showDebuffs = true
+      end
+    end
+  else
+    showDebuffs = false
+  end
+
   if stacks == 0 then
     Stacks:SetText(frame.text, buffformat1, NS.formatTime(time), stacks, killStacks, NS.formatTime(killtime))
   elseif stacks == 1 then
-    if
-      (NS.db.global.maps.twinpeaks.showdebuffinfo and (NS.IS_TP or NS.IN_GAME == false))
-      or (NS.db.global.maps.warsonggulch.showdebuffinfo and (NS.IS_WG or NS.IN_GAME == false))
-    then
+    -- if
+    -- 	(NS.db.global.maps.twinpeaks.showdebuffinfo and (NS.IS_TP or NS.IN_GAME == false))
+    -- 	or (NS.db.global.maps.warsonggulch.showdebuffinfo and (NS.IS_WG or NS.IN_GAME == false))
+    -- then
+    if showDebuffs then
       Stacks:SetText(
         frame.text,
         alternateformat2,
@@ -102,10 +127,11 @@ local function textUpdate(frame, stacks, killtime, time)
       Stacks:SetText(frame.text, buffformat2, NS.formatTime(time), stacks, killStacks, NS.formatTime(killtime))
     end
   elseif stacks > 1 and stacks < killStacks then
-    if
-      (NS.db.global.maps.twinpeaks.showdebuffinfo and (NS.IS_TP or NS.IN_GAME == false))
-      or (NS.db.global.maps.warsonggulch.showdebuffinfo and (NS.IS_WG or NS.IN_GAME == false))
-    then
+    -- if
+    -- 	(NS.db.global.maps.twinpeaks.showdebuffinfo and (NS.IS_TP or NS.IN_GAME == false))
+    -- 	or (NS.db.global.maps.warsonggulch.showdebuffinfo and (NS.IS_WG or NS.IN_GAME == false))
+    -- then
+    if showDebuffs then
       Stacks:SetText(
         frame.text,
         alternateformat3,
@@ -120,10 +146,11 @@ local function textUpdate(frame, stacks, killtime, time)
       Stacks:SetText(frame.text, buffformat3, NS.formatTime(time), stacks, killStacks, NS.formatTime(killtime))
     end
   else
-    if
-      (NS.db.global.maps.twinpeaks.showdebuffinfo and (NS.IS_TP or NS.IN_GAME == false))
-      or (NS.db.global.maps.warsonggulch.showdebuffinfo and (NS.IS_WG or NS.IN_GAME == false))
-    then
+    -- if
+    -- 	(NS.db.global.maps.twinpeaks.showdebuffinfo and (NS.IS_TP or NS.IN_GAME == false))
+    -- 	or (NS.db.global.maps.warsonggulch.showdebuffinfo and (NS.IS_WG or NS.IN_GAME == false))
+    -- then
+    if showDebuffs then
       Stacks:SetText(
         frame.text,
         alternateformat4,
@@ -137,19 +164,13 @@ local function textUpdate(frame, stacks, killtime, time)
     end
   end
 
-  if stacks >= 1 and NS.db.global.general.banner == false and NS.db.global.general.infogroup.infobg then
-    if NS.IN_GAME == false then
-      NS.UpdateInfoSize(Info.frame, Banner)
+  if showDebuffs ~= Stacks.frame.showDebuffs then
+    if NS.IN_GAME then
+      NS.UpdateInfoSize(NS.Info.frame, NS.Banner, { Stacks }, "textUpdate")
     else
-      if NS.IS_TP and showDebuffs ~= NS.db.global.maps.twinpeaks.showdebuffinfo then
-        showDebuffs = NS.db.global.maps.twinpeaks.showdebuffinfo
-        NS.UpdateInfoSize(Info.frame, Banner)
-      end
-      if NS.IS_WG and showDebuffs ~= NS.db.global.maps.warsonggulch.showdebuffinfo then
-        showDebuffs = NS.db.global.maps.warsonggulch.showdebuffinfo
-        NS.UpdateInfoSize(Info.frame, Banner)
-      end
+      NS.UpdateInfoSize(NS.Info.frame, NS.Banner, { NS.Score, NS.Bases, NS.Flags, NS.Orbs, Stacks }, "textUpdate")
     end
+    Stacks.frame.showDebuffs = showDebuffs
   end
 end
 
@@ -208,18 +229,20 @@ function Stacks:Start(duration, stacks)
     self.killexp = self.killstart + killtime
   end
 
+  if NS.db.global.general.banner == false then
+    self.frame:SetAlpha(1)
+  else
+    self.frame:SetAlpha(0)
+  end
+
   textUpdate(self, localStacks, killtime, time)
 
   self:SetFont(self.text)
 
-  if NS.db.global.general.banner == false then
-    self.frame:SetAlpha(1)
-
-    if NS.db.global.general.infogroup.infobg then
-      NS.UpdateInfoSize(Info.frame, Banner)
+  if NS.IN_GAME then
+    if NS.db.global.general.banner == false and NS.db.global.general.infogroup.infobg then
+      NS.UpdateInfoSize(NS.Info.frame, NS.Banner, { Stacks }, "Stacks:Start")
     end
-  else
-    self.frame:SetAlpha(0)
   end
 
   self.timerAnimationGroup:SetScript("OnLoop", function(updatedGroup)
@@ -245,7 +268,13 @@ function Stacks:Create(anchor)
     StacksFrame:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, 0)
     StacksFrame:SetAlpha(0)
 
+    -- local BG = StacksFrame:CreateTexture(nil, "BACKGROUND")
+    -- BG:SetAllPoints()
+    -- BG:SetColorTexture(1, 0, 1, 1)
+
     Stacks.text = Text
     Stacks.timerAnimationGroup = NS.CreateTimerAnimation(StacksFrame)
+
+    Stacks.name = "Stacks"
   end
 end
