@@ -74,7 +74,7 @@ function Stacks:Stop(frame, animationGroup)
 end
 
 local buffformat1 = "First stack in %s\n%d stacks - %d stacks in %s"
-local alternateformat1 = ""
+-- local alternateformat1 = ""
 local buffformat2 = "Next stack in %s\n%d stack - %d stacks in %s"
 local alternateformat2 = "Next stack in %s\nHealing received -%d%%\nDamage taken +%d%%\n%d stack - %d stacks in %s"
 local buffformat3 = "Next stack in %s\n%d stacks - %d stacks in %s"
