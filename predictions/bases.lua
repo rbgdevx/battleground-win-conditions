@@ -40,7 +40,7 @@ do
   local allyFlags, hordeFlags = 0, 0
   local allyTimers, hordeTimers, winTable = {}, {}, {}
   local minScore, maxScore, winScore, loseScore = 0, 1500, 0, 0
-  local winName, loseName = "", ""
+  local winName, loseName, winText = "", "", ""
   local curMap = {
     id = 0,
     maxBases = 0,
@@ -59,7 +59,7 @@ do
 
   function BasePrediction:GetFlagValue()
     if allyBases > 0 or hordeBases > 0 then
-      local flagsNeeded = loseBases > 0
+      local flagsNeeded = (loseBases > 0 and winText ~= "TIE")
           and NS.calculateFlagsToCatchUp(maxScore, winScore, loseScore, winBases, loseBases, curMap)
         or 0
 
@@ -68,6 +68,10 @@ do
       local flagValue = NS.PLAYER_FACTION == NS.ALLIANCE_NAME and allyFlagValue or hordeFlagValue
 
       Flags:SetText(Flags, NS.PLAYER_FACTION, winName, flagsNeeded, flagValue, allyFlags, hordeFlags)
+
+      if NS.db.global.general.banner == false and NS.db.global.general.infogroup.infobg then
+        NS.UpdateInfoSize(NS.Info.frame, NS.Banner, { NS.Score, NS.Bases, NS.Flags }, "BasePrediction:GetFlagValue")
+      end
     end
   end
 
@@ -106,6 +110,12 @@ do
       end
 
       if NS.isEOTS(curMap.id) then
+        if winText == "TIE" then
+          Flags:SetAnchor(Banner.frame, 0, -5)
+        else
+          Flags:SetAnchor(Bases.frame, 0, -5)
+        end
+
         self:GetFlagValue()
       end
     end
@@ -138,14 +148,25 @@ do
           winTime = currentWinTime
 
           if allyTicksToWin == hordeTicksToWin then
-            local winText = "TIE"
+            winText = "TIE"
 
             Banner:Start(winTime, winText)
             Bases:Stop(Bases, Bases.timerAnimationGroup)
             Score:Stop(Score)
-            -- Flags:Stop(Flags)
+            Flags:Stop(Flags)
+
             if NS.isEOTS(curMap.id) then
               Flags:SetAnchor(Banner.frame, 0, -5)
+              self:GetFlagValue()
+            else
+              if NS.db.global.general.banner == false and NS.db.global.general.infogroup.infobg then
+                NS.UpdateInfoSize(
+                  NS.Info.frame,
+                  NS.Banner,
+                  { NS.Score, NS.Bases, NS.Flags },
+                  "BasePrediction:BasePredictor"
+                )
+              end
             end
 
             prevAIncrease, prevHIncrease = -1, -1
@@ -163,13 +184,10 @@ do
 
             winName = aWins and NS.ALLIANCE_NAME or NS.HORDE_NAME
             loseName = aWins and NS.HORDE_NAME or NS.ALLIANCE_NAME
-            local winText = winName == NS.PLAYER_FACTION and "WIN" or "LOSE"
+            winText = winName == NS.PLAYER_FACTION and "WIN" or "LOSE"
 
             Banner:Start(winTime, winText)
             Score:SetText(Score.text, finalAScore, finalHScore)
-            if NS.isEOTS(curMap.id) then
-              Flags:SetAnchor(Score.frame, 0, -5)
-            end
 
             -- local currentWinBases = aWins and allyBases or hordeBases
             -- local currentLoseBases = aWins and hordeBases or allyBases
@@ -284,14 +302,25 @@ do
           winTime = futureWinTime + winTimeIncrease
 
           if allyFutureTicksToWin == hordeFutureTicksToWin then
-            local winText = "TIE"
+            winText = "TIE"
 
             Banner:Start(winTime, winText)
             Bases:Stop(Bases, Bases.timerAnimationGroup)
             Score:Stop(Score)
-            -- Flags:Stop(Flags)
+            Flags:Stop(Flags)
+
             if NS.isEOTS(curMap.id) then
               Flags:SetAnchor(Banner.frame, 0, -5)
+              self:GetFlagValue()
+            else
+              if NS.db.global.general.banner == false and NS.db.global.general.infogroup.infobg then
+                NS.UpdateInfoSize(
+                  NS.Info.frame,
+                  NS.Banner,
+                  { NS.Score, NS.Bases, NS.Flags },
+                  "BasePrediction:BasePredictor"
+                )
+              end
             end
 
             prevAIncrease, prevHIncrease = -1, -1
@@ -317,13 +346,10 @@ do
 
             winName = aWins and NS.ALLIANCE_NAME or NS.HORDE_NAME
             loseName = aWins and NS.HORDE_NAME or NS.ALLIANCE_NAME
-            local winText = winName == NS.PLAYER_FACTION and "WIN" or "LOSE"
+            winText = winName == NS.PLAYER_FACTION and "WIN" or "LOSE"
 
             Banner:Start(winTime, winText)
             Score:SetText(Score.text, finalAScore, finalHScore)
-            if NS.isEOTS(curMap.id) then
-              Flags:SetAnchor(Score.frame, 0, -5)
-            end
 
             local trueLoseBases = currentLoseBases == 0 and loseBases or currentLoseBases
             -- local trueLoseBases = currentLoseBases + 1 == winBases and loseBases or currentLoseBases
@@ -365,17 +391,362 @@ do
           end
         end
 
-        if NS.isEOTS(curMap.id) then
-          self:GetFlagValue()
-        end
-
         local firstKey = next(winTable)
         if firstKey and winTable[firstKey] then
           Bases:Start(winTime, winTable, BasePrediction)
+
           if NS.isEOTS(curMap.id) then
             Flags:SetAnchor(Bases.frame, 0, -5)
           end
+        else
+          if NS.isEOTS(curMap.id) then
+            Flags:SetAnchor(Banner.frame, 0, -5)
+          end
         end
+
+        if NS.isEOTS(curMap.id) then
+          self:GetFlagValue()
+        else
+          if NS.db.global.general.banner == false and NS.db.global.general.infogroup.infobg then
+            NS.UpdateInfoSize(
+              NS.Info.frame,
+              NS.Banner,
+              { NS.Score, NS.Bases, NS.Flags },
+              "BasePrediction:BasePredictor"
+            )
+          end
+        end
+      end
+    end
+
+    function BasePrediction:ScoreTracker(widgetID)
+      -- widgetType == 3
+      -- 2074 = DWG
+      -- 1671 = AB, TBFG, EOTS
+      -- 1689 = TOK
+      if widgetID == 1671 or widgetID == 2074 then
+        -- Arathi Basin, The Battle for Gilneas, Eye of the Storm, Deepwind Gorge
+        local scoreInfo = GetDoubleStatusBarWidgetVisualizationInfo(widgetID)
+
+        if not scoreInfo or not scoreInfo.leftBarMax or not scoreInfo.rightBarMax then
+          return
+        end
+
+        if prevTime == 0 then
+          prevTime = GetTime()
+          prevAScore = scoreInfo.leftBarValue
+          prevHScore = scoreInfo.rightBarValue
+          return
+        end
+
+        local t = GetTime()
+        local elapsed = t - prevTime
+        prevTime = t
+
+        if elapsed > 0.5 then
+          -- If there's only 1 update, it could be either alliance or horde, so we update both stats in this one
+          minScore = scoreInfo.leftBarMin -- Min Bar
+          maxScore = scoreInfo.leftBarMax -- Max Bar
+          aScore = scoreInfo.leftBarValue -- Alliance Bar
+          hScore = scoreInfo.rightBarValue -- Horde Bar
+          aIncrease = aScore - prevAScore
+          hIncrease = hScore - prevHScore
+          prevAScore = aScore
+          prevHScore = hScore
+          -- Round to the closest time
+          timeBetweenEachTick = elapsed % 1 >= 0.5 and mceil(elapsed) or mfloor(elapsed)
+
+          After(0.5, function()
+            if
+              aIncrease ~= prevAIncrease
+              or hIncrease ~= prevHIncrease
+              or timeBetweenEachTick ~= prevTick
+              or allyBases ~= prevABases
+              or hordeBases ~= prevHBases
+              or allyIncBases ~= prevAIncBases
+              or hordeIncBases ~= prevHIncBases
+            then
+              -- NS.Debug("START", aIncrease, hIncrease, "-----", aIncrease > 65, hIncrease > 65, "END")
+
+              -- > 65 increase means captured a flag in EOTS
+              -- 5 bases in AB/DWG blitz = 65 per tick
+              if aIncrease > 65 or hIncrease > 65 then
+                Interface:Clear()
+
+                NS.Debug("TEST 1 TEST 1 TEST")
+
+                if NS.isEOTS(curMap.id) and NS.isBlitz() and aScore ~= maxScore and hScore ~= maxScore then
+                  NS.Debug("TEST 2 TEST 2 TEST")
+
+                  Banner:Start(curMap.resetTime, "RESET")
+                else
+                  NS.Debug("OUT OUT OUT OUT OUT")
+
+                  prevAIncrease = -1
+                  prevHIncrease = -1
+                end
+
+                return
+              end
+
+              if
+                NS.isBlitz()
+                and (NS.isArathi(curMap.id) or NS.isDeepwind(curMap.id))
+                and aIncrease == 0
+                and hIncrease == 0
+                and aScore ~= maxScore
+                and hScore ~= maxScore
+                and (aScore > 0 or hScore > 0)
+              then
+                Interface:Clear()
+
+                NS.Debug("TEST 4 TEST 4 TEST")
+
+                prevAIncrease = -1
+                prevHIncrease = -1
+
+                return
+              end
+
+              prevAIncrease = aIncrease
+              prevHIncrease = hIncrease
+              prevTick = timeBetweenEachTick
+
+              BasePrediction:BasePredictor()
+            end
+          end)
+        else
+          -- If elapsed < 0.5 then the event fired twice because both alliance and horde have bases.
+          -- 1st update = alliance, 2nd update = horde
+          -- If only one faction has bases, the event only fires once.
+          -- Unfortunately we need to wait for the 2nd event to fire (the horde update) to know the true horde stats.
+          -- In this one where we have 2 updates, we overwrite the horde stats from the 1st update.
+          hScore = scoreInfo.rightBarValue -- Horde Bar
+          hIncrease = hScore - prevHScore
+          prevHScore = hScore
+        end
+      end
+    end
+
+    function BasePrediction:ObjectiveTracker(widgetID)
+      -- widgetType == 14
+      -- 2339 = DWG
+      -- 1672 = EOTS
+      -- 1645 = AB
+      -- 1670 = TBFG
+      -- 1683 = TOK
+      if widgetID == 1645 or widgetID == 1670 or widgetID == 2339 then
+        -- Arathi Basin, The Battle for Gilneas, Deepwind Gorge
+        allyBases, allyIncBases = 0, 0
+        hordeBases, hordeIncBases = 0, 0
+
+        local baseInfo = GetDoubleStateIconRowVisualizationInfo(widgetID)
+
+        if not baseInfo or not baseInfo.leftIcons or not baseInfo.rightIcons then
+          return
+        end
+
+        for _, v in ipairs(baseInfo.leftIcons) do
+          if v.iconState == Enum.IconState.ShowState1 then
+            local str = v.state1Tooltip
+
+            allyIncBases = allyIncBases + 1
+
+            local base = smatch(str, "(.-) %-%s")
+            -- if horde had the base, now they dont
+            if hordeTimers[base] then
+              hordeTimers[base] = nil
+            end
+            -- if fresh capture for alliance, or they once had it lose it fully then got it again
+            if allyTimers[base] == nil or (allyTimers[base] and allyTimers[base] - GetTime() <= 0) then
+              allyTimers[base] = curMap.contestedTime + GetTime()
+            end
+          elseif v.iconState == Enum.IconState.ShowState2 then
+            local str = v.state2Tooltip
+
+            allyBases = allyBases + 1
+
+            local base = smatch(str, "(.-) %-%s")
+            -- if taking a base from horde mid-cap
+            if hordeTimers[base] then
+              hordeTimers[base] = nil
+            end
+            -- if alliance finished capping a base, now its theirs
+            if allyTimers[base] then
+              allyTimers[base] = nil
+            end
+          end
+        end
+
+        for _, v in ipairs(baseInfo.rightIcons) do
+          if v.iconState == Enum.IconState.ShowState1 then
+            local str = v.state1Tooltip
+
+            hordeIncBases = hordeIncBases + 1
+
+            local base = smatch(str, "(.-) %-%s")
+            -- if alliance had the base, now they dont
+            if allyTimers[base] then
+              allyTimers[base] = nil
+            end
+            -- if fresh capture for horde, or they once had it lose it fully then got it again
+            if hordeTimers[base] == nil or (hordeTimers[base] and hordeTimers[base] - GetTime() <= 0) then
+              hordeTimers[base] = curMap.contestedTime + GetTime()
+            end
+          elseif v.iconState == Enum.IconState.ShowState2 then
+            local str = v.state2Tooltip
+
+            hordeBases = hordeBases + 1
+
+            local base = smatch(str, "(.-) %-%s")
+            -- if taking a base from alliance mid-cap
+            if allyTimers[base] then
+              allyTimers[base] = nil
+            end
+            -- if horde finished capping a base, now its theirs
+            if hordeTimers[base] then
+              hordeTimers[base] = nil
+            end
+          end
+        end
+
+        local totalAllyBases = allyBases + allyIncBases
+        local totalHordeBases = hordeBases + hordeIncBases
+        NS.ACTIVE_BASE_COUNT = totalAllyBases + totalHordeBases
+        NS.INCOMING_BASE_COUNT = allyIncBases + hordeIncBases
+      elseif widgetID == 1672 then
+        -- Eye of the Storm
+        allyBases, allyIncBases = 0, 0
+        hordeBases, hordeIncBases = 0, 0
+
+        local baseInfo = GetDoubleStateIconRowVisualizationInfo(widgetID)
+
+        if not baseInfo or not baseInfo.leftIcons or not baseInfo.rightIcons then
+          return
+        end
+
+        for _, v in ipairs(baseInfo.leftIcons) do
+          if v.iconState == Enum.IconState.ShowState1 then
+            local str = v.state1Tooltip -- Alliance has assaulted the Mage Tower
+
+            if sfind(str, "flag") == nil then
+              allyIncBases = allyIncBases + 1
+
+              local base = smatch(str, "assaulted the (.+)")
+              -- if horde had the base, now they dont
+              if hordeTimers[base] then
+                hordeTimers[base] = nil
+              end
+              -- if fresh capture for alliance, or they once had it lose it fully then got it again
+              if allyTimers[base] == nil or (allyTimers[base] and allyTimers[base] - GetTime() <= 0) then
+                allyTimers[base] = curMap.contestedTime + GetTime()
+              end
+            end
+          elseif v.iconState == Enum.IconState.ShowState2 then
+            local str = v.state2Tooltip -- Alliance has captured the Mage Tower
+
+            allyBases = allyBases + 1
+
+            local base = smatch(str, "captured the (.+)")
+            -- if taking a base from horde mid-cap
+            if hordeTimers[base] then
+              hordeTimers[base] = nil
+            end
+            -- if alliance finished capping a base, now its theirs
+            if allyTimers[base] then
+              allyTimers[base] = nil
+            end
+          end
+        end
+
+        for _, v in ipairs(baseInfo.rightIcons) do
+          if v.iconState == Enum.IconState.ShowState1 then
+            local str = v.state1Tooltip -- Horde has assaulted the Mage Tower
+
+            if sfind(str, "flag") == nil then
+              hordeIncBases = hordeIncBases + 1
+
+              local base = smatch(str, "assaulted the (.+)")
+              -- if alliance had the base, now they dont
+              if allyTimers[base] then
+                allyTimers[base] = nil
+              end
+              -- if fresh capture for horde, or they once had it lose it fully then got it again
+              if hordeTimers[base] == nil or (hordeTimers[base] and hordeTimers[base] - GetTime() <= 0) then
+                hordeTimers[base] = curMap.contestedTime + GetTime()
+              end
+            end
+          elseif v.iconState == Enum.IconState.ShowState2 then
+            local str = v.state2Tooltip -- Horde has captured the Mage Tower
+
+            hordeBases = hordeBases + 1
+
+            local base = smatch(str, "captured the (.+)")
+            -- if taking a base from alliance mid-cap
+            if allyTimers[base] then
+              allyTimers[base] = nil
+            end
+            -- if horde finished capping a base, now its theirs
+            if hordeTimers[base] then
+              hordeTimers[base] = nil
+            end
+          end
+        end
+
+        local totalAllyBases = allyBases + allyIncBases
+        local totalHordeBases = hordeBases + hordeIncBases
+        NS.ACTIVE_BASE_COUNT = totalAllyBases + totalHordeBases
+        NS.INCOMING_BASE_COUNT = allyIncBases + hordeIncBases
+      end
+
+      if widgetID == 1645 or widgetID == 1670 or widgetID == 2339 or widgetID == 1672 then
+        -- Arathi Basin, The Battle for Gilneas, Deepwind Gorge, Eye of the Storm
+        if
+          allyBases ~= prevABases
+          or hordeBases ~= prevHBases
+          or allyIncBases ~= prevAIncBases
+          or hordeIncBases ~= prevHIncBases
+        then
+          prevABases = allyBases
+          prevHBases = hordeBases
+          prevAIncBases = allyIncBases
+          prevHIncBases = hordeIncBases
+
+          self:BasePredictor()
+        end
+      end
+    end
+
+    function BasePrediction:GetScoreByMapID(mapID)
+      -- mapID == Zone ID in-game
+      -- DWG = 1576
+      -- EOTS = 112, 397
+      -- AB = 1366, 1383, 837
+      -- TBFG = 275
+      if mapID == 1366 or mapID == 1383 or mapID == 837 or mapID == 275 or mapID == 112 or mapID == 397 then
+        -- Arathi Basin, The Battle for Gilneas, Eye of the Storm
+        local scoreInfo = GetDoubleStatusBarWidgetVisualizationInfo(1671)
+
+        if not scoreInfo or not scoreInfo.leftBarMax or not scoreInfo.rightBarMax then
+          return
+        end
+
+        minScore = scoreInfo.leftBarMin -- Min Bar
+        maxScore = scoreInfo.leftBarMax -- Max Bar
+        aScore = scoreInfo.leftBarValue -- Alliance Bar
+        hScore = scoreInfo.rightBarValue -- Horde Bar
+      elseif mapID == 1576 then
+        -- Deepwind Gorge
+        local scoreInfo = GetDoubleStatusBarWidgetVisualizationInfo(2074)
+
+        if not scoreInfo or not scoreInfo.leftBarMax or not scoreInfo.rightBarMax then
+          return
+        end
+
+        minScore = scoreInfo.leftBarMin -- Min Bar
+        maxScore = scoreInfo.leftBarMax -- Max Bar
+        aScore = scoreInfo.leftBarValue -- Alliance Bar
+        hScore = scoreInfo.rightBarValue -- Horde Bar
       end
     end
 
@@ -674,337 +1045,6 @@ do
       end
     end
 
-    function BasePrediction:GetScoreByMapID(mapID)
-      -- mapID == Zone ID in-game
-      -- DWG = 1576
-      -- EOTS = 112, 397
-      -- AB = 1366, 1383, 837
-      -- TBFG = 275
-      if mapID == 1366 or mapID == 1383 or mapID == 837 or mapID == 275 or mapID == 112 or mapID == 397 then
-        -- Arathi Basin, The Battle for Gilneas, Eye of the Storm
-        local scoreInfo = GetDoubleStatusBarWidgetVisualizationInfo(1671)
-
-        if not scoreInfo or not scoreInfo.leftBarMax or not scoreInfo.rightBarMax then
-          return
-        end
-
-        minScore = scoreInfo.leftBarMin -- Min Bar
-        maxScore = scoreInfo.leftBarMax -- Max Bar
-        aScore = scoreInfo.leftBarValue -- Alliance Bar
-        hScore = scoreInfo.rightBarValue -- Horde Bar
-      elseif mapID == 1576 then
-        -- Deepwind Gorge
-        local scoreInfo = GetDoubleStatusBarWidgetVisualizationInfo(2074)
-
-        if not scoreInfo or not scoreInfo.leftBarMax or not scoreInfo.rightBarMax then
-          return
-        end
-
-        minScore = scoreInfo.leftBarMin -- Min Bar
-        maxScore = scoreInfo.leftBarMax -- Max Bar
-        aScore = scoreInfo.leftBarValue -- Alliance Bar
-        hScore = scoreInfo.rightBarValue -- Horde Bar
-      end
-    end
-
-    function BasePrediction:ObjectiveTracker(widgetID)
-      -- widgetType == 14
-      -- 2339 = DWG
-      -- 1672 = EOTS
-      -- 1645 = AB
-      -- 1670 = TBFG
-      -- 1683 = TOK
-      if widgetID == 1645 or widgetID == 1670 or widgetID == 2339 then
-        -- Arathi Basin, The Battle for Gilneas, Deepwind Gorge
-        allyBases, allyIncBases = 0, 0
-        hordeBases, hordeIncBases = 0, 0
-
-        local baseInfo = GetDoubleStateIconRowVisualizationInfo(widgetID)
-
-        if not baseInfo or not baseInfo.leftIcons or not baseInfo.rightIcons then
-          return
-        end
-
-        for _, v in ipairs(baseInfo.leftIcons) do
-          if v.iconState == Enum.IconState.ShowState1 then
-            local str = v.state1Tooltip
-
-            allyIncBases = allyIncBases + 1
-
-            local base = smatch(str, "(.-) %-%s")
-            -- if horde had the base, now they dont
-            if hordeTimers[base] then
-              hordeTimers[base] = nil
-            end
-            -- if fresh capture for alliance, or they once had it lose it fully then got it again
-            if allyTimers[base] == nil or (allyTimers[base] and allyTimers[base] - GetTime() <= 0) then
-              allyTimers[base] = curMap.contestedTime + GetTime()
-            end
-          elseif v.iconState == Enum.IconState.ShowState2 then
-            local str = v.state2Tooltip
-
-            allyBases = allyBases + 1
-
-            local base = smatch(str, "(.-) %-%s")
-            -- if taking a base from horde mid-cap
-            if hordeTimers[base] then
-              hordeTimers[base] = nil
-            end
-            -- if alliance finished capping a base, now its theirs
-            if allyTimers[base] then
-              allyTimers[base] = nil
-            end
-          end
-        end
-
-        for _, v in ipairs(baseInfo.rightIcons) do
-          if v.iconState == Enum.IconState.ShowState1 then
-            local str = v.state1Tooltip
-
-            hordeIncBases = hordeIncBases + 1
-
-            local base = smatch(str, "(.-) %-%s")
-            -- if alliance had the base, now they dont
-            if allyTimers[base] then
-              allyTimers[base] = nil
-            end
-            -- if fresh capture for horde, or they once had it lose it fully then got it again
-            if hordeTimers[base] == nil or (hordeTimers[base] and hordeTimers[base] - GetTime() <= 0) then
-              hordeTimers[base] = curMap.contestedTime + GetTime()
-            end
-          elseif v.iconState == Enum.IconState.ShowState2 then
-            local str = v.state2Tooltip
-
-            hordeBases = hordeBases + 1
-
-            local base = smatch(str, "(.-) %-%s")
-            -- if taking a base from alliance mid-cap
-            if allyTimers[base] then
-              allyTimers[base] = nil
-            end
-            -- if horde finished capping a base, now its theirs
-            if hordeTimers[base] then
-              hordeTimers[base] = nil
-            end
-          end
-        end
-
-        local totalAllyBases = allyBases + allyIncBases
-        local totalHordeBases = hordeBases + hordeIncBases
-        NS.ACTIVE_BASE_COUNT = totalAllyBases + totalHordeBases
-        NS.INCOMING_BASE_COUNT = allyIncBases + hordeIncBases
-      elseif widgetID == 1672 then
-        -- Eye of the Storm
-        allyBases, allyIncBases = 0, 0
-        hordeBases, hordeIncBases = 0, 0
-
-        local baseInfo = GetDoubleStateIconRowVisualizationInfo(widgetID)
-
-        if not baseInfo or not baseInfo.leftIcons or not baseInfo.rightIcons then
-          return
-        end
-
-        for _, v in ipairs(baseInfo.leftIcons) do
-          if v.iconState == Enum.IconState.ShowState1 then
-            local str = v.state1Tooltip -- Alliance has assaulted the Mage Tower
-
-            if sfind(str, "flag") == nil then
-              allyIncBases = allyIncBases + 1
-
-              local base = smatch(str, "assaulted the (.+)")
-              -- if horde had the base, now they dont
-              if hordeTimers[base] then
-                hordeTimers[base] = nil
-              end
-              -- if fresh capture for alliance, or they once had it lose it fully then got it again
-              if allyTimers[base] == nil or (allyTimers[base] and allyTimers[base] - GetTime() <= 0) then
-                allyTimers[base] = curMap.contestedTime + GetTime()
-              end
-            end
-          elseif v.iconState == Enum.IconState.ShowState2 then
-            local str = v.state2Tooltip -- Alliance has captured the Mage Tower
-
-            allyBases = allyBases + 1
-
-            local base = smatch(str, "captured the (.+)")
-            -- if taking a base from horde mid-cap
-            if hordeTimers[base] then
-              hordeTimers[base] = nil
-            end
-            -- if alliance finished capping a base, now its theirs
-            if allyTimers[base] then
-              allyTimers[base] = nil
-            end
-          end
-        end
-
-        for _, v in ipairs(baseInfo.rightIcons) do
-          if v.iconState == Enum.IconState.ShowState1 then
-            local str = v.state1Tooltip -- Horde has assaulted the Mage Tower
-
-            if sfind(str, "flag") == nil then
-              hordeIncBases = hordeIncBases + 1
-
-              local base = smatch(str, "assaulted the (.+)")
-              -- if alliance had the base, now they dont
-              if allyTimers[base] then
-                allyTimers[base] = nil
-              end
-              -- if fresh capture for horde, or they once had it lose it fully then got it again
-              if hordeTimers[base] == nil or (hordeTimers[base] and hordeTimers[base] - GetTime() <= 0) then
-                hordeTimers[base] = curMap.contestedTime + GetTime()
-              end
-            end
-          elseif v.iconState == Enum.IconState.ShowState2 then
-            local str = v.state2Tooltip -- Horde has captured the Mage Tower
-
-            hordeBases = hordeBases + 1
-
-            local base = smatch(str, "captured the (.+)")
-            -- if taking a base from alliance mid-cap
-            if allyTimers[base] then
-              allyTimers[base] = nil
-            end
-            -- if horde finished capping a base, now its theirs
-            if hordeTimers[base] then
-              hordeTimers[base] = nil
-            end
-          end
-        end
-
-        local totalAllyBases = allyBases + allyIncBases
-        local totalHordeBases = hordeBases + hordeIncBases
-        NS.ACTIVE_BASE_COUNT = totalAllyBases + totalHordeBases
-        NS.INCOMING_BASE_COUNT = allyIncBases + hordeIncBases
-      end
-
-      if widgetID == 1645 or widgetID == 1670 or widgetID == 2339 or widgetID == 1672 then
-        -- Arathi Basin, The Battle for Gilneas, Deepwind Gorge, Eye of the Storm
-        if
-          allyBases ~= prevABases
-          or hordeBases ~= prevHBases
-          or allyIncBases ~= prevAIncBases
-          or hordeIncBases ~= prevHIncBases
-        then
-          prevABases = allyBases
-          prevHBases = hordeBases
-          prevAIncBases = allyIncBases
-          prevHIncBases = hordeIncBases
-
-          self:BasePredictor()
-        end
-      end
-    end
-
-    function BasePrediction:ScoreTracker(widgetID)
-      -- widgetType == 3
-      -- 2074 = DWG
-      -- 1671 = AB, TBFG, EOTS
-      -- 1689 = TOK
-      if widgetID == 1671 or widgetID == 2074 then
-        -- Arathi Basin, The Battle for Gilneas, Eye of the Storm, Deepwind Gorge
-        local scoreInfo = GetDoubleStatusBarWidgetVisualizationInfo(widgetID)
-
-        if not scoreInfo or not scoreInfo.leftBarMax or not scoreInfo.rightBarMax then
-          return
-        end
-
-        if prevTime == 0 then
-          prevTime = GetTime()
-          prevAScore = scoreInfo.leftBarValue
-          prevHScore = scoreInfo.rightBarValue
-          return
-        end
-
-        local t = GetTime()
-        local elapsed = t - prevTime
-        prevTime = t
-
-        if elapsed > 0.5 then
-          -- If there's only 1 update, it could be either alliance or horde, so we update both stats in this one
-          minScore = scoreInfo.leftBarMin -- Min Bar
-          maxScore = scoreInfo.leftBarMax -- Max Bar
-          aScore = scoreInfo.leftBarValue -- Alliance Bar
-          hScore = scoreInfo.rightBarValue -- Horde Bar
-          aIncrease = aScore - prevAScore
-          hIncrease = hScore - prevHScore
-          prevAScore = aScore
-          prevHScore = hScore
-          -- Round to the closest time
-          timeBetweenEachTick = elapsed % 1 >= 0.5 and mceil(elapsed) or mfloor(elapsed)
-
-          After(0.5, function()
-            if
-              aIncrease ~= prevAIncrease
-              or hIncrease ~= prevHIncrease
-              or timeBetweenEachTick ~= prevTick
-              or allyBases ~= prevABases
-              or hordeBases ~= prevHBases
-              or allyIncBases ~= prevAIncBases
-              or hordeIncBases ~= prevHIncBases
-            then
-              -- NS.Debug("START", aIncrease, hIncrease, "-----", aIncrease > 65, hIncrease > 65, "END")
-
-              -- > 65 increase means captured a flag in EOTS
-              -- 5 bases in AB/DWG blitz = 65 per tick
-              if aIncrease > 65 or hIncrease > 65 then
-                Interface:Clear()
-
-                NS.Debug("TEST 1 TEST 1 TEST")
-
-                if NS.isEOTS(curMap.id) and NS.isBlitz() and aScore ~= maxScore and hScore ~= maxScore then
-                  NS.Debug("TEST 2 TEST 2 TEST")
-
-                  Banner:Start(curMap.resetTime, "RESET")
-                else
-                  NS.Debug("OUT OUT OUT OUT OUT")
-
-                  prevAIncrease = -1
-                  prevHIncrease = -1
-                end
-
-                return
-              end
-
-              if
-                NS.isBlitz()
-                and (NS.isArathi(curMap.id) or NS.isDeepwind(curMap.id))
-                and aIncrease == 0
-                and hIncrease == 0
-                and aScore ~= maxScore
-                and hScore ~= maxScore
-                and (aScore > 0 or hScore > 0)
-              then
-                Interface:Clear()
-
-                NS.Debug("TEST 4 TEST 4 TEST")
-
-                prevAIncrease = -1
-                prevHIncrease = -1
-
-                return
-              end
-
-              prevAIncrease = aIncrease
-              prevHIncrease = hIncrease
-              prevTick = timeBetweenEachTick
-
-              BasePrediction:BasePredictor()
-            end
-          end)
-        else
-          -- If elapsed < 0.5 then the event fired twice because both alliance and horde have bases.
-          -- 1st update = alliance, 2nd update = horde
-          -- If only one faction has bases, the event only fires once.
-          -- Unfortunately we need to wait for the 2nd event to fire (the horde update) to know the true horde stats.
-          -- In this one where we have 2 updates, we overwrite the horde stats from the 1st update.
-          hScore = scoreInfo.rightBarValue -- Horde Bar
-          hIncrease = hScore - prevHScore
-          prevHScore = hScore
-        end
-      end
-    end
-
     function BasePrediction:UPDATE_UI_WIDGET(widgetInfo)
       if widgetInfo then
         local widgetID = widgetInfo.widgetID
@@ -1032,7 +1072,7 @@ do
       winBases, loseBases = 0, 0
       allyFlags, hordeFlags = 0, 0
       minScore, maxScore, winScore, loseScore = 0, 1500, 0, 0
-      winName, loseName = "", ""
+      winName, loseName, winText = "", "", ""
       curMap = mapInfo
 
       twipe(allyTimers)

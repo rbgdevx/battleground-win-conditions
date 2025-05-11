@@ -1,5 +1,16 @@
 # Battleground Win Conditions
 
+## [v9.7.4](https://github.com/rbgdevx/battleground-win-conditions/releases/tag/v9.7.4) (2025-05-11)
+
+- Fixing the info background code to 100% properly set the width and height, and ONLY update when absolutely needed
+- Stripping the placement info back down to just the basic info text and win banner
+- Updating order of operations in the bases prediction code
+- Adding check to not show eots flag ahead/behind info during a tie game
+- Updating orb info anchor since there is no banner
+- Minor cleanup
+- Assigning addon to my own category for organization
+- Update toc
+
 ## [v9.7.3](https://github.com/rbgdevx/battleground-win-conditions/releases/tag/v9.7.3) (2025-04-08)
 
 - Shows flag info on EOTS even during tie game since you can still win with a flag

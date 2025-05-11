@@ -3,8 +3,8 @@ local _, NS = ...
 local pairs = pairs
 local ipairs = ipairs
 local CreateFrame = CreateFrame
-local GetRealmName = GetRealmName
-local UnitName = UnitName
+-- local GetRealmName = GetRealmName
+-- local UnitName = UnitName
 local UnitExists = UnitExists
 local select = select
 

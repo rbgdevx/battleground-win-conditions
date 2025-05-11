@@ -10,7 +10,6 @@ local sformat = string.format
 local SharedMedia = LibStub("LibSharedMedia-3.0")
 
 local Info = NS.Info
-local Banner = NS.Banner
 
 local Orbs = {}
 NS.Orbs = Orbs
@@ -113,13 +112,15 @@ function Orbs:StartOrbList(orbStacks)
   else
     self.frame:SetAlpha(1)
     self.orbTextFrame:SetAlpha(1)
-
-    if NS.db.global.general.banner == false and NS.db.global.general.infogroup.infobg then
-      NS.UpdateInfoSize(Info.frame, Banner)
-    end
   end
 
   NS.UpdateContainerSize(self.frame)
+
+  if NS.IN_GAME then
+    if NS.db.global.general.banner == false and NS.db.global.general.infogroup.infobg then
+      NS.UpdateInfoSize(NS.Info.frame, NS.Banner, { Orbs }, "Orbs:StartOrbList")
+    end
+  end
 end
 
 local function stopAnimation(frame, animationGroup)
@@ -192,13 +193,15 @@ function Orbs:Start(duration, text)
   else
     self.frame:SetAlpha(1)
     self.buffTextFrame:SetAlpha(1)
-
-    if NS.db.global.general.banner == false and NS.db.global.general.infogroup.infobg then
-      NS.UpdateInfoSize(Info.frame, Banner)
-    end
   end
 
   NS.UpdateContainerSize(self.frame)
+
+  if NS.IN_GAME then
+    if NS.db.global.general.banner == false and NS.db.global.general.infogroup.infobg then
+      NS.UpdateInfoSize(NS.Info.frame, NS.Banner, { Orbs }, "Orbs:Start")
+    end
+  end
 
   self.timerAnimationGroup:SetScript("OnLoop", function(updatedGroup)
     if updatedGroup then
@@ -239,6 +242,7 @@ function Orbs:Create(anchor)
     else
       BuffTextFrame:SetPoint("TOPLEFT", OrbsFrame, "TOPLEFT", 0, 0)
     end
+
     if NS.db.global.maps.templeofkotmogu.showbuffinfo then
       BuffTextFrame:SetAlpha(1)
     else
@@ -254,10 +258,16 @@ function Orbs:Create(anchor)
     BuffText:SetJustifyH("LEFT")
     BuffText:SetJustifyV("TOP")
 
+    -- local BG = OrbsFrame:CreateTexture(nil, "BACKGROUND")
+    -- BG:SetAllPoints()
+    -- BG:SetColorTexture(1, 0, 1, 1)
+
     Orbs.orbTextFrame = OrbTextFrame
     Orbs.buffTextFrame = BuffTextFrame
     Orbs.orbText = OrbText
     Orbs.buffText = BuffText
     Orbs.timerAnimationGroup = NS.CreateTimerAnimation(OrbsFrame)
+
+    Orbs.name = "Orbs"
   end
 end

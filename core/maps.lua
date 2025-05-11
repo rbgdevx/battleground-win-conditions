@@ -7,7 +7,7 @@ local GetInstanceInfo = GetInstanceInfo
 local GetNumGroupMembers = GetNumGroupMembers
 
 local After = C_Timer.After
-local IsSoloRBG = C_PvP.IsSoloRBG
+-- local IsSoloRBG = C_PvP.IsSoloRBG
 
 local Interface = NS.Interface
 local Version = NS.Version
@@ -39,6 +39,8 @@ do
     zoneIds[instanceID]:EnterZone(instanceID, isBlitz)
 
     Version:SendVersion()
+
+    -- SELECTED_CHAT_FRAME:Clear()
   end
 
   local function checkMaxPlayers(instanceID)

@@ -5,8 +5,8 @@ local mceil = math.ceil
 
 local Anchor = NS.Anchor
 local Banner = NS.Banner
-local Info = NS.Info
 local Score = NS.Score
+local Info = NS.Info
 local Bases = NS.Bases
 local Flags = NS.Flags
 local Orbs = NS.Orbs
@@ -54,13 +54,13 @@ function Interface:HideInfo()
 end
 
 function Interface:Clear()
-  Info.frame:SetSize(1, 1)
   Banner:Stop(Banner, Banner.timerAnimationGroup)
+  Info.frame:SetSize(1, 1)
+  Score:Stop(Score)
   Bases:Stop(Bases, Bases.timerAnimationGroup)
+  Flags:Stop(Flags)
   Orbs:Stop(Orbs, Orbs.timerAnimationGroup, true)
   Stacks:Stop(Stacks, Stacks.timerAnimationGroup)
-  Score:Stop(Score)
-  Flags:Stop(Flags)
 end
 
 function Interface:Start()
@@ -84,27 +84,33 @@ function Interface:Refresh()
   Banner:SetBackgroundColor(Banner.bg, NS.db.global.general.bannergroup.tiebgcolor)
   Banner:SetScale(Banner.frame)
   Banner:SetFont(Banner.text)
+  Score:SetFont(Score.text)
   Bases:SetFont(Bases.text)
+  Flags:SetFont(Flags.text)
   Orbs:SetFont(Orbs.orbText)
   Orbs:SetFont(Orbs.buffText)
-  Flags:SetFont(Flags.text)
-  Score:SetFont(Score.text)
   Stacks:SetFont(Stacks.text)
 
   if NS.db.global.general.banner == false and NS.db.global.general.infogroup.infobg then
-    NS.UpdateInfoSize(Info.frame, Banner)
+    NS.UpdateInfoSize(
+      NS.Info.frame,
+      NS.Banner,
+      { NS.Score, NS.Bases, NS.Flags, NS.Orbs, NS.Stacks },
+      "Interface:Refresh"
+    )
   end
 end
 
 function Interface:CreateTestBanner()
-  Banner:Start(15, "RESET")
+  Banner:Start(434, "WIN")
 end
 
 function Interface:CreateTestInfo()
+  Score:SetText(Score.text, 1500, 1125)
+
   Info:SetAnchor(Banner.frame, 0, 0)
   Info:Start()
 
-  Score:SetText(Score.text, 1500, 1125)
   Bases:Start(434, {
     [3] = {
       bases = 3,
@@ -162,35 +168,43 @@ function Interface:CreateTestInfo()
   Flags:SetAnchor(Bases.frame, 0, -5)
   Flags:SetText(Flags, NS.PLAYER_FACTION, NS.PLAYER_FACTION, 20, 175, 1, 0)
 
-  if
-    NS.db.global.maps.eyeofthestorm.showflaginfo == false and NS.db.global.maps.eyeofthestorm.showflagvalue == false
-  then
-    Orbs:SetAnchor(Bases.frame, 0, -10)
-  else
-    Orbs:SetAnchor(Flags.frame, 0, -10)
-  end
-  Orbs:StartOrbList()
-  Orbs:Start(NS.DEFAULT_ORB_BUFF_TIME, NS.formatTeamName(NS.PLAYER_FACTION, NS.PLAYER_FACTION))
+  -- remove
+  -- if
+  -- 	NS.db.global.maps.eyeofthestorm.showflaginfo == false
+  -- 	and NS.db.global.maps.eyeofthestorm.showflagvalue == false
+  -- then
+  -- 	Orbs:SetAnchor(Bases.frame, 0, -10)
+  -- else
+  -- 	Orbs:SetAnchor(Flags.frame, 0, -10)
+  -- end
+  -- Orbs:StartOrbList()
+  -- Orbs:Start(NS.DEFAULT_ORB_BUFF_TIME, NS.formatTeamName(NS.PLAYER_FACTION, NS.PLAYER_FACTION))
 
-  if
-    NS.db.global.maps.templeofkotmogu.showorbinfo == false
-    and NS.db.global.maps.templeofkotmogu.showbuffinfo == false
-  then
-    if
-      NS.db.global.maps.eyeofthestorm.showflaginfo == false
-      and NS.db.global.maps.eyeofthestorm.showflagvalue == false
-    then
-      Stacks:SetAnchor(Bases.frame, 0, -10)
-    else
-      Stacks:SetAnchor(Flags.frame, 0, -10)
-    end
-  else
-    Stacks:SetAnchor(Orbs.frame, 0, -10)
-  end
-  Stacks:Start(NS.DEFAULT_STACK_TIME, 0)
+  -- if
+  -- 	NS.db.global.maps.templeofkotmogu.showorbinfo == false
+  -- 	and NS.db.global.maps.templeofkotmogu.showbuffinfo == false
+  -- then
+  -- 	if
+  -- 		NS.db.global.maps.eyeofthestorm.showflaginfo == false
+  -- 		and NS.db.global.maps.eyeofthestorm.showflagvalue == false
+  -- 	then
+  -- 		Stacks:SetAnchor(Bases.frame, 0, -10)
+  -- 	else
+  -- 		Stacks:SetAnchor(Flags.frame, 0, -10)
+  -- 	end
+  -- else
+  -- 	Stacks:SetAnchor(Orbs.frame, 0, -10)
+  -- end
+  -- Stacks:Start(NS.DEFAULT_STACK_TIME, 0)
+  -- remove
 
   if NS.db.global.general.banner == false and NS.db.global.general.infogroup.infobg then
-    NS.UpdateInfoSize(Info.frame, Banner)
+    NS.UpdateInfoSize(
+      NS.Info.frame,
+      NS.Banner,
+      { NS.Score, NS.Bases, NS.Flags, NS.Orbs, NS.Stacks },
+      "Interface:CreateTestInfo"
+    )
   end
 end
 
@@ -215,6 +229,7 @@ function Interface:Create()
   if Bases.frame then
     Flags:Create(Bases.frame)
   end
+
   if Flags.frame then
     if
       NS.db.global.maps.eyeofthestorm.showflaginfo == false

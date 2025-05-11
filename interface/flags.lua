@@ -15,7 +15,7 @@ NS.Flags = Flags
 local FlagsFrame = CreateFrame("Frame", AddonName .. "FlagsFrame", Info.frame)
 Flags.frame = FlagsFrame
 
-local flagformat = "%s by %d %s"
+local flagFormat = "%s by %d %s"
 local flagFormat2 = "Flag Value: %d"
 
 function Flags:SetAnchor(anchor, x, y)
@@ -25,7 +25,7 @@ end
 function Flags:SetText(frame, faction, winName, flagsNeeded, flagValue, allyFlags, hordeFlags)
   local label = faction == winName and "Ahead" or "Behind"
   local noun = flagsNeeded == 1 and "flag" or "flags"
-  local lineOne = sformat(flagformat, label, flagsNeeded, noun)
+  local lineOne = sformat(flagFormat, label, flagsNeeded, noun)
   local lineTwo = sformat(flagFormat2, flagValue)
   local text = ""
 
@@ -69,6 +69,12 @@ function Flags:SetText(frame, faction, winName, flagsNeeded, flagValue, allyFlag
   elseif NS.db.global.maps.eyeofthestorm.showflaginfo or NS.db.global.maps.eyeofthestorm.showflagvalue then
     FlagsFrame:SetAlpha(1)
   end
+
+  -- if NS.IN_GAME then
+  --   if NS.db.global.general.banner == false and NS.db.global.general.infogroup.infobg then
+  --     NS.UpdateInfoSize(NS.Info.frame, NS.Banner, { NS.Score, NS.Bases, Flags }, "Flags:SetText")
+  --   end
+  -- end
 end
 
 function Flags:SetTextColor(frame, color)
@@ -112,6 +118,12 @@ function Flags:Create(anchor)
     FlagsFrame:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, 0)
     FlagsFrame:SetAlpha(0)
 
+    -- local BG = FlagsFrame:CreateTexture(nil, "BACKGROUND")
+    -- BG:SetAllPoints()
+    -- BG:SetColorTexture(1, 0, 1, 1)
+
     Flags.text = Text
+
+    Flags.name = "Flags"
   end
 end

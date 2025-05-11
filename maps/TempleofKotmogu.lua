@@ -59,7 +59,7 @@ function TOK:EnterZone(id, isBlitz)
     Info:SetAnchor(Anchor.frame, 0, 0)
 
     if NS.db.global.general.infogroup.infobg then
-      Orbs:SetAnchor(Info.frame, 0, -5, "TOPLEFT", "TOPLEFT")
+      Orbs:SetAnchor(Info.frame, 0, 0, "TOPLEFT", "TOPLEFT")
     else
       Orbs:SetAnchor(Info.frame, 0, 0, "TOPLEFT", "TOPLEFT")
     end

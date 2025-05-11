@@ -11,7 +11,6 @@ local mmax = math.max
 local sformat = string.format
 
 local Info = NS.Info
-local Banner = NS.Banner
 
 local SharedMedia = LibStub("LibSharedMedia-3.0")
 
@@ -20,6 +19,10 @@ NS.Bases = Bases
 
 local BasesFrame = CreateFrame("Frame", AddonName .. "BasesFrame", Info.frame)
 Bases.frame = BasesFrame
+
+local changed = false
+
+Bases.frame.changed = changed
 
 function Bases:SetAnchor(anchor, x, y)
   self.frame:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", x, y)
@@ -81,6 +84,7 @@ local function winMessage(text, winCondition)
 
   if winMinBases == 1 and ownTime <= 0 then
     message = sformat("%s win\n", NS.formatTeamName(winName, NS.PLAYER_FACTION))
+    changed = true
   else
     if NS.WIN_INC_BASE_COUNT > 0 and NS.ACTIVE_BASE_COUNT == maxBases and capBases == winMinBases + 1 then
       message = sformat("%s win with %d after cap\n", NS.formatTeamName(winName, NS.PLAYER_FACTION), winMinBases)
@@ -107,6 +111,17 @@ local function winMessage(text, winCondition)
   end
 
   Bases:SetText(text, "%s", message)
+
+  if changed ~= Bases.frame.changed then
+    if NS.db.global.general.banner == false and NS.db.global.general.infogroup.infobg then
+      if NS.IN_GAME then
+        NS.UpdateInfoSize(NS.Info.frame, NS.Banner, { NS.Score, Bases, NS.Flags }, "winMessage")
+      else
+        NS.UpdateInfoSize(NS.Info.frame, NS.Banner, { NS.Score, Bases, NS.Flags, NS.Orbs, NS.Stacks }, "winMessage")
+      end
+    end
+    Bases.frame.changed = changed
+  end
 end
 
 local function loseMessage(text, winCondition)
@@ -261,6 +276,8 @@ function Bases:Start(duration, winTable, callbackFn)
 
   self:SetFont(self.text)
 
+  changed = false
+
   local firstKey = next(winTable)
   if firstKey and winTable[firstKey] then
     local winCondition = winTable[firstKey]
@@ -273,13 +290,15 @@ function Bases:Start(duration, winTable, callbackFn)
 
     if NS.db.global.general.banner == false then
       self.frame:SetAlpha(1)
-
-      if NS.db.global.general.infogroup.infobg then
-        NS.UpdateInfoSize(Info.frame, Banner)
-      end
     else
       self.frame:SetAlpha(0)
     end
+
+    -- if NS.IN_GAME then
+    --   if NS.db.global.general.banner == false and NS.db.global.general.infogroup.infobg then
+    --     NS.UpdateInfoSize(NS.Info.frame, NS.Banner, { NS.Score, Bases, NS.Flags }, "Bases:Start")
+    --   end
+    -- end
 
     NS.BASE_TIMER_EXPIRED = false
 
@@ -307,7 +326,13 @@ function Bases:Create(anchor)
     BasesFrame:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, -5)
     BasesFrame:SetAlpha(0)
 
+    -- local BG = BasesFrame:CreateTexture(nil, "BACKGROUND")
+    -- BG:SetAllPoints()
+    -- BG:SetColorTexture(1, 0, 1, 1)
+
     Bases.text = Text
     Bases.timerAnimationGroup = NS.CreateTimerAnimation(BasesFrame)
+
+    Bases.name = "Bases"
   end
 end

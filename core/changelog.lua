@@ -9,6 +9,30 @@ NS.Changelog = Changelog
 
 local changelog = {
   {
+    Version = "9.7.4",
+    General = "Various bugfixes and improvements",
+    Sections = {
+      {
+        Header = "Changes",
+        Entries = {
+          "Stripping the placement info back down to just the basic info text and win banner",
+          "Updating order of operations in the bases prediction code",
+          "Assigning addon to my own category for organization",
+          "Update toc",
+        },
+      },
+      {
+        Header = "Bugfixes",
+        Entries = {
+          "Fixing the info background code to 100% properly set the width and height, and ONLY update when absolutely needed",
+          "Adding check to not show eots flag ahead/behind info during a tie game",
+          "Updating orb info anchor since there is no banner",
+          "Minor cleanup",
+        },
+      },
+    },
+  },
+  {
     Version = "9.7.3",
     General = "EOTS changes + bugfixes",
     Sections = {

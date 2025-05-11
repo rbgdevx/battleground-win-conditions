@@ -479,28 +479,35 @@ NS.UpdateContainerSize = function(frame)
 end
 
 -- Function to update the size of the container based on visible children
-NS.UpdateInfoSize = function(frame, banner)
-  if frame == nil or banner == nil then
+NS.UpdateInfoSize = function(frame, banner, children, caller)
+  -- NS.debug(caller)
+  if frame == nil then
     return
   end
 
   local maxWidth, maxHeight = 1, 1
-  for i = 1, frame:GetNumChildren() do
-    local child = select(i, frame:GetChildren())
-    if child and child:IsShown() and child:GetAlpha() > 0 then -- Check if the child is visible and not fully transparent
-      local childRight = child:GetRight() or 0
-      local childBottom = child:GetBottom() or 0
-      -- local childTop = child:GetTop() or 0
-      -- local childLeft = child:GetLeft() or 0
+  for _, child in ipairs(children) do
+    if child and child.frame and child.name then
+      if child.frame:IsShown() and child.frame:GetAlpha() > 0 then
+        if child.frame:GetWidth() > 1 and child.frame:GetWidth() > 1 then
+          local childRight = child.frame:GetRight() or 0
+          local childBottom = child.frame:GetBottom() or 0
+          -- local childTop = child:GetTop() or 0
+          -- local childLeft = child:GetLeft() or 0
 
-      -- Adjust the container size based on child extents
-      maxWidth = frame:GetLeft() and mmax(maxWidth, childRight - frame:GetLeft()) or maxWidth
-      maxHeight = frame:GetTop() and mmax(maxHeight, frame:GetTop() - childBottom) or maxHeight
+          -- Adjust the container size based on child extents
+          maxWidth = frame:GetLeft() and mmax(175, mmax(maxWidth, childRight - frame:GetLeft())) or maxWidth
+          maxHeight = frame:GetTop() and mmax(maxHeight, frame:GetTop() - childBottom) or maxHeight
+        end
+      end
     end
   end
 
   frame:SetSize(maxWidth, maxHeight)
-  banner.frame:SetWidth(maxWidth)
+
+  if banner and not NS.db.global.general.banner and NS.db.global.general.infogroup.infobg then
+    banner.frame:SetWidth(maxWidth)
+  end
 end
 
 -- Function to strip color codes for plain text reference
