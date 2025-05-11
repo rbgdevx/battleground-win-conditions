@@ -7,7 +7,7 @@ local CreateFrame = CreateFrame
 local select = select
 local UnitName = UnitName
 local UnitExists = UnitExists
-local GetRealmName = GetRealmName
+-- local GetRealmName = GetRealmName
 
 local sfind = string.find
 local smatch = string.match

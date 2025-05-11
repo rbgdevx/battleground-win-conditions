@@ -7,12 +7,7 @@ local UnitIsDeadOrGhost = UnitIsDeadOrGhost
 
 local SharedMedia = LibStub("LibSharedMedia-3.0")
 
-local Banner = NS.Banner
-local Score = NS.Score
 local Info = NS.Info
-local Bases = NS.Bases
-local Flags = NS.Flags
-local Orbs = NS.Orbs
 
 local Stacks = {}
 NS.Stacks = Stacks

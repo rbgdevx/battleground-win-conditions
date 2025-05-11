@@ -10,12 +10,7 @@ local mmax = math.max
 -- local mceil = math.ceil
 local sformat = string.format
 
-local Banner = NS.Banner
-local Score = NS.Score
 local Info = NS.Info
-local Flags = NS.Flags
-local Orbs = NS.Orbs
-local Stacks = NS.Stacks
 
 local SharedMedia = LibStub("LibSharedMedia-3.0")
 

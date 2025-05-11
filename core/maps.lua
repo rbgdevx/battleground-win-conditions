@@ -7,7 +7,7 @@ local GetInstanceInfo = GetInstanceInfo
 local GetNumGroupMembers = GetNumGroupMembers
 
 local After = C_Timer.After
-local IsSoloRBG = C_PvP.IsSoloRBG
+-- local IsSoloRBG = C_PvP.IsSoloRBG
 
 local Interface = NS.Interface
 local Version = NS.Version
