@@ -170,30 +170,29 @@ function Interface:CreateTestInfo()
 
   -- remove
   -- if
-  -- 	NS.db.global.maps.eyeofthestorm.showflaginfo == false
-  -- 	and NS.db.global.maps.eyeofthestorm.showflagvalue == false
+  --   NS.db.global.maps.eyeofthestorm.showflaginfo == false and NS.db.global.maps.eyeofthestorm.showflagvalue == false
   -- then
-  -- 	Orbs:SetAnchor(Bases.frame, 0, -10)
+  --   Orbs:SetAnchor(Bases.frame, 0, -10)
   -- else
-  -- 	Orbs:SetAnchor(Flags.frame, 0, -10)
+  --   Orbs:SetAnchor(Flags.frame, 0, -10)
   -- end
   -- Orbs:StartOrbList()
   -- Orbs:Start(NS.DEFAULT_ORB_BUFF_TIME, NS.formatTeamName(NS.PLAYER_FACTION, NS.PLAYER_FACTION))
 
   -- if
-  -- 	NS.db.global.maps.templeofkotmogu.showorbinfo == false
-  -- 	and NS.db.global.maps.templeofkotmogu.showbuffinfo == false
+  --   NS.db.global.maps.templeofkotmogu.showorbinfo == false
+  --   and NS.db.global.maps.templeofkotmogu.showbuffinfo == false
   -- then
-  -- 	if
-  -- 		NS.db.global.maps.eyeofthestorm.showflaginfo == false
-  -- 		and NS.db.global.maps.eyeofthestorm.showflagvalue == false
-  -- 	then
-  -- 		Stacks:SetAnchor(Bases.frame, 0, -10)
-  -- 	else
-  -- 		Stacks:SetAnchor(Flags.frame, 0, -10)
-  -- 	end
+  --   if
+  --     NS.db.global.maps.eyeofthestorm.showflaginfo == false
+  --     and NS.db.global.maps.eyeofthestorm.showflagvalue == false
+  --   then
+  --     Stacks:SetAnchor(Bases.frame, 0, -10)
+  --   else
+  --     Stacks:SetAnchor(Flags.frame, 0, -10)
+  --   end
   -- else
-  -- 	Stacks:SetAnchor(Orbs.frame, 0, -10)
+  --   Stacks:SetAnchor(Orbs.frame, 0, -10)
   -- end
   -- Stacks:Start(NS.DEFAULT_STACK_TIME, 0)
   -- remove

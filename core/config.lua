@@ -4,6 +4,7 @@ local select = select
 local UnitClass = UnitClass
 local GetClassColor = GetClassColor
 local CreateFrame = CreateFrame
+local GetPlayerFactionGroup = GetPlayerFactionGroup
 
 ---@class PositionArray
 ---@field[1] string
@@ -142,10 +143,10 @@ NS.userClassHexColor = "|c" .. select(4, GetClassColor(NS.userClass))
 
 NS.ADDON_PREFIX = "BGWC_VERSION"
 NS.FoundNewVersion = false
-NS.VERSION = 974
+NS.VERSION = 975
 
 NS.DefaultDatabase = {
-  lastReadVersion = "9.7.3",
+  lastReadVersion = "9.7.4",
   onlyShowWhenNewVersion = true,
   global = {
     general = {

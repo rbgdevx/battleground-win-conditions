@@ -1,5 +1,11 @@
 # Battleground Win Conditions
 
+## [v9.7.5](https://github.com/rbgdevx/battleground-win-conditions/releases/tag/v9.7.5) (2025-08-26)
+
+- Store variable for reference
+- Proper type referencing
+- Update toc
+
 ## [v9.7.4](https://github.com/rbgdevx/battleground-win-conditions/releases/tag/v9.7.4) (2025-05-11)
 
 - Fixing the info background code to 100% properly set the width and height, and ONLY update when absolutely needed

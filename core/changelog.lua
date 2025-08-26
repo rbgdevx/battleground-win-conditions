@@ -9,6 +9,20 @@ NS.Changelog = Changelog
 
 local changelog = {
   {
+    Version = "9.7.5",
+    General = "Minor updates",
+    Sections = {
+      {
+        Header = "Changes",
+        Entries = {
+          "Store variable for reference",
+          "Proper type referencing",
+          "Update toc",
+        },
+      },
+    },
+  },
+  {
     Version = "9.7.4",
     General = "Various bugfixes and improvements",
     Sections = {
