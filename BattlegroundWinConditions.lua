@@ -6,7 +6,7 @@ local GetActiveMatchState = C_PvP.GetActiveMatchState
 
 ---@type BGWC
 local BGWC = NS.BGWC
-local BGWCFrame = NS.BGWC.frame
+local BGWCFrame = BGWC.frame
 
 local Maps = NS.Maps
 local Interface = NS.Interface
