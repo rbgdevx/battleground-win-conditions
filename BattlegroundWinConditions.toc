@@ -1,6 +1,6 @@
-## Interface: 110200
+## Interface: 120001, 120000, 110207
 ## Title: Battleground Win Conditions
-## Version: 9.7.5
+## Version: 9.8.0
 ## Author: RBGDEV
 ## Notes: Real time win conditions for battlegrounds
 ## IconTexture: Interface/AddOns/BattlegroundWinConditions/logo.tga

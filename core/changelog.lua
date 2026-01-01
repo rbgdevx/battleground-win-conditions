@@ -9,6 +9,21 @@ NS.Changelog = Changelog
 
 local changelog = {
   {
+    Version = "9.8.0",
+    General = "Midnight prepatch + launch updates",
+    Sections = {
+      {
+        Header = "Changes",
+        Entries = {
+          "Updating match state check",
+          "Updating toc for midnight prepatch + launch",
+          "Handling secret values for moving frames while in-combat or in instances",
+          "General cleanup",
+        },
+      },
+    },
+  },
+  {
     Version = "9.7.5",
     General = "Minor updates",
     Sections = {

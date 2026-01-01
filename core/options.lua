@@ -209,7 +209,7 @@ NS.AceConfig = {
                 return NS.db.global.general.bannergroup.bannerscale
               end,
             },
-            spacing1 = { type = "description", order = 2, name = " " },
+            spacer1 = { type = "description", order = 2, name = " " },
             tiebgcolor = {
               name = "Tie Background Color",
               type = "color",
@@ -256,7 +256,7 @@ NS.AceConfig = {
                   NS.db.global.general.bannergroup.tietextcolor.a
               end,
             },
-            spacing2 = { type = "description", order = 5, name = " " },
+            spacer2 = { type = "description", order = 5, name = " " },
             winbgcolor = {
               name = "Win Background Color",
               type = "color",
@@ -303,7 +303,7 @@ NS.AceConfig = {
                   NS.db.global.general.bannergroup.wintextcolor.a
               end,
             },
-            spacing3 = { type = "description", order = 8, name = " " },
+            spacer3 = { type = "description", order = 8, name = " " },
             losebgcolor = {
               name = "Lose Background Color",
               type = "color",
@@ -350,7 +350,7 @@ NS.AceConfig = {
                   NS.db.global.general.bannergroup.losetextcolor.a
               end,
             },
-            spacing4 = { type = "description", order = 11, name = " " },
+            spacer4 = { type = "description", order = 11, name = " " },
             resetbgcolor = {
               name = "Reset Background Color",
               type = "color",
@@ -425,7 +425,7 @@ NS.AceConfig = {
                 return NS.db.global.general.infogroup.infofont
               end,
             },
-            -- spacing4 = { type = "description", order = 1, name = " " },
+            -- spacer1 = { type = "description", order = 1, name = " " },
             infofontsize = {
               type = "range",
               name = "Font Size",
