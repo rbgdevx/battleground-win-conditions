@@ -2,6 +2,7 @@
 
 ## [v9.8.0](https://github.com/rbgdevx/battleground-win-conditions/releases/tag/v9.8.0) (2025-12-31)
 
+- Update libs for midnight
 - Updating match state check
 - Updating toc for midnight prepatch + launch
 - Handling secret values for moving frames while in-combat or in instances
