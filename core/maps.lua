@@ -4,7 +4,7 @@ local next = next
 local select = select
 local IsInInstance = IsInInstance
 local GetInstanceInfo = GetInstanceInfo
-local GetNumGroupMembers = GetNumGroupMembers
+-- local GetNumGroupMembers = GetNumGroupMembers
 
 local After = C_Timer.After
 -- local IsSoloRBG = C_PvP.IsSoloRBG
