@@ -1,5 +1,12 @@
 # Battleground Win Conditions
 
+## [v9.8.0](https://github.com/rbgdevx/battleground-win-conditions/releases/tag/v9.8.0) (2025-12-31)
+
+- Updating match state check
+- Updating toc for midnight prepatch + launch
+- Handling secret values for moving frames while in-combat or in instances
+- General cleanup
+
 ## [v9.7.5](https://github.com/rbgdevx/battleground-win-conditions/releases/tag/v9.7.5) (2025-08-26)
 
 - Store variable for reference

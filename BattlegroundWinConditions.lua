@@ -67,7 +67,7 @@ end
 -- 5 = Complete
 function BGWC:PLAYER_ENTERING_WORLD()
   local matchState = GetActiveMatchState()
-  if matchState >= Enum.PvPMatchState.Waiting and matchState <= Enum.PvPMatchState.Engaged then
+  if matchState > Enum.PvPMatchState.Waiting and matchState < Enum.PvPMatchState.PostRound then
     self:Init()
   elseif matchState == Enum.PvPMatchState.Inactive then
     local _, instanceType = IsInInstance()
