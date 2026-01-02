@@ -104,8 +104,8 @@ local function textUpdate(frame, stacks, killtime, time)
     Stacks:SetText(frame.text, buffformat1, NS.formatTime(time), stacks, killStacks, NS.formatTime(killtime))
   elseif stacks == 1 then
     -- if
-    -- 	(NS.db.global.maps.twinpeaks.showdebuffinfo and (NS.IS_TP or NS.IN_GAME == false))
-    -- 	or (NS.db.global.maps.warsonggulch.showdebuffinfo and (NS.IS_WG or NS.IN_GAME == false))
+    --   (NS.db.global.maps.twinpeaks.showdebuffinfo and (NS.IS_TP or NS.IN_GAME == false))
+    --   or (NS.db.global.maps.warsonggulch.showdebuffinfo and (NS.IS_WG or NS.IN_GAME == false))
     -- then
     if showDebuffs then
       Stacks:SetText(
@@ -123,8 +123,8 @@ local function textUpdate(frame, stacks, killtime, time)
     end
   elseif stacks > 1 and stacks < killStacks then
     -- if
-    -- 	(NS.db.global.maps.twinpeaks.showdebuffinfo and (NS.IS_TP or NS.IN_GAME == false))
-    -- 	or (NS.db.global.maps.warsonggulch.showdebuffinfo and (NS.IS_WG or NS.IN_GAME == false))
+    --   (NS.db.global.maps.twinpeaks.showdebuffinfo and (NS.IS_TP or NS.IN_GAME == false))
+    --   or (NS.db.global.maps.warsonggulch.showdebuffinfo and (NS.IS_WG or NS.IN_GAME == false))
     -- then
     if showDebuffs then
       Stacks:SetText(
@@ -142,8 +142,8 @@ local function textUpdate(frame, stacks, killtime, time)
     end
   else
     -- if
-    -- 	(NS.db.global.maps.twinpeaks.showdebuffinfo and (NS.IS_TP or NS.IN_GAME == false))
-    -- 	or (NS.db.global.maps.warsonggulch.showdebuffinfo and (NS.IS_WG or NS.IN_GAME == false))
+    --   (NS.db.global.maps.twinpeaks.showdebuffinfo and (NS.IS_TP or NS.IN_GAME == false))
+    --   or (NS.db.global.maps.warsonggulch.showdebuffinfo and (NS.IS_WG or NS.IN_GAME == false))
     -- then
     if showDebuffs then
       Stacks:SetText(
