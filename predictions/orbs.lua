@@ -153,7 +153,7 @@ do
       -- mapID == Zone ID in-game
       -- TOK = 417
       if mapID == 417 then
-        -- Templf of Kotmogu
+        -- Temple of Kotmogu
         allyOrbs, hordeOrbs = 0, 0
 
         local baseInfo = GetDoubleStateIconRowVisualizationInfo(1683)
@@ -191,7 +191,7 @@ do
       -- widgetType == 14
       -- 1683 = TOK
       if widgetID == 1683 then
-        -- Templf of Kotmogu
+        -- Temple of Kotmogu
         allyOrbs, hordeOrbs = 0, 0
 
         local baseInfo = GetDoubleStateIconRowVisualizationInfo(widgetID)

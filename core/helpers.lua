@@ -112,9 +112,9 @@ NS.isBlitz = function()
   return not (correctMaxPlayers or correctGroupSize or correctGameMode)
 
   -- if maxPlayers >= NS.DEFAULT_GROUP_SIZE or groupSize > NS.MIN_GROUP_SIZE or not isSolo then
-  -- 	return false
+  --   return false
   -- else
-  -- 	return true
+  --   return true
   -- end
 end
 
@@ -290,7 +290,7 @@ NS.checkWinCondition = function(
       local ownTime = time + winTimeIncrease
       local ownTicks = mceil(ownTime / tickRate)
       --[[
-      -- we need to accomodate for the assault time
+      -- we need to accommodate for the assault time
       --]]
       local capTime = ownTime - assaultTime
       local capTicks = mceil(capTime / tickRate)
@@ -580,27 +580,4 @@ NS.CleanupDB = function(src, dst)
     end
   end
   return dst
-end
-
--- Pool for reusing tables. (Garbage collector isn't ran in combat unless max garbage is reached, which causes fps drops)
-do
-  local pool = {}
-
-  NS.NewTable = function()
-    local t = next(pool) or {}
-    pool[t] = nil -- remove from pool
-    return t
-  end
-
-  NS.RemoveTable = function(tbl)
-    if tbl then
-      pool[twipe(tbl)] = true -- add to pool, wipe returns pointer to tbl here
-    end
-  end
-
-  NS.ReleaseTables = function()
-    if next(pool) then
-      pool = {}
-    end
-  end
 end
