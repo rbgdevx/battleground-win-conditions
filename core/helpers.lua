@@ -35,7 +35,20 @@ NS.minutesToSeconds = function(minutes)
   return minutes * SECONDS_PER_MIN
 end
 
-function ConvertSecondsToUnits(timestamp)
+-- Converts English faction from GetPlayerFactionGroup() to localized faction name
+-- GetPlayerFactionGroup() returns "Horde" or "Alliance" (English) on all clients
+-- FACTION_HORDE/FACTION_ALLIANCE are the localized names used for display
+NS.GetLocalizedFaction = function(faction)
+  if faction == "Horde" then
+    return FACTION_HORDE
+  elseif faction == "Alliance" then
+    return FACTION_ALLIANCE
+  else
+    return faction
+  end
+end
+
+local function ConvertSecondsToUnits(timestamp)
   timestamp = mmax(timestamp, 0)
   local days = mfloor(timestamp / SECONDS_PER_DAY)
   timestamp = timestamp - (days * SECONDS_PER_DAY)
@@ -105,17 +118,12 @@ NS.isBlitz = function()
   local groupSize = GetNumGroupMembers()
   local isSolo = IsSoloRBG()
 
-  local correctMaxPlayers = maxPlayers >= NS.DEFAULT_GROUP_SIZE
-  local correctGroupSize = groupSize > NS.MIN_GROUP_SIZE
-  local correctGameMode = not isSolo
+  -- Blitz = small match AND small group AND solo queue
+  local isNormalMatchSize = maxPlayers >= NS.DEFAULT_GROUP_SIZE  -- 10+ players = normal BG
+  local isNormalGroupSize = groupSize > NS.MIN_GROUP_SIZE        -- >8 players = normal group
+  local isNotSoloQueue = not isSolo                              -- not solo RBG queue
 
-  return not (correctMaxPlayers or correctGroupSize or correctGameMode)
-
-  -- if maxPlayers >= NS.DEFAULT_GROUP_SIZE or groupSize > NS.MIN_GROUP_SIZE or not isSolo then
-  --   return false
-  -- else
-  --   return true
-  -- end
+  return not (isNormalMatchSize or isNormalGroupSize or isNotSoloQueue)
 end
 
 local formatToAlliance = function(string)
@@ -360,6 +368,12 @@ NS.checkWinCondition = function(
     end
   end
 
+  -- Log only the final stored value (the deadline), not every loop iteration
+  if table[potentialLoseTeamBaseCount] then
+    local entry = table[potentialLoseTeamBaseCount]
+    NS.Debug("WINTABLE bases:", potentialLoseTeamBaseCount, "ownTime:", entry.ownTime - GetTime(), "capTime:", entry.capTime - GetTime(), "winTime:", entry.winTime - GetTime(), "winTimeIncrease:", winTimeIncrease, "assaultTime:", assaultTime)
+  end
+
   return table
 end
 
@@ -444,7 +458,7 @@ NS.CreateTimerAnimation = function(frame)
   TimerAnimationGroup:SetLooping("REPEAT")
 
   local TimerAnimation = TimerAnimationGroup:CreateAnimation()
-  TimerAnimation:SetDuration(0.05)
+  TimerAnimation:SetDuration(0.1) -- 10 FPS is sufficient for countdown display
 
   return TimerAnimationGroup
 end

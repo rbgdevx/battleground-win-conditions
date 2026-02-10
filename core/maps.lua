@@ -31,7 +31,7 @@ do
   end
 
   function Maps:EnableZone(instanceID, isBlitz)
-    NS.PLAYER_FACTION = GetPlayerFactionGroup()
+    NS.PLAYER_FACTION = NS.GetLocalizedFaction(GetPlayerFactionGroup())
     NS.IN_GAME = true
     NS.IS_BLITZ = NS.isBlitz()
 
@@ -68,7 +68,7 @@ do
         Interface:Clear()
       end
     else
-      NS.PLAYER_FACTION = GetPlayerFactionGroup()
+      NS.PLAYER_FACTION = NS.GetLocalizedFaction(GetPlayerFactionGroup())
       NS.IN_GAME = false
       NS.IS_BLITZ = false
 

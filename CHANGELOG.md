@@ -1,5 +1,15 @@
 # Battleground Win Conditions
 
+## [v9.8.1](https://github.com/rbgdevx/battleground-win-conditions/releases/tag/v9.8.1) (2026-02-10)
+
+- Fixing tick "drift" to account for logic and mid-tick calculations
+- Fixing localization issue with faction names
+- Updates Blitz EOTS flag cap to not reset the banner anymore to account for map changes
+- Updates Blitz EOTS info conditions and resource information to account for map changes
+- Fixing win calculation repeated calls for performance
+- Variable name cleanup
+- Performance improvements
+
 ## [v9.8.0](https://github.com/rbgdevx/battleground-win-conditions/releases/tag/v9.8.0) (2025-12-31)
 
 - Update libs for midnight

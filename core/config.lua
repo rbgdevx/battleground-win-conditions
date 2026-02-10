@@ -114,7 +114,9 @@ BGWCFrame:SetScript("OnEvent", function(_, event, ...)
 end)
 NS.BGWC.frame = BGWCFrame
 
-NS.PLAYER_FACTION = GetPlayerFactionGroup()
+-- Convert English faction to localized name (helpers.lua not loaded yet)
+local initFaction = GetPlayerFactionGroup()
+NS.PLAYER_FACTION = (initFaction == "Horde") and FACTION_HORDE or FACTION_ALLIANCE
 NS.ALLIANCE_NAME = FACTION_ALLIANCE
 NS.HORDE_NAME = FACTION_HORDE
 NS.WIN_NOUN = "You"
@@ -143,10 +145,10 @@ NS.userClassHexColor = "|c" .. select(4, GetClassColor(NS.userClass))
 
 NS.ADDON_PREFIX = "BGWC_VERSION"
 NS.FoundNewVersion = false
-NS.VERSION = 980
+NS.VERSION = 981
 
 NS.DefaultDatabase = {
-  lastReadVersion = "9.7.5",
+  lastReadVersion = "9.8.0",
   onlyShowWhenNewVersion = true,
   global = {
     general = {

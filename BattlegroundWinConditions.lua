@@ -72,7 +72,7 @@ function BGWC:PLAYER_ENTERING_WORLD()
   elseif matchState == Enum.PvPMatchState.Inactive then
     local _, instanceType = IsInInstance()
 
-    NS.PLAYER_FACTION = GetPlayerFactionGroup()
+    NS.PLAYER_FACTION = NS.GetLocalizedFaction(GetPlayerFactionGroup())
     NS.IN_GAME = false
     NS.IS_BLITZ = false
 

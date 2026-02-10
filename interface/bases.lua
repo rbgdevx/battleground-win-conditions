@@ -20,9 +20,13 @@ NS.Bases = Bases
 local BasesFrame = CreateFrame("Frame", AddonName .. "BasesFrame", Info.frame)
 Bases.frame = BasesFrame
 
-local changed = false
+-- Tracks win-locked state transitions for UI resize triggering
+-- isWin: current state (true when win is locked in with 1 base and no time left)
+-- wasWin: previous state (used to detect the moment of transition)
+Bases.isWin = false
+Bases.wasWin = false
 
-Bases.frame.changed = changed
+local showCapTimeAwareness = false
 
 function Bases:SetAnchor(anchor, x, y)
   self.frame:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", x, y)
@@ -84,7 +88,7 @@ local function winMessage(text, winCondition)
 
   if winMinBases == 1 and ownTime <= 0 then
     message = sformat("%s win\n", NS.formatTeamName(winName, NS.PLAYER_FACTION))
-    changed = true
+    Bases.isWin = true
   else
     if NS.WIN_INC_BASE_COUNT > 0 and NS.ACTIVE_BASE_COUNT == maxBases and capBases == winMinBases + 1 then
       message = sformat("%s win with %d after cap\n", NS.formatTeamName(winName, NS.PLAYER_FACTION), winMinBases)
@@ -112,7 +116,7 @@ local function winMessage(text, winCondition)
 
   Bases:SetText(text, "%s", message)
 
-  if changed ~= Bases.frame.changed then
+  if Bases.isWin ~= Bases.wasWin then
     if NS.db.global.general.banner == false and NS.db.global.general.infogroup.infobg then
       if NS.IN_GAME then
         NS.UpdateInfoSize(NS.Info.frame, NS.Banner, { NS.Score, Bases, NS.Flags }, "winMessage")
@@ -120,7 +124,7 @@ local function winMessage(text, winCondition)
         NS.UpdateInfoSize(NS.Info.frame, NS.Banner, { NS.Score, Bases, NS.Flags, NS.Orbs, NS.Stacks }, "winMessage")
       end
     end
-    Bases.frame.changed = changed
+    Bases.wasWin = Bases.isWin
   end
 end
 
@@ -146,10 +150,14 @@ local function loseMessage(text, winCondition)
         NS.formatScore(winName, capScore)
       )
 
-    if capTime <= 0 then
-      message = message .. sformat("Not enough cap time\n")
+    if showCapTimeAwareness then
+      if capTime <= 0 then
+        message = message .. sformat("Not enough cap time\n")
+      else
+        message = message .. sformat("Cap within %s\n", NS.formatTime(capTime))
+      end
     else
-      message = message .. sformat("Cap within %s\n", NS.formatTime(capTime))
+      message = message .. sformat("Cap within %s\n", NS.formatTime(ownTime))
     end
   end
 
@@ -170,100 +178,57 @@ local function animationUpdate(frame, winTable, animationGroup, callbackFn)
   local time = frame.exp - t
   frame.remaining = time
 
-  local winCondition
-  local ownTime
+  local currentKey = next(winTable)
+  if not currentKey or not winTable[currentKey] then
+    return
+  end
 
-  local firstKey = next(winTable)
-  if firstKey and winTable[firstKey] then
-    winCondition = winTable[firstKey]
-    ownTime = winCondition.ownTime - t
-    -- local ownTicks = mceil(ownTime / winCondition.tickRate)
+  local winCondition = winTable[currentKey]
+  local ownTime = winCondition.ownTime - t
+  local isFirstIteration = true
 
-    -- 5
+  -- Check up to 5 win conditions (max bases)
+  for _ = 1, 5 do
     if ownTime > 0 or winCondition.bases == winCondition.maxBases then
       if winCondition.winName == NS.PLAYER_FACTION then
         winMessage(frame.text, winCondition)
       else
         loseMessage(frame.text, winCondition)
       end
-    else
+      return
+    end
+
+    -- Special handling for first iteration when timer expires
+    if isFirstIteration then
+      isFirstIteration = false
       if NS.IN_GAME and NS.BASE_TIMER_EXPIRED == false then
         NS.BASE_TIMER_EXPIRED = true
-
+        NS.Debug(
+          "OWNTIME EXPIRED -> triggering REFRESH, ownTime was:",
+          winCondition.ownTime - t,
+          "winTime was:",
+          winCondition.winTime - t,
+          "bases:",
+          winCondition.bases
+        )
         if callbackFn then
           callbackFn:BasePredictor(true)
         end
-      else
-        local secondKey = winCondition.bases + 1
-        if secondKey and winTable[secondKey] then
-          winCondition = winTable[secondKey]
-          ownTime = winCondition.ownTime - t
-          -- ownTicks = mceil(ownTime / winCondition.tickRate)
-
-          -- 4
-          if ownTime > 0 or winCondition.bases == winCondition.maxBases then
-            if winCondition.winName == NS.PLAYER_FACTION then
-              winMessage(frame.text, winCondition)
-            else
-              loseMessage(frame.text, winCondition)
-            end
-          else
-            local thirdKey = winCondition.bases + 1
-            if thirdKey and winTable[thirdKey] then
-              winCondition = winTable[thirdKey]
-              ownTime = winCondition.ownTime - t
-              -- ownTicks = mceil(ownTime / winCondition.tickRate)
-
-              -- 3
-              if ownTime > 0 or winCondition.bases == winCondition.maxBases then
-                if winCondition.winName == NS.PLAYER_FACTION then
-                  winMessage(frame.text, winCondition)
-                else
-                  loseMessage(frame.text, winCondition)
-                end
-              else
-                local fourthKey = winCondition.bases + 1
-                if fourthKey and winTable[fourthKey] then
-                  winCondition = winTable[fourthKey]
-                  ownTime = winCondition.ownTime - t
-                  -- ownTicks = mceil(ownTime / winCondition.tickRate)
-
-                  -- 2
-                  if ownTime > 0 or winCondition.bases == winCondition.maxBases then
-                    if winCondition.winName == NS.PLAYER_FACTION then
-                      winMessage(frame.text, winCondition)
-                    else
-                      loseMessage(frame.text, winCondition)
-                    end
-                  else
-                    local fifthKey = winCondition.bases + 1
-                    if fifthKey and winTable[fifthKey] then
-                      winCondition = winTable[fifthKey]
-                      ownTime = winCondition.ownTime - t
-                      -- ownTicks = mceil(ownTime / winCondition.tickRate)
-
-                      -- 1
-                      if ownTime > 0 or winCondition.bases == winCondition.maxBases then
-                        if winCondition.winName == NS.PLAYER_FACTION then
-                          winMessage(frame.text, winCondition)
-                        else
-                          loseMessage(frame.text, winCondition)
-                        end
-                      else
-                        NS.Debug("NO OPTIONS LEFT")
-                      end
-                    end
-                  end
-                end
-              end
-            end
-          end
-        end
+        return
       end
     end
+
+    -- Try next base count
+    local nextKey = winCondition.bases + 1
+    if not winTable[nextKey] then
+      break
+    end
+
+    winCondition = winTable[nextKey]
+    ownTime = winCondition.ownTime - t
   end
 
-  -- frame.text:Show()
+  NS.Debug("NO OPTIONS LEFT")
 end
 
 function Bases:Start(duration, winTable, callbackFn)
@@ -276,7 +241,8 @@ function Bases:Start(duration, winTable, callbackFn)
 
   self:SetFont(self.text)
 
-  changed = false
+  -- Reset current state only (wasWin intentionally keeps previous value for transition detection)
+  self.isWin = false
 
   local firstKey = next(winTable)
   if firstKey and winTable[firstKey] then
@@ -302,13 +268,18 @@ function Bases:Start(duration, winTable, callbackFn)
 
     NS.BASE_TIMER_EXPIRED = false
 
-    self.timerAnimationGroup:SetScript("OnLoop", function(updatedGroup)
-      if updatedGroup then
-        animationUpdate(self, winTable, updatedGroup, callbackFn)
-      end
-    end)
+    -- Store state for the pre-created callback
+    self.currentWinTable = winTable
+    self.currentCallbackFn = callbackFn
 
     self.timerAnimationGroup:Play()
+  end
+end
+
+-- Pre-created callback to avoid garbage generation
+local function basesAnimationCallback(updatedGroup)
+  if updatedGroup then
+    animationUpdate(Bases, Bases.currentWinTable, updatedGroup, Bases.currentCallbackFn)
   end
 end
 
@@ -332,6 +303,7 @@ function Bases:Create(anchor)
 
     Bases.text = Text
     Bases.timerAnimationGroup = NS.CreateTimerAnimation(BasesFrame)
+    Bases.timerAnimationGroup:SetScript("OnLoop", basesAnimationCallback)
 
     Bases.name = "Bases"
   end
