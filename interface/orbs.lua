@@ -203,13 +203,17 @@ function Orbs:Start(duration, text)
     end
   end
 
-  self.timerAnimationGroup:SetScript("OnLoop", function(updatedGroup)
-    if updatedGroup then
-      animationUpdate(self, text, updatedGroup)
-    end
-  end)
+  -- Store state for the pre-created callback
+  self.currentText = text
 
   self.timerAnimationGroup:Play()
+end
+
+-- Pre-created callback to avoid garbage generation
+local function orbsAnimationCallback(updatedGroup)
+  if updatedGroup then
+    animationUpdate(Orbs, Orbs.currentText, updatedGroup)
+  end
 end
 
 function Orbs:Create(anchor)
@@ -267,6 +271,7 @@ function Orbs:Create(anchor)
     Orbs.orbText = OrbText
     Orbs.buffText = BuffText
     Orbs.timerAnimationGroup = NS.CreateTimerAnimation(OrbsFrame)
+    Orbs.timerAnimationGroup:SetScript("OnLoop", orbsAnimationCallback)
 
     Orbs.name = "Orbs"
   end

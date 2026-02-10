@@ -153,13 +153,17 @@ function Banner:Start(duration, text)
     self.frame:SetAlpha(0)
   end
 
-  self.timerAnimationGroup:SetScript("OnLoop", function(updatedGroup)
-    if updatedGroup then
-      animationUpdate(self, text, updatedGroup)
-    end
-  end)
+  -- Store state for the pre-created callback
+  self.currentText = text
 
   self.timerAnimationGroup:Play()
+end
+
+-- Pre-created callback to avoid garbage generation
+local function bannerAnimationCallback(updatedGroup)
+  if updatedGroup then
+    animationUpdate(Banner, Banner.currentText, updatedGroup)
+  end
 end
 
 function Banner:Create(anchor)
@@ -183,5 +187,6 @@ function Banner:Create(anchor)
     Banner.bg = BG
     Banner.text = Text
     Banner.timerAnimationGroup = NS.CreateTimerAnimation(BannerFrame)
+    Banner.timerAnimationGroup:SetScript("OnLoop", bannerAnimationCallback)
   end
 end

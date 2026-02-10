@@ -240,13 +240,18 @@ function Stacks:Start(duration, stacks)
     end
   end
 
-  self.timerAnimationGroup:SetScript("OnLoop", function(updatedGroup)
-    if updatedGroup then
-      animationUpdate(self, duration, stacks, updatedGroup)
-    end
-  end)
+  -- Store state for the pre-created callback
+  self.currentDuration = duration
+  self.currentStacks = stacks
 
   self.timerAnimationGroup:Play()
+end
+
+-- Pre-created callback to avoid garbage generation
+local function stacksAnimationCallback(updatedGroup)
+  if updatedGroup then
+    animationUpdate(Stacks, Stacks.currentDuration, Stacks.currentStacks, updatedGroup)
+  end
 end
 
 function Stacks:Create(anchor)
@@ -269,6 +274,7 @@ function Stacks:Create(anchor)
 
     Stacks.text = Text
     Stacks.timerAnimationGroup = NS.CreateTimerAnimation(StacksFrame)
+    Stacks.timerAnimationGroup:SetScript("OnLoop", stacksAnimationCallback)
 
     Stacks.name = "Stacks"
   end

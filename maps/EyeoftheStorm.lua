@@ -64,18 +64,26 @@ local function checkInfo(id, isBlitz)
   local convertedInfo = {}
   convertedInfo = NS.CopyTable(instanceIdToMapId[id], convertedInfo)
   convertedInfo.assaultTime = isBlitz and 4 or commonConfig.assaultTime
-  convertedInfo.contestedTime = isBlitz and 30 or commonConfig.contestedTime
-  convertedInfo.maxBases = isBlitz and 2 or commonConfig.maxBases
-  convertedInfo.baseResources = isBlitz and {
-    [0] = 0,
-    [1] = 3.5,
-    [2] = 7.5,
-  } or instanceIdToMapId[id].baseResources
-  convertedInfo.flagResources = isBlitz and {
-    [0] = 0,
-    [1] = 175,
-    [2] = 250,
-  } or instanceIdToMapId[id].flagResources
+  convertedInfo.contestedTime = isBlitz and 60 or commonConfig.contestedTime
+  convertedInfo.maxBases = isBlitz and 4 or commonConfig.maxBases
+  convertedInfo.baseResources = isBlitz
+      and {
+        [0] = 0,
+        [1] = 1.5, -- confirmed
+        [2] = 3, -- confirmed
+        [3] = 5, -- confirmed
+        [4] = 10, -- confirmed
+      }
+    or instanceIdToMapId[id].baseResources
+  convertedInfo.flagResources = isBlitz
+      and {
+        [0] = 0,
+        [1] = 100, -- confirmed
+        [2] = 125, -- confirmed
+        [3] = 150, -- confirmed
+        [4] = 200, -- confirmed
+      }
+    or instanceIdToMapId[id].flagResources
   return convertedInfo
 end
 

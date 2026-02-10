@@ -1135,6 +1135,9 @@ function Options:SlashCommands(message)
     else
       NS.db.global.general.banner = false
     end
+  elseif message == "toggle debug" then
+    NS.db.global.debug = not NS.db.global.debug
+    NS.write("|cff00ff00BGWC:|r Debug mode", NS.db.global.debug and "enabled" or "disabled")
   else
     AceConfigDialog:Open(AddonName)
   end

@@ -9,6 +9,29 @@ NS.Changelog = Changelog
 
 local changelog = {
   {
+    Version = "9.8.1",
+    General = "Major Performance Improvements",
+    Sections = {
+      {
+        Header = "Changes",
+        Entries = {
+          "Updates Blitz EOTS flag cap to not reset the banner anymore to account for map changes",
+          "Updates Blitz EOTS info conditions and resource information to account for map changes",
+          "Fixing win calculation repeated calls for performance",
+          "Variable name cleanup",
+          "Performance improvements",
+        },
+      },
+      {
+        Header = "Bugfixes",
+        Entries = {
+          "Fixing localization issue with faction names",
+          "Fixing tick 'drift' to account for logic and mid-tick calculations",
+        },
+      },
+    },
+  },
+  {
     Version = "9.8.0",
     General = "Midnight prepatch + launch updates",
     Sections = {
