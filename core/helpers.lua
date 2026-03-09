@@ -119,9 +119,9 @@ NS.isBlitz = function()
   local isSolo = IsSoloRBG()
 
   -- Blitz = small match AND small group AND solo queue
-  local isNormalMatchSize = maxPlayers >= NS.DEFAULT_GROUP_SIZE  -- 10+ players = normal BG
-  local isNormalGroupSize = groupSize > NS.MIN_GROUP_SIZE        -- >8 players = normal group
-  local isNotSoloQueue = not isSolo                              -- not solo RBG queue
+  local isNormalMatchSize = maxPlayers >= NS.DEFAULT_GROUP_SIZE -- 10+ players = normal BG
+  local isNormalGroupSize = groupSize > NS.MIN_GROUP_SIZE -- >8 players = normal group
+  local isNotSoloQueue = not isSolo -- not solo RBG queue
 
   return not (isNormalMatchSize or isNormalGroupSize or isNotSoloQueue)
 end
@@ -185,6 +185,24 @@ NS.getWinTicks = function(maxScore, score, tickRate, points)
   local increase = tickRate * points -- points per tick
   local remaining = maxScore - score -- points needed to max score
   local ticksToWin = increase == 0 and 10000 or mceil(remaining / increase)
+  --[[
+  -- ticksToWin can go negative when gap scores in checkWinCondition push
+  -- a team's projected score past maxScore (e.g. both teams near 1500 and
+  -- the 60s contested gap earns enough to overshoot). Comparing two negative
+  -- tick values is meaningless and can produce bogus win condition entries
+  -- (e.g. "Need 3 bases in 2 seconds" when the game ends during the gap).
+  --
+  -- Clamping to 0 via mmax(0, ...) prevents the bad comparison (0 < 0 = false,
+  -- no entry stored), but that hides the Bases text entirely instead of showing
+  -- the terminal "you win" / "you lose" state. To fix properly, checkWinCondition
+  -- should detect when both gap scores exceed maxScore and store a terminal entry
+  -- with ownTime = 0 so it flows into the existing ownTime <= 0 display path.
+  --
+  -- For now, the negative value is harmless in practice — the scenario is
+  -- extremely narrow (both teams within ~60-90 points of max, one team at
+  -- 1 base) and the resulting message is impossible to act on anyway.
+  --]]
+  -- return mmax(0, mmin(ticksToWin, 10000))
   return mmin(ticksToWin, 10000)
 end
 
@@ -268,7 +286,7 @@ NS.checkWinCondition = function(
   -- scores and win times at each point in time
   -- with any new potential bases from the lose team
   --]]
-  for ticks = 0, winTicks, tickRate do
+  for ticks = 0, winTicks, 1 do
     local loseTeamScoreIncrease = ticks * (tickRate * resources[loseBases])
     local winTeamScoreIncrease = ticks * (tickRate * resources[winBases])
 
@@ -281,6 +299,15 @@ NS.checkWinCondition = function(
     local loseTeamScoreNow = loseScore + loseTeamScoreIncrease
     local winTeamScoreNow = winScore + winTeamScoreIncrease
 
+    --[[
+    -- If the total game is shorter than the contested period, gap scores are
+    -- skipped (bases can't finish capping). This check uses oldWinTicks (the
+    -- total game length) rather than remaining ticks per-iteration. At late
+    -- ticks where remaining < contestedTime, the gap score naturally pushes
+    -- the winning team's projected score past maxScore, which makes the
+    -- comparison loseTicksToWin < winTicksToWin fail — correctly preventing
+    -- win conditions at time points where base caps can't physically complete.
+    --]]
     local loseGapScore = (oldWinTicks < mceil(contestedTime / tickRate)) and loseTeamScoreNow
       or loseTeamScoreNow + loseTeamGapScore
     local winGapScore = (oldWinTicks < mceil(contestedTime / tickRate)) and winTeamScoreNow
@@ -371,7 +398,20 @@ NS.checkWinCondition = function(
   -- Log only the final stored value (the deadline), not every loop iteration
   if table[potentialLoseTeamBaseCount] then
     local entry = table[potentialLoseTeamBaseCount]
-    NS.Debug("WINTABLE bases:", potentialLoseTeamBaseCount, "ownTime:", entry.ownTime - GetTime(), "capTime:", entry.capTime - GetTime(), "winTime:", entry.winTime - GetTime(), "winTimeIncrease:", winTimeIncrease, "assaultTime:", assaultTime)
+    NS.Debug(
+      "WINTABLE bases:",
+      potentialLoseTeamBaseCount,
+      "ownTime:",
+      entry.ownTime - GetTime(),
+      "capTime:",
+      entry.capTime - GetTime(),
+      "winTime:",
+      entry.winTime - GetTime(),
+      "winTimeIncrease:",
+      winTimeIncrease,
+      "assaultTime:",
+      assaultTime
+    )
   end
 
   return table
@@ -583,6 +623,7 @@ NS.CleanupDB = function(src, dst)
         key ~= "lastReadVersion"
         and key ~= "onlyShowWhenNewVersion"
         and key ~= "lastFlagCapBy"
+        and key ~= "flagStackSave"
         and key ~= "version"
       then
         src[key] = nil

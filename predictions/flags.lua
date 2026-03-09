@@ -1,12 +1,9 @@
 local _, NS = ...
 
 local pairs = pairs
-local ipairs = ipairs
 local tnumber = tonumber
 local CreateFrame = CreateFrame
-local select = select
 local UnitName = UnitName
-local UnitExists = UnitExists
 -- local GetRealmName = GetRealmName
 
 local sfind = string.find
@@ -16,8 +13,6 @@ local After = C_Timer.After
 local GetIconAndTextWidgetVisualizationInfo = C_UIWidgetManager.GetIconAndTextWidgetVisualizationInfo
 local GetDoubleStatusBarWidgetVisualizationInfo = C_UIWidgetManager.GetDoubleStatusBarWidgetVisualizationInfo
 local GetDoubleStateIconRowVisualizationInfo = C_UIWidgetManager.GetDoubleStateIconRowVisualizationInfo
--- local GetAuraDataByAuraInstanceID = C_UnitAuras.GetAuraDataByAuraInstanceID
-
 local Banner = NS.Banner
 local Stacks = NS.Stacks
 
@@ -31,13 +26,42 @@ FlagsFrame:SetScript("OnEvent", function(_, event, ...)
   end
 end)
 
-local flagDebuffSpellIds = {
-  [46392] = true, -- Focused Assault
-  [46393] = true, -- Brutal Assault
-}
+-- Reload correction via SavedVariables: save stack count + time when stacks start,
+-- recover on reload by computing elapsed ticks.
+-- mapID is stored to reject stale saves from a previous BG.
+local currentBGMapID = 0
+
+-- Returns count, remaining (seconds until next tick). remaining is nil on no-save (fresh start).
+local function getExistingFlagStacks()
+  local saved = NS.db and NS.db.global and NS.db.global.flagStackSave
+  if not saved then
+    return 0, nil
+  end
+  if saved.mapID ~= currentBGMapID then
+    return 0, nil
+  end
+  local elapsed = GetTime() - saved.time
+  local recovered = saved.count + math.floor(elapsed / saved.stackTime)
+  local remaining = saved.stackTime - (elapsed % saved.stackTime)
+  return recovered, remaining
+end
+
+-- remaining: seconds until next tick. nil = fresh start (uses full stackTime).
+-- Saves tickStartTime so subsequent reloads recompute correctly.
+local function startStacks(stackTime, count, remaining)
+  remaining = remaining or stackTime
+  local tickStartTime = GetTime() - (stackTime - remaining)
+  NS.db.global.flagStackSave = { count = count, time = tickStartTime, stackTime = stackTime, mapID = currentBGMapID }
+  Stacks:Start(remaining, count, stackTime)
+end
+
+local function stopStacks()
+  NS.db.global.flagStackSave = nil
+  Stacks:Stop(Stacks, Stacks.timerAnimationGroup)
+end
 
 do
-  local allyFlagCarrier, hordeFlagCarrier, flagCarrier = nil, nil, nil
+  local allyFlagCarrier, hordeFlagCarrier = nil, nil
   local allyFlags, hordeFlags = 0, 0
   local curMap = {
     id = 0,
@@ -64,12 +88,27 @@ do
       for _, v in pairs(flagInfo.leftIcons) do
         if v.iconState == Enum.IconState.ShowState1 then
           allyFlags = allyFlags + 1
+          allyHasFlag = true
+          NS.HAS_FLAG_CARRIER = true
         end
       end
 
       for _, v in pairs(flagInfo.rightIcons) do
         if v.iconState == Enum.IconState.ShowState1 then
           hordeFlags = hordeFlags + 1
+          hordeHasFlag = true
+          NS.HAS_FLAG_CARRIER = true
+        end
+      end
+
+      -- Reload recovery only: resume stacks if we have saved state from this game.
+      -- Fresh game / mid-game join without save: do nothing here; chat handlers start stacks live.
+      if (allyHasFlag or hordeHasFlag) and not stacksCounting then
+        local count, remaining = getExistingFlagStacks()
+        if remaining ~= nil then
+          stacksCounting = true
+          NS.STACKS_COUNTING = stacksCounting
+          startStacks(curMap.stackTime, count, remaining)
         end
       end
     end
@@ -127,56 +166,6 @@ do
       end
     end
 
-    local function handleAura(aura, spellIds, isRemoved)
-      if aura and spellIds[aura.spellId] then
-        if isRemoved then
-          stacksCounting = false
-          NS.STACKS_COUNTING = stacksCounting
-          currentStacks = 0
-          NS.CURRENT_STACKS = currentStacks
-          Stacks:Stop(Stacks, Stacks.timerAnimationGroup)
-        else
-          if NS.CURRENT_STACKS ~= aura.applications then
-            stacksCounting = true
-            NS.STACKS_COUNTING = stacksCounting
-            currentStacks = aura.applications
-            NS.CURRENT_STACKS = currentStacks
-            Stacks:Start(curMap.stackTime, aura.applications)
-          end
-        end
-      end
-    end
-
-    function FlagPrediction:UNIT_AURA(unitTarget, updateInfo)
-      if updateInfo.isFullUpdate or flagCarrier == nil then
-        return
-      end
-
-      if unitTarget == "arena1" or unitTarget == "arena2" then
-        if updateInfo.addedAuras then
-          for _, aura in ipairs(updateInfo.addedAuras) do
-            handleAura(aura, flagDebuffSpellIds, false)
-          end
-        end
-
-        -- stacks are only ever added not updated
-        -- if updateInfo.updatedAuraInstanceIDs then
-        --   for _, auraInstanceID in ipairs(updateInfo.updatedAuraInstanceIDs) do
-        --     local aura = GetAuraDataByAuraInstanceID(unitTarget, auraInstanceID)
-        --     handleAura(aura, flagDebuffSpellIds, false)
-        --   end
-        -- end
-
-        -- we're tracking stacks being removed elsewhere
-        -- if updateInfo.removedAuraInstanceIDs then
-        --   for _, auraInstanceID in ipairs(updateInfo.removedAuraInstanceIDs) do
-        --     local aura = GetAuraDataByAuraInstanceID(unitTarget, auraInstanceID)
-        --     handleAura(aura, flagDebuffSpellIds, true)
-        --   end
-        -- end
-      end
-    end
-
     function FlagPrediction:GetObjectivesByMapID(mapID)
       -- mapID == Zone ID in-game
       -- WSG = 1339
@@ -195,14 +184,10 @@ do
         for _, v in pairs(flagInfo.leftIcons) do
           if v.iconState == Enum.IconState.ShowState1 then
             allyFlags = allyFlags + 1
-
+            allyHasFlag = true
+            NS.HAS_FLAG_CARRIER = true
             if UnitName("arena2") then
-              local nameAndRealm = NS.GetUnitNameAndRealm("arena2")
-
-              allyFlagCarrier = nameAndRealm
-              allyHasFlag = true
-              flagCarrier = "arena2"
-              NS.HAS_FLAG_CARRIER = true
+              allyFlagCarrier = NS.GetUnitNameAndRealm("arena2")
             end
           end
         end
@@ -210,15 +195,20 @@ do
         for _, v in pairs(flagInfo.rightIcons) do
           if v.iconState == Enum.IconState.ShowState1 then
             hordeFlags = hordeFlags + 1
-
+            hordeHasFlag = true
+            NS.HAS_FLAG_CARRIER = true
             if UnitName("arena1") then
-              local nameAndRealm = NS.GetUnitNameAndRealm("arena1")
-
-              hordeFlagCarrier = nameAndRealm
-              hordeHasFlag = true
-              flagCarrier = "arena1"
-              NS.HAS_FLAG_CARRIER = true
+              hordeFlagCarrier = NS.GetUnitNameAndRealm("arena1")
             end
+          end
+        end
+
+        if (allyHasFlag or hordeHasFlag) and not stacksCounting then
+          local count, remaining = getExistingFlagStacks()
+          if remaining ~= nil then
+            stacksCounting = true
+            NS.STACKS_COUNTING = stacksCounting
+            startStacks(curMap.stackTime, count, remaining)
           end
         end
       end
@@ -264,80 +254,16 @@ do
       end
     end
 
-    local function filterDebuffs(unitID, ...)
-      local spellId = select(10, ...)
-      if spellId and (spellId == 46392 or spellId == 46393) then -- Focused Assault, Brutal Assault
-        stacksCounting = true
-        NS.STACKS_COUNTING = stacksCounting
-        if unitID == "arena1" then
-          hordeHasFlag = true
-        elseif unitID == "arena2" then
-          allyHasFlag = true
-        end
-        flagCarrier = unitID
-        NS.HAS_FLAG_CARRIER = true
-        return true
-      end
-    end
-
-    local function filterBuffs(unitID, ...)
-      local spellId = select(10, ...)
-      if spellId then
-        if spellId == 23333 or spellId == 156618 then -- Horde Flag
-          hordeHasFlag = true
-          flagCarrier = unitID
-          NS.HAS_FLAG_CARRIER = true
-          return true
-        elseif spellId == 23335 or spellId == 156621 then -- Alliance Flag
-          allyHasFlag = true
-          flagCarrier = unitID
-          NS.HAS_FLAG_CARRIER = true
-          return true
-        end
-      end
-    end
-
-    function FlagPrediction:GetStacksByMapID(mapID)
-      -- mapID == Zone ID in-game
-      -- WSG = 1339
-      -- TP = 206
-      if mapID == 1339 or mapID == 206 then
-        -- Warsong Gulch, Twin Peaks
-        if UnitExists("arena1") or UnitExists("arena2") then
-          for i = 1, 2 do
-            local unitID = "arena" .. i
-            if unitID then
-              -- Apply debuff filtering
-              AuraUtil.ForEachAura(unitID, "HARMFUL", nil, function(...)
-                return filterDebuffs(unitID, ...)
-              end)
-
-              -- Apply buff filtering
-              AuraUtil.ForEachAura(unitID, "HELPFUL", nil, function(...)
-                return filterBuffs(unitID, ...)
-              end)
-            end
-          end
-
-          if flagCarrier then
-            FlagsFrame:RegisterEvent("UNIT_AURA")
-          end
-        end
-      end
-    end
-
     function FlagPrediction:CHAT_MSG_BG_SYSTEM_ALLIANCE(message)
       local pickedName = smatch(message, "picked up by (.+)%!") -- horde picked ally flag
       if pickedName then
         hordeFlagCarrier = pickedName
         hordeHasFlag = true
         NS.HAS_FLAG_CARRIER = true
-        if allyFlagCarrier and stacksCounting == false then
-          flagCarrier = "arena2"
-          FlagsFrame:RegisterEvent("UNIT_AURA")
+        if allyHasFlag and not stacksCounting then
           stacksCounting = true
           NS.STACKS_COUNTING = stacksCounting
-          Stacks:Start(curMap.stackTime, 0)
+          startStacks(curMap.stackTime, 0)
         end
       end
 
@@ -351,46 +277,39 @@ do
       if sfind(message, "returned to its base by") then -- ally flag returned by ally
         hordeFlagCarrier = nil
         hordeHasFlag = false
-        if allyFlagCarrier == nil and stacksCounting then
-          FlagsFrame:UnregisterEvent("UNIT_AURA")
-          allyHasFlag = false
-          flagCarrier = nil
+        if not allyHasFlag and stacksCounting then
           NS.HAS_FLAG_CARRIER = false
           stacksCounting = false
           NS.STACKS_COUNTING = stacksCounting
-          Stacks:Stop(Stacks, Stacks.timerAnimationGroup)
+          stopStacks()
         end
       end
 
       if sfind(message, "captured the") then -- alliance captured horde flag
-        FlagsFrame:UnregisterEvent("UNIT_AURA")
         allyFlagCarrier = nil
         hordeFlagCarrier = nil
         allyHasFlag = false
         hordeHasFlag = false
-        flagCarrier = nil
         NS.HAS_FLAG_CARRIER = false
         stacksCounting = false
         NS.STACKS_COUNTING = stacksCounting
         currentStacks = 0
         NS.CURRENT_STACKS = currentStacks
-        Stacks:Stop(Stacks, Stacks.timerAnimationGroup)
+        stopStacks()
         self:GetRemainingTime(6, NS.ALLIANCE_NAME)
       end
 
       if sfind(message, "wins") then -- ally wins
-        FlagsFrame:UnregisterEvent("UNIT_AURA")
         allyFlagCarrier = nil
         hordeFlagCarrier = nil
         allyHasFlag = false
         hordeHasFlag = false
-        flagCarrier = nil
         NS.HAS_FLAG_CARRIER = false
         stacksCounting = false
         NS.STACKS_COUNTING = stacksCounting
         currentStacks = 0
         NS.CURRENT_STACKS = currentStacks
-        Stacks:Stop(Stacks, Stacks.timerAnimationGroup)
+        stopStacks()
         Banner:Stop(Banner, Banner.timerAnimationGroup)
       end
     end
@@ -401,12 +320,10 @@ do
         allyFlagCarrier = pickedName
         allyHasFlag = true
         NS.HAS_FLAG_CARRIER = true
-        if hordeFlagCarrier and stacksCounting == false then
-          flagCarrier = "arena2"
-          FlagsFrame:RegisterEvent("UNIT_AURA")
+        if hordeHasFlag and not stacksCounting then
           stacksCounting = true
           NS.STACKS_COUNTING = stacksCounting
-          Stacks:Start(curMap.stackTime, 0)
+          startStacks(curMap.stackTime, 0)
         end
       end
 
@@ -420,46 +337,39 @@ do
       if sfind(message, "returned to its base by") then -- horde flag returned by horde
         allyFlagCarrier = nil
         allyHasFlag = false
-        if hordeFlagCarrier == nil and stacksCounting then
-          FlagsFrame:UnregisterEvent("UNIT_AURA")
-          hordeHasFlag = false
-          flagCarrier = nil
+        if not hordeHasFlag and stacksCounting then
           NS.HAS_FLAG_CARRIER = false
           stacksCounting = false
           NS.STACKS_COUNTING = stacksCounting
-          Stacks:Stop(Stacks, Stacks.timerAnimationGroup)
+          stopStacks()
         end
       end
 
       if sfind(message, "captured the") then -- horde captured alliance flag
-        FlagsFrame:UnregisterEvent("UNIT_AURA")
         allyFlagCarrier = nil
         hordeFlagCarrier = nil
         allyHasFlag = false
         hordeHasFlag = false
-        flagCarrier = nil
         NS.HAS_FLAG_CARRIER = false
         stacksCounting = false
         NS.STACKS_COUNTING = stacksCounting
         currentStacks = 0
         NS.CURRENT_STACKS = currentStacks
-        Stacks:Stop(Stacks, Stacks.timerAnimationGroup)
+        stopStacks()
         self:GetRemainingTime(6, NS.HORDE_NAME)
       end
 
       if sfind(message, "wins") then -- horde wins
-        FlagsFrame:UnregisterEvent("UNIT_AURA")
         allyFlagCarrier = nil
         hordeFlagCarrier = nil
         allyHasFlag = false
         hordeHasFlag = false
-        flagCarrier = nil
         NS.HAS_FLAG_CARRIER = false
         stacksCounting = false
         NS.STACKS_COUNTING = stacksCounting
         currentStacks = 0
         NS.CURRENT_STACKS = currentStacks
-        Stacks:Stop(Stacks, Stacks.timerAnimationGroup)
+        stopStacks()
         Banner:Stop(Banner, Banner.timerAnimationGroup)
       end
     end
@@ -467,18 +377,16 @@ do
     function FlagPrediction:CHAT_MSG_BG_SYSTEM_NEUTRAL(message)
       local flagsReturned = string.find(message, "placed at their bases") -- all flags returned
       if flagsReturned then
-        FlagsFrame:UnregisterEvent("UNIT_AURA")
         allyFlagCarrier = nil
         hordeFlagCarrier = nil
         allyHasFlag = false
         hordeHasFlag = false
-        flagCarrier = nil
         NS.HAS_FLAG_CARRIER = false
         stacksCounting = false
         NS.STACKS_COUNTING = stacksCounting
         currentStacks = 0
         NS.CURRENT_STACKS = currentStacks
-        Stacks:Stop(Stacks, Stacks.timerAnimationGroup)
+        stopStacks()
       end
     end
 
@@ -502,18 +410,16 @@ do
 
           NS.Debug("TRIGGERED", "aScore", aScore, "hScore", hScore)
 
-          FlagsFrame:UnregisterEvent("UNIT_AURA")
           allyFlagCarrier = nil
           hordeFlagCarrier = nil
           allyHasFlag = false
           hordeHasFlag = false
-          flagCarrier = nil
           NS.HAS_FLAG_CARRIER = false
           stacksCounting = false
           NS.STACKS_COUNTING = stacksCounting
           currentStacks = 0
           NS.CURRENT_STACKS = currentStacks
-          Stacks:Stop(Stacks, Stacks.timerAnimationGroup)
+          stopStacks()
           self:GetRemainingTime(6, NS.HORDE_NAME)
         end
       end
@@ -578,11 +484,12 @@ do
       prevAScore, prevHScore = 0, 0
       minScore, maxScore, aScore, hScore = 0, 3, 0, 0
       -- global
-      allyFlagCarrier, hordeFlagCarrier, flagCarrier = nil, nil, nil
+      allyFlagCarrier, hordeFlagCarrier = nil, nil
       NS.HAS_FLAG_CARRIER = false
       allyFlags, hordeFlags = 0, 0
       allyHasFlag, hordeHasFlag = false, false
       curMap = mapInfo
+      currentBGMapID = curMap.id
       stacksCounting = false
       NS.STACKS_COUNTING = stacksCounting
       currentStacks = 0
@@ -591,7 +498,6 @@ do
       self:GetScoreByMapID(curMap.id)
       self:GetObjectivesByMapID(curMap.id)
       self:GetTimeByMapID(curMap.id)
-      self:GetStacksByMapID(curMap.id)
 
       -- FlagsFrame:RegisterEvent("UNIT_AURA")
       FlagsFrame:RegisterEvent("UPDATE_UI_WIDGET")
@@ -604,8 +510,10 @@ do
 end
 
 function FlagPrediction:StopInfoTracker()
+  if NS.db and NS.db.global then
+    NS.db.global.flagStackSave = nil
+  end
   NS.db.global.lastFlagCapBy = ""
-  FlagsFrame:UnregisterEvent("UNIT_AURA")
   FlagsFrame:UnregisterEvent("UPDATE_UI_WIDGET")
   -- FlagsFrame:UnregisterEvent("ARENA_OPPONENT_UPDATE")
   FlagsFrame:UnregisterEvent("CHAT_MSG_BG_SYSTEM_ALLIANCE")

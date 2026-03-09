@@ -3,7 +3,6 @@ local AddonName, NS = ...
 local CreateFrame = CreateFrame
 local LibStub = LibStub
 local GetTime = GetTime
-local UnitIsDeadOrGhost = UnitIsDeadOrGhost
 
 local SharedMedia = LibStub("LibSharedMedia-3.0")
 
@@ -83,6 +82,8 @@ local buffformat4 = "Next stack in %s\n%d stacks"
 local alternateformat4 = "Next stack in %s\nHealing received -%d%%\nDamage taken +%d%%\n%d stacks"
 
 local function textUpdate(frame, stacks, killtime, time)
+  local displayTime = NS.formatTime(math.ceil(time))
+  local displayKilltime = NS.formatTime(math.ceil(killtime))
   if stacks >= 1 then
     if NS.IN_GAME then
       if NS.IS_TP and NS.db.global.maps.twinpeaks.showdebuffinfo then
@@ -101,7 +102,7 @@ local function textUpdate(frame, stacks, killtime, time)
   end
 
   if stacks == 0 then
-    Stacks:SetText(frame.text, buffformat1, NS.formatTime(time), stacks, killStacks, NS.formatTime(killtime))
+    Stacks:SetText(frame.text, buffformat1, displayTime, stacks, killStacks, displayKilltime)
   elseif stacks == 1 then
     -- if
     --   (NS.db.global.maps.twinpeaks.showdebuffinfo and (NS.IS_TP or NS.IN_GAME == false))
@@ -111,15 +112,15 @@ local function textUpdate(frame, stacks, killtime, time)
       Stacks:SetText(
         frame.text,
         alternateformat2,
-        NS.formatTime(time),
+        displayTime,
         stacks * healingDecrease,
         stacks * damageIncrease,
         stacks,
         killStacks,
-        NS.formatTime(killtime)
+        displayKilltime
       )
     else
-      Stacks:SetText(frame.text, buffformat2, NS.formatTime(time), stacks, killStacks, NS.formatTime(killtime))
+      Stacks:SetText(frame.text, buffformat2, displayTime, stacks, killStacks, displayKilltime)
     end
   elseif stacks > 1 and stacks < killStacks then
     -- if
@@ -130,15 +131,15 @@ local function textUpdate(frame, stacks, killtime, time)
       Stacks:SetText(
         frame.text,
         alternateformat3,
-        NS.formatTime(time),
+        displayTime,
         stacks * healingDecrease,
         stacks * damageIncrease,
         stacks,
         killStacks,
-        NS.formatTime(killtime)
+        displayKilltime
       )
     else
-      Stacks:SetText(frame.text, buffformat3, NS.formatTime(time), stacks, killStacks, NS.formatTime(killtime))
+      Stacks:SetText(frame.text, buffformat3, displayTime, stacks, killStacks, displayKilltime)
     end
   else
     -- if
@@ -149,13 +150,13 @@ local function textUpdate(frame, stacks, killtime, time)
       Stacks:SetText(
         frame.text,
         alternateformat4,
-        NS.formatTime(time),
+        displayTime,
         stacks * healingDecrease,
         stacks * damageIncrease,
         stacks
       )
     else
-      Stacks:SetText(frame.text, buffformat4, NS.formatTime(time), stacks)
+      Stacks:SetText(frame.text, buffformat4, displayTime, stacks)
     end
   end
 
@@ -177,11 +178,7 @@ local function animationUpdate(frame, duration, stacks, animationGroup)
     -- if we aren't in a game
     -- enemy auras dont update while dead
     -- auras dont get tracked if nobody is carrying the flag but stacks are still counting
-    if
-      NS.IN_GAME == false
-      or (NS.IN_GAME and UnitIsDeadOrGhost("player"))
-      or (NS.IN_GAME and NS.STACKS_COUNTING and NS.HAS_FLAG_CARRIER == false)
-    then
+    if not NS.IN_GAME or NS.STACKS_COUNTING then
       localStacks = localStacks + 1
       NS.CURRENT_STACKS = localStacks
       Stacks:Start(duration, localStacks)
@@ -206,7 +203,8 @@ local function animationUpdate(frame, duration, stacks, animationGroup)
   end
 end
 
-function Stacks:Start(duration, stacks)
+function Stacks:Start(duration, stacks, stackTime)
+  stackTime = stackTime or duration
   self:Stop(self, self.timerAnimationGroup)
 
   localStacks = stacks
@@ -218,7 +216,7 @@ function Stacks:Start(duration, stacks)
 
   local killtime = 0
   if stacks < killStacks then
-    self.killremaining = duration * (killStacks - localStacks)
+    self.killremaining = duration + (killStacks - localStacks - 1) * stackTime
     killtime = self.killremaining
     self.killstart = GetTime()
     self.killexp = self.killstart + killtime
@@ -241,7 +239,7 @@ function Stacks:Start(duration, stacks)
   end
 
   -- Store state for the pre-created callback
-  self.currentDuration = duration
+  self.currentDuration = stackTime -- full tick interval for all future ticks
   self.currentStacks = stacks
 
   self.timerAnimationGroup:Play()

@@ -1,22 +1,22 @@
 local _, NS = ...
 
 local pairs = pairs
-local ipairs = ipairs
 local CreateFrame = CreateFrame
 -- local GetRealmName = GetRealmName
--- local UnitName = UnitName
 local UnitExists = UnitExists
-local select = select
+local GetTime = GetTime
 
 local smatch = string.match
 
 local GetDoubleStateIconRowVisualizationInfo = C_UIWidgetManager.GetDoubleStateIconRowVisualizationInfo
-local GetAuraDataByAuraInstanceID = C_UnitAuras.GetAuraDataByAuraInstanceID
 
 local Orbs = NS.Orbs
 
 local OrbPrediction = {}
 NS.OrbPrediction = OrbPrediction
+
+-- File-level so StopInfoTracker (outside the do block) can cancel it
+local orbTicker = nil
 
 local OrbFrame = CreateFrame("Frame", "OrbFrame")
 OrbFrame:SetScript("OnEvent", function(_, event, ...)
@@ -25,15 +25,6 @@ OrbFrame:SetScript("OnEvent", function(_, event, ...)
   end
 end)
 
-local function noOrbCarriers(orbs)
-  for _, value in pairs(orbs) do
-    if value ~= "" then
-      return false
-    end
-  end
-  return true
-end
-
 do
   local allyOrbs, hordeOrbs = 0, 0
   local prevAOrbs, prevHOrbs = 0, 0
@@ -41,22 +32,14 @@ do
     id = 0,
     maxOrbs = 0,
     tickRate = 0,
+    stackIncrement = 0,
+    debuffTime = 0,
     buffTime = 0,
-  }
-  local pickedOrbs = {
-    ["Blue"] = false,
-    ["Green"] = false,
-    ["Orange"] = false,
-    ["Purple"] = false,
-  }
-  local orbTypes = {
-    ["Blue"] = 121164, -- Orb of Power (Blue)
-    ["Green"] = 121176, -- Orb of Power (Green)
-    ["Orange"] = 121177, -- Orb of Power (Orange)
-    ["Purple"] = 121175, -- Orb of Power (Purple)
   }
 
   do
+    -- arena slot → orb color (fixed assignment, confirmed from ObjectiveFrames objectiveIconSpells[417])
+    local arenaIndexToOrb = { [1] = "Blue", [2] = "Purple", [3] = "Green", [4] = "Orange" }
     local orbCarriers = {
       ["Blue"] = "",
       ["Green"] = "",
@@ -69,61 +52,31 @@ do
       ["Orange"] = 0,
       ["Purple"] = 0,
     }
+    -- Per-orb pickup timestamps; nil = orb not currently carried.
+    -- Formula: stackIncrement + floor(elapsed / debuffTime) * stackIncrement
+    local orbPickupTime = {
+      ["Blue"] = nil,
+      ["Green"] = nil,
+      ["Orange"] = nil,
+      ["Purple"] = nil,
+    }
 
-    -- aura.points[1] = Negative Healing Received, ex: -10
-    -- aura.points[2] = Damage taken increase, ex: 60
-    -- aura.points[3] = Damage done increase, ex: 20
-    local function updateOrbStacks(unitTarget, orbKey, spellId, changeType, updateInfo, isRemoved)
-      local nameAndRealm = NS.GetUnitNameAndRealm(unitTarget)
-
-      if orbCarriers[orbKey] ~= nameAndRealm then
-        return
-      end
-
-      if changeType == "update" or changeType == "remove" then
-        for _, auraInstanceID in ipairs(updateInfo) do
-          local aura = GetAuraDataByAuraInstanceID(unitTarget, auraInstanceID)
-          if aura and aura.spellId == spellId then
-            orbStacks[orbKey] = isRemoved and 0 or aura.points[2]
-            Orbs:StartOrbList(orbStacks)
-            break
-          end
-        end
-      elseif changeType == "add" then
-        for _, aura in ipairs(updateInfo) do
-          if aura and aura.spellId == spellId then
-            orbStacks[orbKey] = aura.points[2]
-            Orbs:StartOrbList(orbStacks)
-            break
+    local function tickOrbStacks()
+      local t = GetTime()
+      local changed = false
+      for orbKey, pickupTime in pairs(orbPickupTime) do
+        if pickupTime then
+          local newStacks = curMap.stackIncrement
+            + math.floor((t - pickupTime) / curMap.debuffTime) * curMap.stackIncrement
+          if newStacks ~= orbStacks[orbKey] then
+            orbStacks[orbKey] = newStacks
+            changed = true
           end
         end
       end
-    end
-
-    function OrbPrediction:UNIT_AURA(unitTarget, updateInfo)
-      if updateInfo.isFullUpdate or noOrbCarriers(orbCarriers) then
-        return
+      if changed then
+        Orbs:StartOrbList(orbStacks)
       end
-
-      -- added doesnt show up since its added by the time we start tracking
-      -- if updateInfo.addedAuras then
-      --   for orb, spellId in pairs(orbTypes) do
-      --     updateOrbStacks(unitTarget, orb, spellId, "add", updateInfo.addedAuras, false)
-      --   end
-      -- end
-
-      if updateInfo.updatedAuraInstanceIDs then
-        for orb, spellId in pairs(orbTypes) do
-          updateOrbStacks(unitTarget, orb, spellId, "update", updateInfo.updatedAuraInstanceIDs, false)
-        end
-      end
-
-      -- we're tracking orbs being removed elsewhere
-      -- if updateInfo.removedAuraInstanceIDs then
-      --   for orb, spellId in pairs(orbTypes) do
-      --     updateOrbStacks(unitTarget, orb, spellId, "remove", updateInfo.removedAuraInstanceIDs, true)
-      --   end
-      -- end
     end
 
     function OrbPrediction:BuffTimer(aOrbs, hOrbs, pAOrbs, pHOrbs)
@@ -141,10 +94,6 @@ do
 
         if aOrbs ~= curMap.maxOrbs and hOrbs ~= curMap.maxOrbs then
           Orbs:Stop(Orbs, Orbs.timerAnimationGroup, false)
-        end
-
-        if aOrbs == 0 and hOrbs == 0 then
-          OrbFrame:UnregisterEvent("UNIT_AURA")
         end
       end
     end
@@ -165,23 +114,13 @@ do
         -- temple base states are always state 1 which is technically contested in all other maps
         for _, v in pairs(baseInfo.leftIcons) do
           if v.iconState == Enum.IconState.ShowState1 then
-            local str = v.state1Tooltip
-
             allyOrbs = allyOrbs + 1
-
-            local orb = smatch(str, "the (%a+) orb")
-            pickedOrbs[orb] = true
           end
         end
 
         for _, v in pairs(baseInfo.rightIcons) do
           if v.iconState == Enum.IconState.ShowState1 then
-            local str = v.state1Tooltip
-
             hordeOrbs = hordeOrbs + 1
-
-            local orb = smatch(str, "the (%a+) orb")
-            pickedOrbs[orb] = true
           end
         end
       end
@@ -203,23 +142,13 @@ do
         -- temple base states are always state 1 which is technically contested in all other maps
         for _, v in pairs(baseInfo.leftIcons) do
           if v.iconState == Enum.IconState.ShowState1 then
-            local str = v.state1Tooltip
-
             allyOrbs = allyOrbs + 1
-
-            local orb = smatch(str, "the (%a+) orb")
-            pickedOrbs[orb] = true
           end
         end
 
         for _, v in pairs(baseInfo.rightIcons) do
           if v.iconState == Enum.IconState.ShowState1 then
-            local str = v.state1Tooltip
-
             hordeOrbs = hordeOrbs + 1
-
-            local orb = smatch(str, "the (%a+) orb")
-            pickedOrbs[orb] = true
           end
         end
 
@@ -227,75 +156,69 @@ do
       end
     end
 
-    local function filterDebuffs(unitID, ...)
-      local spellId = select(10, ...)
-      if spellId then
-        if
-          spellId == orbTypes["Blue"]
-          or spellId == orbTypes["Green"]
-          or spellId == orbTypes["Orange"]
-          or spellId == orbTypes["Purple"]
-        then
-          local nameAndRealm = NS.GetUnitNameAndRealm(unitID)
-          if spellId == orbTypes["Blue"] then
-            local debuffPercentage = select(17, ...)
-            orbCarriers["Blue"] = nameAndRealm
-            pickedOrbs["Blue"] = true
-            orbStacks["Blue"] = debuffPercentage
-          elseif spellId == orbTypes["Green"] then
-            local debuffPercentage = select(17, ...)
-            orbCarriers["Green"] = nameAndRealm
-            pickedOrbs["Green"] = true
-            orbStacks["Green"] = debuffPercentage
-          elseif spellId == orbTypes["Orange"] then
-            local debuffPercentage = select(17, ...)
-            orbCarriers["Orange"] = nameAndRealm
-            pickedOrbs["Orange"] = true
-            orbStacks["Orange"] = debuffPercentage
-          elseif spellId == orbTypes["Purple"] then
-            local debuffPercentage = select(17, ...)
-            orbCarriers["Purple"] = nameAndRealm
-            pickedOrbs["Purple"] = true
-            orbStacks["Purple"] = debuffPercentage
-          end
-          return true
-        end
-      end
-    end
-
     function OrbPrediction:GetStacksByMapID(mapID)
       -- mapID == Zone ID in-game
       -- TOK = 417
       if mapID == 417 then
-        -- Temple of Kotmogu
-        if UnitExists("arena1") or UnitExists("arena2") or UnitExists("arena3") or UnitExists("arena4") then
-          for i = 1, 4 do
-            local unitID = "arena" .. i
-            if unitID then
-              -- Apply debuff filtering
-              -- orbs are only debuffs
-              AuraUtil.ForEachAura(unitID, "HARMFUL", nil, function(...)
-                return filterDebuffs(unitID, ...)
-              end)
-            end
+        -- Temple of Kotmogu — use arena token existence for carrier detection.
+        -- Also clears slots that are no longer carried (e.g. dropped while player was dead).
+        for i = 1, 4 do
+          local orbKey = arenaIndexToOrb[i]
+          if UnitExists("arena" .. i) then
+            orbCarriers[orbKey] = NS.GetUnitNameAndRealm("arena" .. i)
+            orbPickupTime[orbKey] = GetTime()
+            orbStacks[orbKey] = curMap.stackIncrement
+          else
+            orbCarriers[orbKey] = ""
+            orbPickupTime[orbKey] = nil
+            orbStacks[orbKey] = 0
           end
+        end
+        Orbs:StartOrbList(orbStacks)
+      end
+    end
 
-          OrbFrame:RegisterEvent("UNIT_AURA")
+    function OrbPrediction:ARENA_OPPONENT_UPDATE(unitToken, updateReason)
+      -- match only arena1-4 exactly; arenapet1-4 would incorrectly extract the same digit
+      local idx = tonumber(unitToken:match("^arena(%d)$"))
+      if not idx or idx > 4 then
+        return
+      end
+      local orbKey = arenaIndexToOrb[idx]
+      if not orbKey then
+        return
+      end
+      if updateReason == "seen" then
+        -- verify unit actually exists before starting timer (belt-and-suspenders)
+        if UnitExists(unitToken) then
+          orbCarriers[orbKey] = NS.GetUnitNameAndRealm(unitToken)
+          if not orbPickupTime[orbKey] then
+            -- only start the timer on first pickup; don't reset a running timer
+            orbPickupTime[orbKey] = GetTime()
+            orbStacks[orbKey] = curMap.stackIncrement
+          end
+        end
+      elseif updateReason == "cleared" then
+        -- verify unit is actually gone before clearing; fires while dead too but
+        -- UnitExists returns false in those cases so this is safe
+        if not UnitExists(unitToken) then
+          orbCarriers[orbKey] = ""
+          orbPickupTime[orbKey] = nil
+          orbStacks[orbKey] = 0
         end
       end
+      self:BuffTimer(allyOrbs, hordeOrbs, prevAOrbs, prevHOrbs)
+      Orbs:StartOrbList(orbStacks)
     end
 
     function OrbPrediction:CHAT_MSG_BG_SYSTEM_ALLIANCE(message, _)
       local pickedName = smatch(message, "^(.-) has taken the") -- alliance picked orb
       local pickedOrb = smatch(message, "the (|c%x%x%x%x%x%x%x%x%a+|r) orb") -- orb with color
       if pickedOrb then
-        if noOrbCarriers(orbCarriers) then
-          OrbFrame:RegisterEvent("UNIT_AURA")
-        end
-
         local orbKey = NS.stripColorCode(pickedOrb)
         orbCarriers[orbKey] = pickedName
-        orbStacks[orbKey] = 30
+        orbPickupTime[orbKey] = GetTime()
+        orbStacks[orbKey] = curMap.stackIncrement
         Orbs:StartOrbList(orbStacks)
       end
     end
@@ -304,13 +227,10 @@ do
       local pickedName = smatch(message, "^(.-) has taken the") -- horde picked orb
       local pickedOrb = smatch(message, "the (|c%x%x%x%x%x%x%x%x%a+|r) orb") -- orb with color
       if pickedOrb then
-        if noOrbCarriers(orbCarriers) then
-          OrbFrame:RegisterEvent("UNIT_AURA")
-        end
-
         local orbKey = NS.stripColorCode(pickedOrb)
         orbCarriers[orbKey] = pickedName
-        orbStacks[orbKey] = 30
+        orbPickupTime[orbKey] = GetTime()
+        orbStacks[orbKey] = curMap.stackIncrement
         Orbs:StartOrbList(orbStacks)
       end
     end
@@ -322,20 +242,9 @@ do
 
         for k, _ in pairs(orbCarriers) do
           orbCarriers[k] = ""
-          pickedOrbs[k] = false
+          orbPickupTime[k] = nil
+          orbStacks[k] = 0
         end
-      end
-    end
-
-    function OrbPrediction:CHAT_MSG_RAID_BOSS_EMOTE(message)
-      -- local droppedName = playerName2 -- name without realm
-      local droppedOrb = smatch(message, "The (|c%x%x%x%x%x%x%x%x%a+|r) orb") -- orb with color
-      if droppedOrb then
-        local orbKey = NS.stripColorCode(droppedOrb)
-        orbCarriers[orbKey] = ""
-        orbStacks[orbKey] = 0
-        pickedOrbs[orbKey] = false
-        Orbs:StartOrbList(orbStacks)
       end
     end
 
@@ -352,22 +261,7 @@ do
       end
     end
 
-    ---[[
-    -- Fires after one of:
-    -- - Performing a successful corpse run and the player accepts the 'Resurrect Now' box.
-    -- - Accepting a resurrect from another player after releasing from a death.
-    -- - Zoning into an instance where the player is dead.
-    -- - When the player accept a resurrect from a Spirit Healer.
-    -- PLAYER_ALIVE
-    -- - Fired when the player releases from death to a graveyard; or accepts a resurrect before releasing their spirit.
-    --]]
-    function OrbPrediction:PLAYER_UNGHOST()
-      self:GetStacksByMapID(curMap.id)
-      Orbs:StartOrbList(orbStacks)
-    end
-
     function OrbPrediction:StartInfoTracker(mapInfo)
-      -- local
       orbCarriers = {
         ["Blue"] = "",
         ["Green"] = "",
@@ -380,12 +274,11 @@ do
         ["Orange"] = 0,
         ["Purple"] = 0,
       }
-      -- global
-      pickedOrbs = {
-        ["Blue"] = false,
-        ["Green"] = false,
-        ["Orange"] = false,
-        ["Purple"] = false,
+      orbPickupTime = {
+        ["Blue"] = nil,
+        ["Green"] = nil,
+        ["Orange"] = nil,
+        ["Purple"] = nil,
       }
       curMap = mapInfo
       allyOrbs, hordeOrbs = 0, 0
@@ -395,23 +288,26 @@ do
       self:GetStacksByMapID(curMap.id)
       Orbs:StartOrbList(orbStacks)
 
-      -- OrbFrame:RegisterEvent("UNIT_AURA")
+      orbTicker = C_Timer.NewTicker(1, tickOrbStacks)
+
+      OrbFrame:RegisterEvent("ARENA_OPPONENT_UPDATE")
       OrbFrame:RegisterEvent("UPDATE_UI_WIDGET")
       OrbFrame:RegisterEvent("CHAT_MSG_BG_SYSTEM_ALLIANCE")
       OrbFrame:RegisterEvent("CHAT_MSG_BG_SYSTEM_HORDE")
       OrbFrame:RegisterEvent("CHAT_MSG_BG_SYSTEM_NEUTRAL")
-      OrbFrame:RegisterEvent("CHAT_MSG_RAID_BOSS_EMOTE")
-      OrbFrame:RegisterEvent("PLAYER_UNGHOST")
     end
   end
 end
 
 function OrbPrediction:StopInfoTracker()
-  OrbFrame:UnregisterEvent("UNIT_AURA")
+  if orbTicker then
+    orbTicker:Cancel()
+    orbTicker = nil
+  end
+
+  OrbFrame:UnregisterEvent("ARENA_OPPONENT_UPDATE")
   OrbFrame:UnregisterEvent("UPDATE_UI_WIDGET")
   OrbFrame:UnregisterEvent("CHAT_MSG_BG_SYSTEM_ALLIANCE")
   OrbFrame:UnregisterEvent("CHAT_MSG_BG_SYSTEM_HORDE")
   OrbFrame:UnregisterEvent("CHAT_MSG_BG_SYSTEM_NEUTRAL")
-  OrbFrame:UnregisterEvent("CHAT_MSG_RAID_BOSS_EMOTE")
-  OrbFrame:UnregisterEvent("PLAYER_UNGHOST")
 end
