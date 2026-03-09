@@ -6,8 +6,11 @@ local CreateFrame = CreateFrame
 local UnitExists = UnitExists
 local GetTime = GetTime
 
+local mfloor = math.floor
 local smatch = string.match
+local sfind = string.find
 
+local NewTicker = C_Timer.NewTicker
 local GetDoubleStateIconRowVisualizationInfo = C_UIWidgetManager.GetDoubleStateIconRowVisualizationInfo
 
 local Orbs = NS.Orbs
@@ -62,8 +65,7 @@ do
       local changed = false
       for orbKey, pickupTime in pairs(orbPickupTime) do
         if pickupTime then
-          local newStacks = curMap.stackIncrement
-            + math.floor((t - pickupTime) / curMap.debuffTime) * curMap.stackIncrement
+          local newStacks = curMap.stackIncrement + mfloor((t - pickupTime) / curMap.debuffTime) * curMap.stackIncrement
           if newStacks ~= orbStacks[orbKey] then
             orbStacks[orbKey] = newStacks
             changed = true
@@ -237,7 +239,7 @@ do
     end
 
     function OrbPrediction:CHAT_MSG_BG_SYSTEM_NEUTRAL(message)
-      local gameOver = string.find(message, "wins")
+      local gameOver = sfind(message, "wins")
       if gameOver then
         Orbs:Stop(Orbs, Orbs.timerAnimationGroup, true)
 
@@ -289,7 +291,7 @@ do
       self:GetStacksByMapID(curMap.id)
       Orbs:StartOrbList(orbStacks)
 
-      orbTicker = C_Timer.NewTicker(1, tickOrbStacks)
+      orbTicker = NewTicker(1, tickOrbStacks)
 
       OrbFrame:RegisterEvent("ARENA_OPPONENT_UPDATE")
       OrbFrame:RegisterEvent("UPDATE_UI_WIDGET")
