@@ -194,7 +194,11 @@ do
     local aScore, hScore, aIncrease, hIncrease = 0, 0, 0, 0
     local prevABases, prevHBases, prevAIncBases, prevHIncBases = 0, 0, 0, 0
 
-    -- Adjusts win time to account for the After(0.5) delay in ScoreTracker
+    -- Compensates for tick drift caused by the After(0.5) delay in ScoreTracker.
+    -- Score events arrive ~0.5s after the actual server tick, so the raw calcWinTime
+    -- is slightly stale by the time we process it. Instead of subtracting a fixed 0.5s
+    -- (like Capping does), we subtract the actual elapsed time since the tick event
+    -- (tickAge = GetTime() - tickTime) for better accuracy under variable latency.
     local function getAdjustedWinTime(calcWinTime, tickTime)
       if tickTime and tickTime > 0 then
         local tickAge = GetTime() - tickTime
@@ -207,8 +211,10 @@ do
 
     function BasePrediction:BasePredictor(refresh, tickTime)
       if aScore < maxScore and hScore < maxScore then
-        -- For REFRESH calls, scores are from the last tick event (prevTime),
-        -- so use prevTime as drift reference to avoid a ~1s prediction jump
+        -- For REFRESH calls, scores haven't changed since the last tick event,
+        -- so use prevTime (the last tick's timestamp) as the drift reference.
+        -- Without this, REFRESH would use GetTime() as the baseline, causing a
+        -- ~1s prediction jump since the drift correction would be near-zero.
         local effectiveTickTime = tickTime or (refresh and prevTime > 0 and prevTime or nil)
         local source = refresh and "REFRESH" or (tickTime and "SCORE_TICK" or "OBJECTIVE")
         NS.Debug(
@@ -893,6 +899,13 @@ do
       NS.INCOMING_BASE_COUNT = allyIncBases + hordeIncBases
     end
 
+    function BasePrediction:ARENA_OPPONENT_UPDATE()
+      -- Re-read widget 1672 when arena tokens change so allyFlags/hordeFlags update immediately
+      if NS.isEOTS(curMap.id) then
+        self:FlagTracker(1672)
+      end
+    end
+
     function BasePrediction:UPDATE_UI_WIDGET(widgetInfo)
       if widgetInfo then
         local widgetID = widgetInfo.widgetID
@@ -936,10 +949,14 @@ do
       self:GetObjectivesByMapID(curMap.id)
 
       BaseFrame:RegisterEvent("UPDATE_UI_WIDGET")
+      if NS.isEOTS(curMap.id) then
+        BaseFrame:RegisterEvent("ARENA_OPPONENT_UPDATE")
+      end
     end
   end
 end
 
 function BasePrediction:StopInfoTracker()
   BaseFrame:UnregisterEvent("UPDATE_UI_WIDGET")
+  BaseFrame:UnregisterEvent("ARENA_OPPONENT_UPDATE")
 end

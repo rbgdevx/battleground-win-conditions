@@ -9,6 +9,24 @@ NS.Changelog = Changelog
 
 local changelog = {
   {
+    Version = "9.8.2",
+    General = "Midnight refactors",
+    Sections = {
+      {
+        Header = "Changes",
+        Entries = {
+          "Updating how objective tracking works for flag and orb maps based on the new limitations in midnight",
+        },
+      },
+      {
+        Header = "Bugfixes",
+        Entries = {
+          "Fixing tiny tick gap check for win cons",
+        },
+      },
+    },
+  },
+  {
     Version = "9.8.1",
     General = "Major Performance Improvements",
     Sections = {
