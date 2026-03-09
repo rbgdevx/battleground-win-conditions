@@ -30,7 +30,7 @@ end)
 -- Reload correction via SavedVariables: save stack count + time when stacks start,
 -- recover on reload by computing elapsed ticks.
 -- mapID is stored to reject stale saves from a previous BG.
-local currentBGMapID = 0
+local curMapID = 0
 
 -- Returns count, remaining (seconds until next tick). remaining is nil on no-save (fresh start).
 local function getExistingFlagStacks()
@@ -38,7 +38,7 @@ local function getExistingFlagStacks()
   if not saved then
     return 0, nil
   end
-  if saved.mapID ~= currentBGMapID then
+  if saved.mapID ~= curMapID then
     return 0, nil
   end
   local elapsed = GetTime() - saved.time
@@ -52,8 +52,7 @@ end
 local function startStacks(stackTime, count, remaining)
   remaining = remaining or stackTime
   local tickStartTime = GetTime() - (stackTime - remaining)
-  NS.db.global.lastFlagStackInfo =
-    { count = count, time = tickStartTime, stackTime = stackTime, mapID = currentBGMapID }
+  NS.db.global.lastFlagStackInfo = { count = count, time = tickStartTime, stackTime = stackTime, mapID = curMapID }
   Stacks:Start(remaining, count, stackTime)
 end
 
@@ -491,7 +490,7 @@ do
       allyFlags, hordeFlags = 0, 0
       allyHasFlag, hordeHasFlag = false, false
       curMap = mapInfo
-      currentBGMapID = curMap.id
+      curMapID = curMap.id
       stacksCounting = false
       NS.STACKS_COUNTING = stacksCounting
       currentStacks = 0
