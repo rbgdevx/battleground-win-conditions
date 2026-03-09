@@ -33,7 +33,7 @@ local currentBGMapID = 0
 
 -- Returns count, remaining (seconds until next tick). remaining is nil on no-save (fresh start).
 local function getExistingFlagStacks()
-  local saved = NS.db and NS.db.global and NS.db.global.flagStackSave
+  local saved = NS.db.global.lastFlagStackInfo
   if not saved then
     return 0, nil
   end
@@ -51,12 +51,13 @@ end
 local function startStacks(stackTime, count, remaining)
   remaining = remaining or stackTime
   local tickStartTime = GetTime() - (stackTime - remaining)
-  NS.db.global.flagStackSave = { count = count, time = tickStartTime, stackTime = stackTime, mapID = currentBGMapID }
+  NS.db.global.lastFlagStackInfo =
+    { count = count, time = tickStartTime, stackTime = stackTime, mapID = currentBGMapID }
   Stacks:Start(remaining, count, stackTime)
 end
 
 local function stopStacks()
-  NS.db.global.flagStackSave = nil
+  NS.db.global.lastFlagStackInfo = nil
   Stacks:Stop(Stacks, Stacks.timerAnimationGroup)
 end
 
@@ -510,9 +511,7 @@ do
 end
 
 function FlagPrediction:StopInfoTracker()
-  if NS.db and NS.db.global then
-    NS.db.global.flagStackSave = nil
-  end
+  NS.db.global.lastFlagStackInfo = nil
   NS.db.global.lastFlagCapBy = ""
   FlagsFrame:UnregisterEvent("UPDATE_UI_WIDGET")
   -- FlagsFrame:UnregisterEvent("ARENA_OPPONENT_UPDATE")

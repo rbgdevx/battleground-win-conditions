@@ -1,5 +1,10 @@
 # Battleground Win Conditions
 
+## [v9.8.2](https://github.com/rbgdevx/battleground-win-conditions/releases/tag/v9.8.2) (2026-03-09)
+
+- Updating how objective tracking works for flag and orb maps based on the new limitations in midnight
+- Fixing tiny tick gap check for win cons
+
 ## [v9.8.1](https://github.com/rbgdevx/battleground-win-conditions/releases/tag/v9.8.1) (2026-02-10)
 
 - Fixing tick "drift" to account for logic and mid-tick calculations

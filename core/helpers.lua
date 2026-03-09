@@ -623,7 +623,7 @@ NS.CleanupDB = function(src, dst)
         key ~= "lastReadVersion"
         and key ~= "onlyShowWhenNewVersion"
         and key ~= "lastFlagCapBy"
-        and key ~= "flagStackSave"
+        and key ~= "lastFlagStackInfo"
         and key ~= "version"
       then
         src[key] = nil
