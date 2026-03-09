@@ -15,7 +15,6 @@ local Orbs = NS.Orbs
 local OrbPrediction = {}
 NS.OrbPrediction = OrbPrediction
 
--- File-level so StopInfoTracker (outside the do block) can cancel it
 local orbTicker = nil
 
 local OrbFrame = CreateFrame("Frame", "OrbFrame")
@@ -38,7 +37,6 @@ do
   }
 
   do
-    -- arena slot → orb color (fixed assignment, confirmed from ObjectiveFrames objectiveIconSpells[417])
     local arenaIndexToOrb = { [1] = "Blue", [2] = "Purple", [3] = "Green", [4] = "Orange" }
     local orbCarriers = {
       ["Blue"] = "",
@@ -52,8 +50,6 @@ do
       ["Orange"] = 0,
       ["Purple"] = 0,
     }
-    -- Per-orb pickup timestamps; nil = orb not currently carried.
-    -- Formula: stackIncrement + floor(elapsed / debuffTime) * stackIncrement
     local orbPickupTime = {
       ["Blue"] = nil,
       ["Green"] = nil,
@@ -114,13 +110,19 @@ do
         -- temple base states are always state 1 which is technically contested in all other maps
         for _, v in pairs(baseInfo.leftIcons) do
           if v.iconState == Enum.IconState.ShowState1 then
+            -- local str = v.state1Tooltip
             allyOrbs = allyOrbs + 1
+            -- local orb = smatch(str, "the (%a+) orb")
+            -- pickedOrbs[orb] = true
           end
         end
 
         for _, v in pairs(baseInfo.rightIcons) do
           if v.iconState == Enum.IconState.ShowState1 then
+            -- local str = v.state1Tooltip
             hordeOrbs = hordeOrbs + 1
+            -- local orb = smatch(str, "the (%a+) orb")
+            -- pickedOrbs[orb] = true
           end
         end
       end
@@ -142,13 +144,19 @@ do
         -- temple base states are always state 1 which is technically contested in all other maps
         for _, v in pairs(baseInfo.leftIcons) do
           if v.iconState == Enum.IconState.ShowState1 then
+            -- local str = v.state1Tooltip
             allyOrbs = allyOrbs + 1
+            -- local orb = smatch(str, "the (%a+) orb")
+            -- pickedOrbs[orb] = true
           end
         end
 
         for _, v in pairs(baseInfo.rightIcons) do
           if v.iconState == Enum.IconState.ShowState1 then
+            -- local str = v.state1Tooltip
             hordeOrbs = hordeOrbs + 1
+            -- local orb = smatch(str, "the (%a+) orb")
+            -- pickedOrbs[orb] = true
           end
         end
 
@@ -160,8 +168,6 @@ do
       -- mapID == Zone ID in-game
       -- TOK = 417
       if mapID == 417 then
-        -- Temple of Kotmogu — use arena token existence for carrier detection.
-        -- Also clears slots that are no longer carried (e.g. dropped while player was dead).
         for i = 1, 4 do
           local orbKey = arenaIndexToOrb[i]
           if UnitExists("arena" .. i) then
@@ -179,7 +185,6 @@ do
     end
 
     function OrbPrediction:ARENA_OPPONENT_UPDATE(unitToken, updateReason)
-      -- match only arena1-4 exactly; arenapet1-4 would incorrectly extract the same digit
       local idx = tonumber(unitToken:match("^arena(%d)$"))
       if not idx or idx > 4 then
         return
@@ -189,18 +194,14 @@ do
         return
       end
       if updateReason == "seen" then
-        -- verify unit actually exists before starting timer (belt-and-suspenders)
         if UnitExists(unitToken) then
           orbCarriers[orbKey] = NS.GetUnitNameAndRealm(unitToken)
           if not orbPickupTime[orbKey] then
-            -- only start the timer on first pickup; don't reset a running timer
             orbPickupTime[orbKey] = GetTime()
             orbStacks[orbKey] = curMap.stackIncrement
           end
         end
       elseif updateReason == "cleared" then
-        -- verify unit is actually gone before clearing; fires while dead too but
-        -- UnitExists returns false in those cases so this is safe
         if not UnitExists(unitToken) then
           orbCarriers[orbKey] = ""
           orbPickupTime[orbKey] = nil
@@ -212,8 +213,8 @@ do
     end
 
     function OrbPrediction:CHAT_MSG_BG_SYSTEM_ALLIANCE(message, _)
-      local pickedName = smatch(message, "^(.-) has taken the") -- alliance picked orb
-      local pickedOrb = smatch(message, "the (|c%x%x%x%x%x%x%x%x%a+|r) orb") -- orb with color
+      local pickedName = smatch(message, "^(.-) has taken the")
+      local pickedOrb = smatch(message, "the (|c%x%x%x%x%x%x%x%x%a+|r) orb")
       if pickedOrb then
         local orbKey = NS.stripColorCode(pickedOrb)
         orbCarriers[orbKey] = pickedName
@@ -224,8 +225,8 @@ do
     end
 
     function OrbPrediction:CHAT_MSG_BG_SYSTEM_HORDE(message, _)
-      local pickedName = smatch(message, "^(.-) has taken the") -- horde picked orb
-      local pickedOrb = smatch(message, "the (|c%x%x%x%x%x%x%x%x%a+|r) orb") -- orb with color
+      local pickedName = smatch(message, "^(.-) has taken the")
+      local pickedOrb = smatch(message, "the (|c%x%x%x%x%x%x%x%x%a+|r) orb")
       if pickedOrb then
         local orbKey = NS.stripColorCode(pickedOrb)
         orbCarriers[orbKey] = pickedName
@@ -236,7 +237,7 @@ do
     end
 
     function OrbPrediction:CHAT_MSG_BG_SYSTEM_NEUTRAL(message)
-      local gameOver = string.find(message, "wins") -- someone wins
+      local gameOver = string.find(message, "wins")
       if gameOver then
         Orbs:Stop(Orbs, Orbs.timerAnimationGroup, true)
 

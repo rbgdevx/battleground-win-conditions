@@ -4,6 +4,8 @@ local CreateFrame = CreateFrame
 local LibStub = LibStub
 local GetTime = GetTime
 
+local mceil = math.ceil
+
 local SharedMedia = LibStub("LibSharedMedia-3.0")
 
 local Info = NS.Info
@@ -82,8 +84,8 @@ local buffformat4 = "Next stack in %s\n%d stacks"
 local alternateformat4 = "Next stack in %s\nHealing received -%d%%\nDamage taken +%d%%\n%d stacks"
 
 local function textUpdate(frame, stacks, killtime, time)
-  local displayTime = NS.formatTime(math.ceil(time))
-  local displayKilltime = NS.formatTime(math.ceil(killtime))
+  local displayTime = NS.formatTime(mceil(time))
+  local displayKilltime = NS.formatTime(mceil(killtime))
   if stacks >= 1 then
     if NS.IN_GAME then
       if NS.IS_TP and NS.db.global.maps.twinpeaks.showdebuffinfo then

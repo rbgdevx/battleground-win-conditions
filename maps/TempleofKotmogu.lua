@@ -26,6 +26,9 @@ local instanceIdToMapId = {
   -- tooltip1: "TEAM has taken the ORB"
   -- 6*4=24
   -- 24*4=96
+  -- aura.points[1] = Negative Healing Received, ex: -10
+  -- aura.points[2] = Damage taken increase, ex: 60
+  -- aura.points[3] = Damage done increase, ex: 20
   [998] = {
     id = 417,
     maxOrbs = 4,

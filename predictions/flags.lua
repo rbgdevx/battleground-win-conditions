@@ -8,6 +8,7 @@ local UnitName = UnitName
 
 local sfind = string.find
 local smatch = string.match
+local mfloor = math.floor
 
 local After = C_Timer.After
 local GetIconAndTextWidgetVisualizationInfo = C_UIWidgetManager.GetIconAndTextWidgetVisualizationInfo
@@ -41,7 +42,7 @@ local function getExistingFlagStacks()
     return 0, nil
   end
   local elapsed = GetTime() - saved.time
-  local recovered = saved.count + math.floor(elapsed / saved.stackTime)
+  local recovered = saved.count + mfloor(elapsed / saved.stackTime)
   local remaining = saved.stackTime - (elapsed % saved.stackTime)
   return recovered, remaining
 end
