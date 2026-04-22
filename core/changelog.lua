@@ -9,6 +9,18 @@ NS.Changelog = Changelog
 
 local changelog = {
   {
+    Version = "9.8.3",
+    General = "Minor updates",
+    Sections = {
+      {
+        Header = "Changes",
+        Entries = {
+          "Fixing new font api changes from recent patch",
+        },
+      },
+    },
+  },
+  {
     Version = "9.8.2",
     General = "Midnight refactors",
     Sections = {
