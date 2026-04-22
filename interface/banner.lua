@@ -32,7 +32,7 @@ function Banner:SetTextColor(frame, color)
 end
 
 function Banner:SetFont(frame)
-  frame:SetFont(SharedMedia:Fetch("font", NS.db.global.general.bannergroup.bannerfont), 12, "NORMAL")
+  frame:SetFont(SharedMedia:Fetch("font", NS.db.global.general.bannergroup.bannerfont), 12, "")
 end
 
 function Banner:SetScale(frame)

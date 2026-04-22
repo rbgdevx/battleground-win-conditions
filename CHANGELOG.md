@@ -1,5 +1,9 @@
 # Battleground Win Conditions
 
+## [v9.8.3](https://github.com/rbgdevx/battleground-win-conditions/releases/tag/v9.8.3) (2026-04-22)
+
+- Fixing new font api changes from recent patch
+
 ## [v9.8.2](https://github.com/rbgdevx/battleground-win-conditions/releases/tag/v9.8.2) (2026-03-09)
 
 - Updating how objective tracking works for flag and orb maps based on the new limitations in midnight
