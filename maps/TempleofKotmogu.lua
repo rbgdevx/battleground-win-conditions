@@ -13,12 +13,13 @@ local TOK = Maps:NewMod()
 local instanceIdToMapId = {
   -- TempleofKotmogu
   -- Points for the positions:
+  -- - starting area/lobby
   -- - outside main area/gates
   -- - outer ring/platform
-  -- - inner area/inside arena
+  -- - inner pit/arena
   -- Updates every 5 second
-  -- norml: 0 start, 3/5 out, 4/5 ring, 6/5 inner
-  -- blitz: 0 start, 5/5 out, 6/5 ring, 8/5 inner
+  -- normal: 0 start, 2/5 out, 4/5 ring, 6/5 inner
+  -- blitz: 0 start, 4/5 out, 6/5 ring, 8/5 inner
   -- x however many orbs you have
   -- kill = 10
   -- x4 for 45s = 4x pts

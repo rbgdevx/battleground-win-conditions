@@ -12,7 +12,7 @@ local mfloor = math.floor
 local mceil = math.ceil
 local mmin = math.min
 local mmax = math.max
-local twipe = table.wipe
+local twipe = wipe
 
 local After = C_Timer.After
 local GetDoubleStatusBarWidgetVisualizationInfo = C_UIWidgetManager.GetDoubleStatusBarWidgetVisualizationInfo
@@ -40,6 +40,8 @@ do
   local winBases, loseBases = 0, 0
   local allyFlags, hordeFlags = 0, 0
   local allyTimers, hordeTimers, winTable = {}, {}, {}
+  -- assigned from widget info but never read here (luacheck W231)
+  -- luacheck: ignore 231
   local minScore, maxScore, winScore, loseScore = 0, 1500, 0, 0
   local winName, loseName, winText = "", "", ""
   local curMap = {

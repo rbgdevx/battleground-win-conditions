@@ -39,8 +39,8 @@ do
         return
       end
 
-      local barMinValue = captureInfo.barMinValue -- 100 (friendly)
-      local barMaxValue = captureInfo.barMaxValue -- 0 (enemy)
+      -- local barMinValue = captureInfo.barMinValue -- 100 (friendly)
+      -- local barMaxValue = captureInfo.barMaxValue -- 0 (enemy)
       local barValue = captureInfo.barValue -- (starts at 50)
       local isVisible = captureInfo.shownState -- 1 (shown) or 0 (not)
       local neutralZoneCenter = captureInfo.neutralZoneCenter -- 50

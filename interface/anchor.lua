@@ -93,7 +93,7 @@ end
 
 function Anchor:AddControls(frame)
   frame:EnableMouse(true)
-  frame:SetScript("OnMouseUp", function(_, btn)
+  frame:SetScript("OnMouseUp", function(_, _)
     frame:EnableMouse(true)
     frame:SetScript("OnMouseUp", function(_, btn)
       if NS.db.global.general.lock == false and not IsInInstance() and frame:IsVisible() and frame:GetAlpha() ~= 0 then

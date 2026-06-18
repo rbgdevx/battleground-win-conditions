@@ -4,7 +4,7 @@ local pairs = pairs
 local CreateFrame = CreateFrame
 -- local GetRealmName = GetRealmName
 local UnitExists = UnitExists
-local GetTime = GetTime
+local time = time
 
 local mfloor = math.floor
 local smatch = string.match
@@ -12,6 +12,7 @@ local sfind = string.find
 
 local NewTicker = C_Timer.NewTicker
 local GetDoubleStateIconRowVisualizationInfo = C_UIWidgetManager.GetDoubleStateIconRowVisualizationInfo
+local GetActiveMatchDuration = C_PvP.GetActiveMatchDuration
 
 local Orbs = NS.Orbs
 
@@ -60,12 +61,55 @@ do
       ["Purple"] = nil,
     }
 
+    -- Reload correction via SavedVariables: save per-orb pickup times on every
+    -- pickup/drop, recover on reload by recomputing elapsed stacks.
+    -- Pickup times are epoch (time(), not GetTime()) so they also survive a
+    -- client crash/restart.
+    -- mapID is stored to reject stale saves from a previous BG.
+    local function saveOrbStacks()
+      local pickupTime = {}
+      for orbKey, t in pairs(orbPickupTime) do
+        pickupTime[orbKey] = t
+      end
+      NS.db.global.lastOrbStackInfo = { pickupTime = pickupTime, mapID = curMap.id }
+    end
+
+    -- Trust saved pickup times only if they're from this map and fall inside
+    -- the current match (epoch elapsed <= live match clock) -- anything else
+    -- is a previous match's state and is discarded. Pickups can only exist
+    -- while the match clock is running (orbs spawn after the gates), so a
+    -- 0/nil duration always means stale state.
+    local function getExistingOrbStacks()
+      local restored = {}
+      local saved = NS.db.global.lastOrbStackInfo
+      if not saved or saved.mapID ~= curMap.id or not saved.pickupTime then
+        return restored
+      end
+      local matchDuration = GetActiveMatchDuration()
+      if not matchDuration or matchDuration == 0 then
+        return restored
+      end
+      local t = time()
+      for orbKey, pickupTime in pairs(saved.pickupTime) do
+        local elapsed = t - pickupTime
+        -- +5s slop: the match clock and our epoch stamps tick independently
+        if elapsed >= 0 and elapsed <= matchDuration + 5 then
+          restored[orbKey] = pickupTime
+        end
+      end
+      return restored
+    end
+
+    local function computeOrbStacks(pickupTime, t)
+      return curMap.stackIncrement + mfloor((t - pickupTime) / curMap.debuffTime) * curMap.stackIncrement
+    end
+
     local function tickOrbStacks()
-      local t = GetTime()
+      local t = time()
       local changed = false
       for orbKey, pickupTime in pairs(orbPickupTime) do
         if pickupTime then
-          local newStacks = curMap.stackIncrement + mfloor((t - pickupTime) / curMap.debuffTime) * curMap.stackIncrement
+          local newStacks = computeOrbStacks(pickupTime, t)
           if newStacks ~= orbStacks[orbKey] then
             orbStacks[orbKey] = newStacks
             changed = true
@@ -170,18 +214,24 @@ do
       -- mapID == Zone ID in-game
       -- TOK = 417
       if mapID == 417 then
+        -- Reload recovery: resume from saved pickup times where valid, seed
+        -- any carrier the restore didn't cover at base stacks (the real
+        -- pickup time is unknowable here)
+        local restored = getExistingOrbStacks()
+        local t = time()
         for i = 1, 4 do
           local orbKey = arenaIndexToOrb[i]
           if UnitExists("arena" .. i) then
             orbCarriers[orbKey] = NS.GetUnitNameAndRealm("arena" .. i)
-            orbPickupTime[orbKey] = GetTime()
-            orbStacks[orbKey] = curMap.stackIncrement
+            orbPickupTime[orbKey] = restored[orbKey] or t
+            orbStacks[orbKey] = computeOrbStacks(orbPickupTime[orbKey], t)
           else
             orbCarriers[orbKey] = ""
             orbPickupTime[orbKey] = nil
             orbStacks[orbKey] = 0
           end
         end
+        saveOrbStacks()
         Orbs:StartOrbList(orbStacks)
       end
     end
@@ -199,8 +249,9 @@ do
         if UnitExists(unitToken) then
           orbCarriers[orbKey] = NS.GetUnitNameAndRealm(unitToken)
           if not orbPickupTime[orbKey] then
-            orbPickupTime[orbKey] = GetTime()
+            orbPickupTime[orbKey] = time()
             orbStacks[orbKey] = curMap.stackIncrement
+            saveOrbStacks()
           end
         end
       elseif updateReason == "cleared" then
@@ -208,6 +259,7 @@ do
           orbCarriers[orbKey] = ""
           orbPickupTime[orbKey] = nil
           orbStacks[orbKey] = 0
+          saveOrbStacks()
         end
       end
       self:BuffTimer(allyOrbs, hordeOrbs, prevAOrbs, prevHOrbs)
@@ -220,8 +272,9 @@ do
       if pickedOrb then
         local orbKey = NS.stripColorCode(pickedOrb)
         orbCarriers[orbKey] = pickedName
-        orbPickupTime[orbKey] = GetTime()
+        orbPickupTime[orbKey] = time()
         orbStacks[orbKey] = curMap.stackIncrement
+        saveOrbStacks()
         Orbs:StartOrbList(orbStacks)
       end
     end
@@ -232,8 +285,9 @@ do
       if pickedOrb then
         local orbKey = NS.stripColorCode(pickedOrb)
         orbCarriers[orbKey] = pickedName
-        orbPickupTime[orbKey] = GetTime()
+        orbPickupTime[orbKey] = time()
         orbStacks[orbKey] = curMap.stackIncrement
+        saveOrbStacks()
         Orbs:StartOrbList(orbStacks)
       end
     end
@@ -248,6 +302,7 @@ do
           orbPickupTime[k] = nil
           orbStacks[k] = 0
         end
+        NS.db.global.lastOrbStackInfo = nil
       end
     end
 
@@ -303,6 +358,8 @@ do
 end
 
 function OrbPrediction:StopInfoTracker()
+  NS.db.global.lastOrbStackInfo = nil
+
   if orbTicker then
     orbTicker:Cancel()
     orbTicker = nil

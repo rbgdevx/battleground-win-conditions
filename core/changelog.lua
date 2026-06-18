@@ -9,6 +9,19 @@ NS.Changelog = Changelog
 
 local changelog = {
   {
+    Version = "9.8.4",
+    General = "General updates",
+    Sections = {
+      {
+        Header = "Changes",
+        Entries = {
+          "Lua cleanup",
+          "Adding orb stack persistence through reload"
+        },
+      },
+    },
+  },
+  {
     Version = "9.8.3",
     General = "Minor updates",
     Sections = {

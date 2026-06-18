@@ -1,5 +1,11 @@
 # Battleground Win Conditions
 
+## [v9.8.4](https://github.com/rbgdevx/battleground-win-conditions/releases/tag/v9.8.4) (2026-06-17)
+
+- Lua cleanup
+- Adding License
+- Adding orb stack persistence through reload
+
 ## [v9.8.3](https://github.com/rbgdevx/battleground-win-conditions/releases/tag/v9.8.3) (2026-04-22)
 
 - Fixing new font api changes from recent patch

@@ -23,7 +23,7 @@ local mmin = math.min
 local mmax = math.max
 local tinsert = table.insert
 local tsort = table.sort
-local twipe = table.wipe
+-- local twipe = table.wipe
 
 local IsSoloRBG = C_PvP.IsSoloRBG
 
@@ -421,6 +421,8 @@ NS.getIncomingBaseInfo = function(timers, ownedBases, incomingBases, resources, 
   local baseIncrease = 0
   local scoreIncrease = 0
   local tickIncrease = 0
+  -- defensive init; overwritten before any read (luacheck W311)
+  -- luacheck: ignore 311
   local previousTime = 0
   local previousTicks = 0
   if timers and incomingBases > 0 then
@@ -624,6 +626,7 @@ NS.CleanupDB = function(src, dst)
         and key ~= "onlyShowWhenNewVersion"
         and key ~= "lastFlagCapBy"
         and key ~= "lastFlagStackInfo"
+        and key ~= "lastOrbStackInfo"
         and key ~= "version"
       then
         src[key] = nil

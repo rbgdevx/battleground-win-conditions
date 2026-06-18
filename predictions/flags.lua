@@ -62,6 +62,8 @@ local function stopStacks()
 end
 
 do
+  -- carrier names tracked but never read (write-only state; luacheck W231)
+  -- luacheck: ignore 231
   local allyFlagCarrier, hordeFlagCarrier = nil, nil
   local allyFlags, hordeFlags = 0, 0
   local curMap = {
@@ -118,6 +120,8 @@ do
   do
     local winTime = 0
     local prevAScore, prevHScore = 0, 0
+    -- assigned but never read (luacheck W231)
+    -- luacheck: ignore 231
     local minScore, maxScore, aScore, hScore = 0, 3, 0, 0
 
     function FlagPrediction:FlagPredictor(team)

@@ -84,6 +84,8 @@ local function winMessage(text, winCondition)
   local maxWinMinBases = winMinBases - 1 <= 0 and 1 or winMinBases - 1
   local capBases = winCondition.bases
   local loseBases = winCondition.loseBases
+  -- defensive init; overwritten before any read (luacheck W311)
+  -- luacheck: ignore 311
   local message = ""
 
   if winMinBases == 1 and ownTime <= 0 then
